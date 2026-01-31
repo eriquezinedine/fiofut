@@ -1,0 +1,14 @@
+name: model
+description: Package de modelos de datos para ticket_food. Contiene entidades, DTOs y modelos de dominio.
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  json_annotation: ^4.9.0
+
+dev_dependencies:
+  build_runner: ^2.4.15
+  json_serializable: ^6.9.5
