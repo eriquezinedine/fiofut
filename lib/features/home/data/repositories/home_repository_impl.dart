@@ -13,11 +13,14 @@ class HomeRepositoryImpl implements HomeRepository {
     // Mock data matching the design
     return HomeData(
       caloriesData: const CaloriesData(
-        consumed: 1500,
+        consumed: 1300,
         goal: 2000,
-        protein: 120,
-        carbs: 180,
-        fat: 55,
+        protein: 50,
+        proteinGoal: 150,
+        carbs: 50,
+        carbsGoal: 250,
+        fat: 50,
+        fatGoal: 70,
       ),
       hydrationData: const HydrationData(
         consumed: 0,

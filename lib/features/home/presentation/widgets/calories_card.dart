@@ -5,19 +5,24 @@ import 'package:fio_fut/features/home/domain/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-/// Height for the calories card.
-const double _kCaloriesCardHeight = 164;
+/// Height for the collapsed calories card.
+const double _kCaloriesCardCollapsedHeight = 156;
+
+/// Height for the expanded calories card.
+const double _kCaloriesCardExpandedHeight = 260;
 
 /// Sliver calories card that can pin during scroll.
 class SliverCaloriesCard extends StatelessWidget {
   const SliverCaloriesCard({
     required this.caloriesData,
+    this.isExpanded = false,
     this.onExpand,
     this.pinned = true,
     super.key,
   });
 
   final CaloriesData caloriesData;
+  final bool isExpanded;
   final VoidCallback? onExpand;
   final bool pinned;
 
@@ -27,6 +32,7 @@ class SliverCaloriesCard extends StatelessWidget {
       pinned: pinned,
       delegate: _CaloriesCardDelegate(
         caloriesData: caloriesData,
+        isExpanded: isExpanded,
         onExpand: onExpand,
       ),
     );
@@ -37,21 +43,27 @@ class SliverCaloriesCard extends StatelessWidget {
 class _CaloriesCardDelegate extends SliverPersistentHeaderDelegate {
   const _CaloriesCardDelegate({
     required this.caloriesData,
+    required this.isExpanded,
     this.onExpand,
   });
 
   final CaloriesData caloriesData;
+  final bool isExpanded;
   final VoidCallback? onExpand;
 
-  @override
-  double get minExtent => _kCaloriesCardHeight;
+  double get _cardHeight =>
+      isExpanded ? _kCaloriesCardExpandedHeight : _kCaloriesCardCollapsedHeight;
 
   @override
-  double get maxExtent => _kCaloriesCardHeight;
+  double get minExtent => _cardHeight;
+
+  @override
+  double get maxExtent => _cardHeight;
 
   @override
   bool shouldRebuild(covariant _CaloriesCardDelegate oldDelegate) {
-    return caloriesData != oldDelegate.caloriesData;
+    return caloriesData != oldDelegate.caloriesData ||
+        isExpanded != oldDelegate.isExpanded;
   }
 
   @override
@@ -61,11 +73,12 @@ class _CaloriesCardDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     return Container(
-      height: _kCaloriesCardHeight,
+      height: _cardHeight,
       color: AppColors.background,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: _CaloriesCardContent(
         caloriesData: caloriesData,
+        isExpanded: isExpanded,
         onExpand: onExpand,
       ),
     );
@@ -76,10 +89,12 @@ class _CaloriesCardDelegate extends SliverPersistentHeaderDelegate {
 class _CaloriesCardContent extends StatelessWidget {
   const _CaloriesCardContent({
     required this.caloriesData,
+    required this.isExpanded,
     this.onExpand,
   });
 
   final CaloriesData caloriesData;
+  final bool isExpanded;
   final VoidCallback? onExpand;
 
   @override
@@ -166,15 +181,58 @@ class _CaloriesCardContent extends StatelessWidget {
             ),
           ),
 
-          // "Ver más" button
+          // Macros row (only visible when expanded)
+          if (isExpanded) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _MacroCard(
+                      label: 'Proteína',
+                      value: caloriesData.protein,
+                      goal: caloriesData.proteinGoal,
+                      progress: caloriesData.proteinProgress,
+                      progressColor: AppColors.redBright,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _MacroCard(
+                      label: 'Carbos',
+                      value: caloriesData.carbs,
+                      goal: caloriesData.carbsGoal,
+                      progress: caloriesData.carbsProgress,
+                      progressColor: AppColors.orange,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _MacroCard(
+                      label: 'Grasa',
+                      value: caloriesData.fat,
+                      goal: caloriesData.fatGoal,
+                      progress: caloriesData.fatProgress,
+                      progressColor: AppColors.blue,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          // Spacer to push button to bottom
+          const Spacer(),
+
+          // "Ver más" / "Ver menos" button
           GestureDetector(
             onTap: onExpand,
             child: Container(
               width: double.infinity,
               height: 32,
-              decoration: const BoxDecoration(
-                color: Color(0xFF2A2A2A),
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(24),
                   bottomRight: Radius.circular(24),
                 ),
@@ -183,7 +241,7 @@ class _CaloriesCardContent extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Ver más',
+                    isExpanded ? 'Ver menos' : 'Ver más',
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
@@ -193,12 +251,107 @@ class _CaloriesCardContent extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Icon(
-                    LucideIcons.chevronDown,
+                    isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
                     color: AppColors.textMuted,
                     size: 18,
                   ),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Macro nutrient card widget.
+class _MacroCard extends StatelessWidget {
+  const _MacroCard({
+    required this.label,
+    required this.value,
+    required this.goal,
+    required this.progress,
+    required this.progressColor,
+  });
+
+  final String label;
+  final int value;
+  final int goal;
+  final double progress;
+  final Color progressColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Value row with goal
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$value',
+                style: const TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.white,
+                ),
+              ),
+              const SizedBox(width: 1),
+              Text(
+                '/${goal}g',
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          // Label
+          Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 11,
+              fontWeight: FontWeight.w400,
+              color: AppColors.textMuted,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Progress bar
+          Container(
+            height: 6,
+      width: 200,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceAlt,
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Stack(
+                  children: [
+                    Container(
+                      width: constraints.maxWidth * progress.clamp(0.0, 1.0),
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: progressColor,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -220,7 +373,7 @@ class _CaloriesProgressPainter extends CustomPainter {
 
     // Background circle
     final bgPaint = Paint()
-      ..color = const Color(0xFF2A2A2A)
+      ..color = AppColors.surfaceAlt
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
 

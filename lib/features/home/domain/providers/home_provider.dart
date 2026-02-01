@@ -27,11 +27,14 @@ class HomeNotifier extends Notifier<HomeState> {
       // Placeholder data
       state = HomeLoaded(
         caloriesData: const CaloriesData(
-          consumed: 0,
+          consumed: 1300,
           goal: 2000,
-          protein: 0,
-          carbs: 0,
-          fat: 0,
+          protein: 50,
+          proteinGoal: 150,
+          carbs: 50,
+          carbsGoal: 250,
+          fat: 50,
+          fatGoal: 70,
         ),
         hydrationData: const HydrationData(
           consumed: 0,

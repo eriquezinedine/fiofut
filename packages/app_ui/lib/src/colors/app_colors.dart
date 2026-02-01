@@ -46,7 +46,7 @@ abstract final class AppColors {
 
   // ---------- Brand ----------
   /// Color primario de la marca
-  static const Color primary = lime;
+  static const Color primary = green;
 
   /// Color secundario de la marca
   static const Color secondary = red;
