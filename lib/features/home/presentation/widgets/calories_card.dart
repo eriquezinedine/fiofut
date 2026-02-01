@@ -332,7 +332,7 @@ class _MacroCard extends StatelessWidget {
           // Progress bar
           Container(
             height: 6,
-      width: 200,
+            width: 200,
             decoration: BoxDecoration(
               color: AppColors.surfaceAlt,
               borderRadius: BorderRadius.circular(3),
