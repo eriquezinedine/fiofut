@@ -1,4 +1,6 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/features/app_content/presentation/pages/app_content_page.dart';
+import 'package:fio_fut/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +11,7 @@ import '../../features/onboarding/onboarding.dart';
 /// Provider del router
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: AppRoutes.onboarding,
+    initialLocation: AppRoutes.home,
     debugLogDiagnostics: true,
     routes: [
       // Onboarding
@@ -23,7 +25,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.home,
         name: 'home',
-        builder: (context, state) => const _PlaceholderScreen(title: 'Home'),
+        builder: (context, state) => const AppContentPage(),
       ),
 
       // Products

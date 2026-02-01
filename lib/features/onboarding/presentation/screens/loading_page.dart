@@ -3,9 +3,11 @@ import 'dart:math' as math;
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../domain/providers/providers.dart';
 import '../widgets/widgets.dart';
 
@@ -97,15 +99,6 @@ class _LoadingPageState extends ConsumerState<LoadingPage>
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      // TODO: Remove this FAB after testing confetti
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            _isComplete = !_isComplete;
-          });
-        },
-        child: const Icon(LucideIcons.partyPopper),
-      ),
       body: Stack(
         children: [
           SafeArea(
@@ -178,6 +171,7 @@ class _LoadingPageState extends ConsumerState<LoadingPage>
                     onPressed: _isComplete
                         ? () {
                             notifier.completeOnboarding();
+                            context.go(AppRoutes.home);
                           }
                         : null,
                     text: 'Comenzar',
