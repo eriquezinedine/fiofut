@@ -26,21 +26,19 @@ class RegisterScreen extends ConsumerWidget {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
+              AppSpacing.verticalMd,
 
               // Titulo
               Text(
                 'Crear cuenta',
-                style: AppTextStyles.h2.copyWith(
-                  color: AppColors.textPrimary,
-                ),
+                style: AppTextStyles.h2,
               ),
 
-              const SizedBox(height: 8),
+              AppSpacing.verticalXs,
 
               Text(
                 'Completa tus datos para comenzar',
@@ -49,7 +47,7 @@ class RegisterScreen extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 32),
+              AppSpacing.verticalXl,
 
               // Name
               AppTextField(
@@ -62,11 +60,11 @@ class RegisterScreen extends ConsumerWidget {
                 onChanged: notifier.updateName,
               ),
 
-              const SizedBox(height: 20),
+              AppSpacing.verticalMd,
 
               // Email
               AppTextField(
-                label: 'Correo electronico',
+                label: 'Correo electrónico',
                 hint: 'tu@email.com',
                 prefixIcon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
@@ -74,12 +72,12 @@ class RegisterScreen extends ConsumerWidget {
                 onChanged: notifier.updateEmail,
               ),
 
-              const SizedBox(height: 20),
+              AppSpacing.verticalMd,
 
               // Password
               AppTextField(
-                label: 'Contrasena',
-                hint: 'Minimo 6 caracteres',
+                label: 'Contraseña',
+                hint: 'Mínimo 6 caracteres',
                 prefixIcon: Icons.lock_outline,
                 obscureText: !state.isPasswordVisible,
                 suffixIcon: state.isPasswordVisible
@@ -90,12 +88,12 @@ class RegisterScreen extends ConsumerWidget {
                 onChanged: notifier.updatePassword,
               ),
 
-              const SizedBox(height: 20),
+              AppSpacing.verticalMd,
 
               // Confirm Password
               AppTextField(
-                label: 'Confirmar contrasena',
-                hint: 'Repite tu contrasena',
+                label: 'Confirmar contraseña',
+                hint: 'Repite tu contraseña',
                 prefixIcon: Icons.lock_outline,
                 obscureText: !state.isConfirmPasswordVisible,
                 suffixIcon: state.isConfirmPasswordVisible
@@ -107,11 +105,11 @@ class RegisterScreen extends ConsumerWidget {
                 onSubmitted: (_) => _handleRegister(context, ref),
                 errorText: state.confirmPassword.isNotEmpty &&
                         !state.passwordsMatch
-                    ? 'Las contrasenas no coinciden'
+                    ? 'Las contraseñas no coinciden'
                     : null,
               ),
 
-              const SizedBox(height: 24),
+              AppSpacing.verticalLg,
 
               // Terms checkbox
               GestureDetector(
@@ -142,7 +140,7 @@ class RegisterScreen extends ConsumerWidget {
                             )
                           : null,
                     ),
-                    const SizedBox(width: 12),
+                    AppSpacing.horizontalSm,
                     Expanded(
                       child: RichText(
                         text: TextSpan(
@@ -152,18 +150,16 @@ class RegisterScreen extends ConsumerWidget {
                           children: [
                             const TextSpan(text: 'Acepto los '),
                             TextSpan(
-                              text: 'Terminos y Condiciones',
-                              style: AppTextStyles.caption.copyWith(
+                              text: 'Términos y Condiciones',
+                              style: AppTextStyles.labelLarge.copyWith(
                                 color: AppColors.primary,
-                                fontWeight: FontWeight.w500,
                               ),
                             ),
                             const TextSpan(text: ' y la '),
                             TextSpan(
-                              text: 'Politica de Privacidad',
-                              style: AppTextStyles.caption.copyWith(
+                              text: 'Política de Privacidad',
+                              style: AppTextStyles.labelLarge.copyWith(
                                 color: AppColors.primary,
-                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
@@ -174,17 +170,17 @@ class RegisterScreen extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              AppSpacing.verticalLg,
 
               // Error message
               if (state.errorMessage != null)
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: AppSpacing.paddingAllSm,
+                  margin: const EdgeInsets.only(bottom: AppSpacing.md),
                   decoration: BoxDecoration(
                     color: AppColors.error.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: AppSpacing.borderRadiusSm,
                     border: Border.all(
                       color: AppColors.error.withValues(alpha: 0.3),
                     ),
@@ -194,9 +190,9 @@ class RegisterScreen extends ConsumerWidget {
                       const Icon(
                         Icons.error_outline,
                         color: AppColors.error,
-                        size: 20,
+                        size: AppSpacing.iconSm,
                       ),
-                      const SizedBox(width: 8),
+                      AppSpacing.horizontalXs,
                       Expanded(
                         child: Text(
                           state.errorMessage!,
@@ -218,16 +214,16 @@ class RegisterScreen extends ConsumerWidget {
                 type: AppButtonType.primary,
               ),
 
-              const SizedBox(height: 24),
+              AppSpacing.verticalLg,
 
               // Divider
               Row(
                 children: [
                   const Expanded(child: Divider(color: AppColors.border)),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: AppSpacing.paddingHorizontalMd,
                     child: Text(
-                      'o registrate con',
+                      'o regístrate con',
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.textMuted,
                       ),
@@ -237,7 +233,7 @@ class RegisterScreen extends ConsumerWidget {
                 ],
               ),
 
-              const SizedBox(height: 24),
+              AppSpacing.verticalLg,
 
               // Social buttons
               Row(
@@ -251,7 +247,7 @@ class RegisterScreen extends ConsumerWidget {
                       },
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  AppSpacing.horizontalMd,
                   Expanded(
                     child: _SocialButton(
                       icon: Icons.apple,
@@ -264,14 +260,14 @@ class RegisterScreen extends ConsumerWidget {
                 ],
               ),
 
-              const SizedBox(height: 32),
+              AppSpacing.verticalXl,
 
               // Login link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Ya tienes cuenta? ',
+                    '¿Ya tienes cuenta? ',
                     style: AppTextStyles.body.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -279,7 +275,7 @@ class RegisterScreen extends ConsumerWidget {
                   GestureDetector(
                     onTap: () => router.GoRouter.of(context).pop(),
                     child: Text(
-                      'Inicia sesion',
+                      'Inicia sesión',
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.primary,
                       ),
@@ -288,7 +284,7 @@ class RegisterScreen extends ConsumerWidget {
                 ],
               ),
 
-              const SizedBox(height: 32),
+              AppSpacing.verticalXl,
             ],
           ),
         ),
@@ -299,7 +295,6 @@ class RegisterScreen extends ConsumerWidget {
   Future<void> _handleRegister(BuildContext context, WidgetRef ref) async {
     final success = await ref.read(registerProvider.notifier).register();
     if (success && context.mounted) {
-      // Navegar al onboarding despues de registrarse
       router.GoRouter.of(context).go(AppRoutes.onboarding);
     }
   }
@@ -324,19 +319,17 @@ class _SocialButton extends StatelessWidget {
         height: 52,
         decoration: BoxDecoration(
           color: AppColors.surfaceAlt,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppSpacing.borderRadiusMd,
           border: Border.all(color: AppColors.border),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: AppColors.textPrimary, size: 24),
-            const SizedBox(width: 8),
+            Icon(icon, color: AppColors.textPrimary, size: AppSpacing.iconMd),
+            AppSpacing.horizontalXs,
             Text(
               label,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textPrimary,
-              ),
+              style: AppTextStyles.bodyMedium,
             ),
           ],
         ),

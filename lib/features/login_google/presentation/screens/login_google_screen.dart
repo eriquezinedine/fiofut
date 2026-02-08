@@ -20,7 +20,7 @@ class LoginGoogleScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Column(
             children: [
               const Spacer(),
@@ -48,27 +48,22 @@ class LoginGoogleScreen extends ConsumerWidget {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      AppSpacing.verticalLg,
 
-                      // App Title
-                      const Text(
+                      // App Title - h1 con weight 800
+                      Text(
                         'FioFut',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 48,
+                        style: AppTextStyles.h1.copyWith(
                           fontWeight: FontWeight.w800,
-                          color: AppColors.white,
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      AppSpacing.verticalLg,
 
-                      // Tagline
-                      const Text(
+                      // Tagline - titleMedium con weight 400
+                      Text(
                         'Tu entrenador de fitness',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 18,
+                        style: AppTextStyles.titleMedium.copyWith(
                           fontWeight: FontWeight.w400,
                           color: AppColors.textSecondary,
                         ),
@@ -80,46 +75,39 @@ class LoginGoogleScreen extends ConsumerWidget {
 
                   // ========== LOGIN SECTION ==========
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     child: Column(
                       children: [
-                        // Welcome text
-                        const Text(
+                        // Welcome text - h2
+                        Text(
                           'Bienvenido',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 28,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.white,
-                          ),
+                          style: AppTextStyles.h2,
                         ),
 
-                        const SizedBox(height: 32),
+                        AppSpacing.verticalXl,
 
-                        // Subtitle
-                        const Text(
+                        // Subtitle - body con color secundario
+                        Text(
                           'Inicia sesión para continuar',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
+                          style: AppTextStyles.body.copyWith(
                             color: AppColors.textSecondary,
                           ),
                         ),
 
-                        const SizedBox(height: 32),
+                        AppSpacing.verticalXl,
 
                         // Error message
                         if (state.errorMessage != null)
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(12),
-                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: AppSpacing.paddingAllSm,
+                            margin: const EdgeInsets.only(bottom: AppSpacing.md),
                             decoration: BoxDecoration(
                               color: AppColors.error.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: AppSpacing.borderRadiusMd,
                               border: Border.all(
                                 color: AppColors.error.withValues(alpha: 0.3),
                               ),
@@ -129,9 +117,9 @@ class LoginGoogleScreen extends ConsumerWidget {
                                 const Icon(
                                   Icons.error_outline,
                                   color: AppColors.error,
-                                  size: 20,
+                                  size: AppSpacing.iconSm,
                                 ),
-                                const SizedBox(width: 12),
+                                AppSpacing.horizontalSm,
                                 Expanded(
                                   child: Text(
                                     state.errorMessage!,
@@ -158,7 +146,7 @@ class LoginGoogleScreen extends ConsumerWidget {
                           onPressed: () => _handleGoogleSignIn(context, ref),
                         ),
 
-                        const SizedBox(height: 32),
+                        AppSpacing.verticalXl,
 
                         // Terms Section
                         const _TermsSection(),
@@ -233,20 +221,17 @@ class _GoogleButton extends StatelessWidget {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Google "G"
+                  // Google Logo SVG
                   SvgPicture.asset(
                     'assets/svg/google.svg',
                     width: 24,
                     height: 24,
                   ),
-                  const SizedBox(width: 16),
-                  // Button text
-                  const Text(
+                  AppSpacing.horizontalMd,
+                  // Button text - titleMedium con color negro
+                  Text(
                     'Continuar con Google',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                    style: AppTextStyles.titleMedium.copyWith(
                       color: AppColors.black,
                     ),
                   ),
@@ -263,22 +248,23 @@ class _TermsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xl,
+        vertical: AppSpacing.xl,
+      ),
       child: FittedBox(
         child: Column(
           children: [
-            const Text(
+            // caption con color textMuted
+            Text(
               'Al continuar, aceptas nuestros',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFF6B7280),
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textMuted,
                 height: 1.4,
               ),
             ),
-            const SizedBox(height: 12),
+            AppSpacing.verticalSm,
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -286,37 +272,32 @@ class _TermsSection extends StatelessWidget {
                   onTap: () {
                     // TODO: Navegar a términos de servicio
                   },
-                  child: const Text(
+                  // labelLarge con color primary
+                  child: Text(
                     'Términos de servicio',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                    style: AppTextStyles.labelLarge.copyWith(
                       color: AppColors.primary,
                     ),
                   ),
                 ),
-                const SizedBox(width: 4),
-                const Text(
+                AppSpacing.horizontalXxs,
+                // caption con color textMuted
+                Text(
                   'y',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textMuted,
                     fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF6B7280),
                   ),
                 ),
-                const SizedBox(width: 4),
+                AppSpacing.horizontalXxs,
                 GestureDetector(
                   onTap: () {
                     // TODO: Navegar a política de privacidad
                   },
-                  child: const Text(
+                  // labelLarge con color primary
+                  child: Text(
                     'Política de privacidad',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                    style: AppTextStyles.labelLarge.copyWith(
                       color: AppColors.primary,
                     ),
                   ),

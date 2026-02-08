@@ -18,7 +18,7 @@ class LoginScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -31,7 +31,7 @@ class LoginScreen extends ConsumerWidget {
                   height: 80,
                   decoration: BoxDecoration(
                     color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: AppSpacing.borderRadiusXl,
                   ),
                   child: const Icon(
                     Icons.fitness_center,
@@ -47,28 +47,26 @@ class LoginScreen extends ConsumerWidget {
               Center(
                 child: Text(
                   'Bienvenido de vuelta',
-                  style: AppTextStyles.h2.copyWith(
-                    color: AppColors.textPrimary,
-                  ),
+                  style: AppTextStyles.h2,
                 ),
               ),
 
-              const SizedBox(height: 8),
+              AppSpacing.verticalXs,
 
               Center(
                 child: Text(
-                  'Inicia sesion para continuar',
+                  'Inicia sesión para continuar',
                   style: AppTextStyles.body.copyWith(
                     color: AppColors.textSecondary,
                   ),
                 ),
               ),
 
-              const SizedBox(height: 48),
+              AppSpacing.verticalXxl,
 
               // Email
               AppTextField(
-                label: 'Correo electronico',
+                label: 'Correo electrónico',
                 hint: 'tu@email.com',
                 prefixIcon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
@@ -79,12 +77,12 @@ class LoginScreen extends ConsumerWidget {
                     : null,
               ),
 
-              const SizedBox(height: 20),
+              AppSpacing.verticalMd,
 
               // Password
               AppTextField(
-                label: 'Contrasena',
-                hint: 'Ingresa tu contrasena',
+                label: 'Contraseña',
+                hint: 'Ingresa tu contraseña',
                 prefixIcon: Icons.lock_outline,
                 obscureText: !state.isPasswordVisible,
                 suffixIcon: state.isPasswordVisible
@@ -95,21 +93,21 @@ class LoginScreen extends ConsumerWidget {
                 onChanged: notifier.updatePassword,
                 onSubmitted: (_) => _handleLogin(context, ref),
                 errorText: state.errorMessage != null && state.password.isEmpty
-                    ? 'Ingresa tu contrasena'
+                    ? 'Ingresa tu contraseña'
                     : null,
               ),
 
-              const SizedBox(height: 12),
+              AppSpacing.verticalSm,
 
               // Forgot password
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                    // TODO: Implementar recuperacion de contrasena
+                    // TODO: Implementar recuperación de contraseña
                   },
                   child: Text(
-                    'Olvidaste tu contrasena?',
+                    '¿Olvidaste tu contraseña?',
                     style: AppTextStyles.caption.copyWith(
                       color: AppColors.primary,
                     ),
@@ -117,17 +115,17 @@ class LoginScreen extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              AppSpacing.verticalLg,
 
               // Error message
               if (state.errorMessage != null)
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: AppSpacing.paddingAllSm,
+                  margin: const EdgeInsets.only(bottom: AppSpacing.md),
                   decoration: BoxDecoration(
                     color: AppColors.error.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: AppSpacing.borderRadiusSm,
                     border: Border.all(
                       color: AppColors.error.withValues(alpha: 0.3),
                     ),
@@ -137,9 +135,9 @@ class LoginScreen extends ConsumerWidget {
                       const Icon(
                         Icons.error_outline,
                         color: AppColors.error,
-                        size: 20,
+                        size: AppSpacing.iconSm,
                       ),
-                      const SizedBox(width: 8),
+                      AppSpacing.horizontalXs,
                       Expanded(
                         child: Text(
                           state.errorMessage!,
@@ -154,22 +152,23 @@ class LoginScreen extends ConsumerWidget {
 
               // Login button
               AppButton(
-                text: 'Iniciar sesion',
-                onPressed: state.isLoading ? null : () => _handleLogin(context, ref),
+                text: 'Iniciar sesión',
+                onPressed:
+                    state.isLoading ? null : () => _handleLogin(context, ref),
                 isLoading: state.isLoading,
                 type: AppButtonType.primary,
               ),
 
-              const SizedBox(height: 24),
+              AppSpacing.verticalLg,
 
               // Divider
               Row(
                 children: [
                   const Expanded(child: Divider(color: AppColors.border)),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: AppSpacing.paddingHorizontalMd,
                     child: Text(
-                      'o continua con',
+                      'o continúa con',
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.textMuted,
                       ),
@@ -179,7 +178,7 @@ class LoginScreen extends ConsumerWidget {
                 ],
               ),
 
-              const SizedBox(height: 24),
+              AppSpacing.verticalLg,
 
               // Social buttons
               Row(
@@ -193,7 +192,7 @@ class LoginScreen extends ConsumerWidget {
                       },
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  AppSpacing.horizontalMd,
                   Expanded(
                     child: _SocialButton(
                       icon: Icons.apple,
@@ -206,22 +205,23 @@ class LoginScreen extends ConsumerWidget {
                 ],
               ),
 
-              const SizedBox(height: 48),
+              AppSpacing.verticalXxl,
 
               // Register link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'No tienes cuenta? ',
+                    '¿No tienes cuenta? ',
                     style: AppTextStyles.body.copyWith(
                       color: AppColors.textSecondary,
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => router.GoRouter.of(context).push(AppRoutes.register),
+                    onTap: () =>
+                        router.GoRouter.of(context).push(AppRoutes.register),
                     child: Text(
-                      'Registrate',
+                      'Regístrate',
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.primary,
                       ),
@@ -230,7 +230,7 @@ class LoginScreen extends ConsumerWidget {
                 ],
               ),
 
-              const SizedBox(height: 32),
+              AppSpacing.verticalXl,
             ],
           ),
         ),
@@ -265,19 +265,17 @@ class _SocialButton extends StatelessWidget {
         height: 52,
         decoration: BoxDecoration(
           color: AppColors.surfaceAlt,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppSpacing.borderRadiusMd,
           border: Border.all(color: AppColors.border),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: AppColors.textPrimary, size: 24),
-            const SizedBox(width: 8),
+            Icon(icon, color: AppColors.textPrimary, size: AppSpacing.iconMd),
+            AppSpacing.horizontalXs,
             Text(
               label,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textPrimary,
-              ),
+              style: AppTextStyles.bodyMedium,
             ),
           ],
         ),
