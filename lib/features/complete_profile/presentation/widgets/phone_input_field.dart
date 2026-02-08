@@ -40,65 +40,45 @@ class PhoneInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        color: AppColors.backgroundSecondary,
-        borderRadius: AppSpacing.borderRadiusMd,
-        border: Border.all(
-          color: AppColors.border,
-        ),
-      ),
-      child: Row(
-        children: [
-          // Country code picker
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
+    return Row(
+      children: [
+    
+        // Phone number input
+        Expanded(
+          child: TextField(
+            controller: controller,
+            keyboardType: TextInputType.phone,
+            style: AppTextStyles.input.copyWith(
+              color: AppColors.textPrimary,
             ),
-            decoration: const BoxDecoration(
-              border: Border(
-                right: BorderSide(
-                  color: AppColors.border,
-                ),
-              ),
-            ),
-            child: NationCodePicker(
-              defaultNationCode: selectedCountry,
-              flagScale: 0.6,
-              dialCodeTextStyle: AppTextStyles.bodyMedium.copyWith(
+            decoration: InputDecoration(
+              prefixIcon:  Padding(
+                padding: EdgeInsetsGeometry.only(left: 16, right: 8),
+                child: NationCodePicker(
+                            defaultNationCode: selectedCountry,
+                            flagScale: 0.6,
+                            dialCodeTextStyle: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.primary,
+                            ),
+                            title: countryPickerTitle,
+                            onNationSelected: onCountryChanged,
+                          ),
               ),
-              title: countryPickerTitle,
-              onNationSelected: onCountryChanged,
+              hintText: hintText,
+              hintStyle: AppTextStyles.inputHint,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+              ),
             ),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(maxLength),
+            ],
+            onChanged: onPhoneChanged,
           ),
-
-          // Phone number input
-          Expanded(
-            child: TextField(
-              controller: controller,
-              keyboardType: TextInputType.phone,
-              style: AppTextStyles.input.copyWith(
-                color: AppColors.textPrimary,
-              ),
-              decoration: InputDecoration(
-                hintText: hintText,
-                hintStyle: AppTextStyles.inputHint,
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                ),
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(maxLength),
-              ],
-              onChanged: onPhoneChanged,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
