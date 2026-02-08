@@ -5,10 +5,12 @@ abstract class AppRoutes {
 
   // Auth
   static const String login = '/login';
+  static const String loginGoogle = '/login-google';
   static const String register = '/register';
 
   // Main
   static const String home = '/';
+  static const String hydration = '/hydration';
   static const String products = '/products';
   static const String productDetail = '/products/:id';
   static const String cart = '/cart';

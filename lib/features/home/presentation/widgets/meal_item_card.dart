@@ -25,6 +25,7 @@ class MealItemCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Image
             ClipRRect(
@@ -95,18 +96,21 @@ class MealItemCard extends StatelessWidget {
                   Row(
                     children: [
                       _MacroBadge(
+                        icon: LucideIcons.beef,
+                        iconColor: AppColors.redBright,
                         value: '${mealItem.protein}g',
-                        color: AppColors.green,
                       ),
                       const SizedBox(width: 12),
                       _MacroBadge(
+                        icon: LucideIcons.wheat,
+                        iconColor: AppColors.orange,
                         value: '${mealItem.carbs}g',
-                        color: AppColors.orange,
                       ),
                       const SizedBox(width: 12),
                       _MacroBadge(
+                        icon: LucideIcons.droplet,
+                        iconColor: AppColors.blue,
                         value: '${mealItem.fat}g',
-                        color: AppColors.purple,
                       ),
                     ],
                   ),
@@ -121,7 +125,7 @@ class MealItemCard extends StatelessWidget {
 
   Widget _buildPlaceholder() {
     return Container(
-      color: AppColors.border,
+      color: AppColors.surfaceAlt,
       child: Center(
         child: Icon(
           mealItem.type == MealItemType.meal
@@ -136,95 +140,83 @@ class MealItemCard extends StatelessWidget {
 
   Widget _buildStatusBadge() {
     if (mealItem.isCompleted) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: AppColors.green.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              LucideIcons.checkCircle,
-              color: AppColors.green,
-              size: 14,
+      // Completed badge - green/lime
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            LucideIcons.checkCircle,
+            color: AppColors.primary,
+            size: 18,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'Completado',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.primary,
             ),
-            const SizedBox(width: 4),
-            Text(
-              'Completado',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: AppColors.green,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     } else {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: AppColors.orange.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              LucideIcons.clock,
-              color: AppColors.orange,
-              size: 14,
+      // Pending badge - grey with time
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            LucideIcons.clock4,
+            color: AppColors.textMuted,
+            size: 16,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            mealItem.time ?? '',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textMuted,
             ),
-            const SizedBox(width: 4),
-            Text(
-              'Pendiente',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: AppColors.orange,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     }
   }
 }
 
+/// Macro badge with icon.
 class _MacroBadge extends StatelessWidget {
   const _MacroBadge({
+    required this.icon,
+    required this.iconColor,
     required this.value,
-    required this.color,
   });
 
+  final IconData icon;
+  final Color iconColor;
   final String value;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+        Icon(
+          icon,
+          color: iconColor,
+          size: 14,
         ),
         const SizedBox(width: 4),
         Text(
           value,
           style: TextStyle(
             fontFamily: 'Inter',
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textSecondary,
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+            color: AppColors.textMuted,
           ),
         ),
       ],

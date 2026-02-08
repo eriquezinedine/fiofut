@@ -41,6 +41,9 @@ dependencies:
   # Icons
   lucide_icons: ^0.257.0
 
+  # SVG
+  flutter_svg: ^2.0.17
+
   # UI Package
   app_ui:
     path: packages/app_ui
@@ -80,6 +83,7 @@ flutter:
   assets:
     - assets/icons/
     - assets/lottie/
+    - assets/svg/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -1,6 +1,9 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/features/app_content/presentation/pages/app_content_page.dart';
-import 'package:fio_fut/features/home/presentation/screens/home_screen.dart';
+import 'package:fio_fut/features/home/presentation/screens/hydration_screen.dart';
+import 'package:fio_fut/features/login/login.dart';
+import 'package:fio_fut/features/login_google/login_google.dart';
+import 'package:fio_fut/features/register/register.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +14,7 @@ import '../../features/onboarding/onboarding.dart';
 /// Provider del router
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: AppRoutes.home,
+    initialLocation: AppRoutes.loginGoogle,
     debugLogDiagnostics: true,
     routes: [
       // Onboarding
@@ -26,6 +29,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.home,
         name: 'home',
         builder: (context, state) => const AppContentPage(),
+      ),
+
+      // Hydration
+      GoRoute(
+        path: AppRoutes.hydration,
+        name: 'hydration',
+        builder: (context, state) => const HydrationScreen(),
       ),
 
       // Products
@@ -94,12 +104,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.login,
         name: 'login',
-        builder: (context, state) => const _PlaceholderScreen(title: 'Login'),
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.loginGoogle,
+        name: 'loginGoogle',
+        builder: (context, state) => const LoginGoogleScreen(),
       ),
       GoRoute(
         path: AppRoutes.register,
         name: 'register',
-        builder: (context, state) => const _PlaceholderScreen(title: 'Register'),
+        builder: (context, state) => const RegisterScreen(),
       ),
     ],
     errorBuilder: (context, state) => _ErrorScreen(error: state.error),
