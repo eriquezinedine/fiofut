@@ -1,17 +1,17 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/features/app_content/presentation/pages/app_content_page.dart';
-import 'package:fio_fut/features/complete_profile/complete_profile.dart';
-import 'package:fio_fut/features/home/presentation/screens/hydration_screen.dart';
-import 'package:fio_fut/features/login/login.dart';
-import 'package:fio_fut/features/login_google/login_google.dart';
-import 'package:fio_fut/features/register/register.dart';
+import 'package:fio_fut/apps/client/features/app_content/presentation/pages/app_content_page.dart';
+import 'package:fio_fut/apps/client/features/complete_profile/complete_profile.dart';
+import 'package:fio_fut/apps/client/features/home/presentation/screens/hydration_screen.dart';
+import 'package:fio_fut/apps/client/features/login/login.dart';
+import 'package:fio_fut/apps/client/features/login_google/login_google.dart';
+import 'package:fio_fut/apps/client/features/register/register.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app_routes.dart';
-import '../../features/onboarding/onboarding.dart';
+import '../../apps/client/features/onboarding/onboarding.dart';
 
 /// Auth routes that don't require authentication
 const _publicRoutes = [
@@ -23,26 +23,26 @@ const _publicRoutes = [
 /// Provider del router
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: AppRoutes.completeProfile,
-    // initialLocation: AppRoutes.loginGoogle,
+    // initialLocation: AppRoutes.completeProfile,
+    initialLocation: AppRoutes.loginGoogle,
     debugLogDiagnostics: true,
     redirect: (context, state) {
-      // final session = Supabase.instance.client.auth.currentSession;
-      // final isLoggedIn = session != null;
-      // final currentPath = state.matchedLocation;
-      // final isPublicRoute = _publicRoutes.contains(currentPath);
+      final session = Supabase.instance.client.auth.currentSession;
+      final isLoggedIn = session != null;
+      final currentPath = state.matchedLocation;
+      final isPublicRoute = _publicRoutes.contains(currentPath);
 
-      // // If not logged in and trying to access a protected route, go to login
-      // if (!isLoggedIn && !isPublicRoute) {
-      //  return AppRoutes.loginGoogle;
-      // }
+      // If not logged in and trying to access a protected route, go to login
+      if (!isLoggedIn && !isPublicRoute) {
+       return AppRoutes.loginGoogle;
+      }
 
-      // // If logged in and on a public route, go to home
-      // if (isLoggedIn && isPublicRoute) {
-      //   return AppRoutes.home;
-      // }
+      // If logged in and on a public route, go to home
+      if (isLoggedIn && isPublicRoute) {
+        return AppRoutes.home;
+      }
 
-      // return null;
+      return null;
     },
     routes: [
       // Onboarding
