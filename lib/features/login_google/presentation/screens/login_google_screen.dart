@@ -165,10 +165,14 @@ class LoginGoogleScreen extends ConsumerWidget {
   }
 
   Future<void> _handleGoogleSignIn(BuildContext context, WidgetRef ref) async {
-    final success =
+    final profile =
         await ref.read(loginGoogleProvider.notifier).signInWithGoogle();
-    if (success && context.mounted) {
-      router.GoRouter.of(context).go(AppRoutes.onboarding);
+    if (profile != null && context.mounted) {
+      if (profile.isProfileComplete) {
+        router.GoRouter.of(context).go(AppRoutes.home);
+      } else {
+        router.GoRouter.of(context).go(AppRoutes.completeProfile);
+      }
     }
   }
 }

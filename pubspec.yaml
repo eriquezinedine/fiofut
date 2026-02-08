@@ -48,10 +48,16 @@ dependencies:
   app_ui:
     path: packages/app_ui
 
+  # Authentication
+  authentication:
+    path: packages/authentication
+  supabase_flutter: ^2.6.0
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   lottie: ^3.3.2
+  nation_code_picker: ^1.2.4
 
 dev_dependencies:
   flutter_test:

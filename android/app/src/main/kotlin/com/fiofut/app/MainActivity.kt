@@ -1,4 +1,4 @@
-package com.example.fio_fut
+package com.fiofut.app
 
 import io.flutter.embedding.android.FlutterActivity
 

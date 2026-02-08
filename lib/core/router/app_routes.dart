@@ -7,6 +7,7 @@ abstract class AppRoutes {
   static const String login = '/login';
   static const String loginGoogle = '/login-google';
   static const String register = '/register';
+  static const String completeProfile = '/complete-profile';
 
   // Main
   static const String home = '/';

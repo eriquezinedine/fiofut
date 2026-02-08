@@ -1,5 +1,5 @@
 name: authentication
-description: Package de UI global para FioFut. Contiene widgets, estilos de texto, temas de colores, espaciado y extensiones reutilizables.
+description: Paquete de autenticacion para FioFut. Maneja Google Sign-In con Supabase y gestion de perfiles.
 version: 1.0.0
 publish_to: 'none'
 
@@ -11,6 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   supabase_flutter: ^2.6.0
+  google_sign_in: ^6.2.2
 
 dev_dependencies:
   flutter_test:
