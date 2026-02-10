@@ -2,6 +2,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/app_content/domain/domain.dart';
 import 'package:fio_fut/apps/client/features/app_content/presentation/widgets/app_bottom_nav_bar.dart';
 import 'package:fio_fut/apps/client/features/home/home.dart';
+import 'package:fio_fut/apps/client/features/profile/presentation/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -46,7 +47,7 @@ class _AppContentPageState extends ConsumerState<AppContentPage> {
                 HomeScreen(),
                 _PlaceholderScreen(title: 'Rutina'),
                 _PlaceholderScreen(title: 'Progreso'),
-                _PlaceholderScreen(title: 'Perfil'),
+                ProfileScreen(),
               ],
             ),
           ),

@@ -85,6 +85,7 @@ abstract final class AppSpacing {
   static const double avatarMd = 40;
   static const double avatarLg = 56;
   static const double avatarXl = 80;
+  static const double avatarXXl = 120;
 
   // ============== Button Heights ==============
   static const double buttonHeightSm = 36;

@@ -22,4 +22,16 @@ abstract class AppRoutes {
   static const String orders = '/orders';
   static const String orderDetail = '/orders/:id';
   static const String settings = '/settings';
+
+  // Admin
+  static const String admin = '/admin';
+  static const String adminExercises = '/admin/exercises';
+  static const String adminExerciseNew = '/admin/exercises/new';
+  static const String adminExerciseEdit = '/admin/exercises/:id';
+  static const String adminMeals = '/admin/meals';
+  static const String adminMealNew = '/admin/meals/new';
+  static const String adminMealEdit = '/admin/meals/:id';
+
+  // Trainer (placeholder)
+  static const String trainer = '/trainer';
 }

@@ -1,4 +1,5 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:authentication/authentication.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -168,11 +169,16 @@ class LoginGoogleScreen extends ConsumerWidget {
     final profile =
         await ref.read(loginGoogleProvider.notifier).signInWithGoogle();
     if (profile != null && context.mounted) {
-      if (profile.isProfileComplete) {
-        router.GoRouter.of(context).go(AppRoutes.home);
-      } else {
+      if (!profile.isProfileComplete) {
         router.GoRouter.of(context).go(AppRoutes.completeProfile);
+        return;
       }
+      final route = switch (profile.userType) {
+        UserType.admin => AppRoutes.admin,
+        UserType.trainer => AppRoutes.trainer,
+        UserType.student => AppRoutes.home,
+      };
+      router.GoRouter.of(context).go(route);
     }
   }
 }

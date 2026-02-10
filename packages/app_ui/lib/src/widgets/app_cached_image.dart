@@ -99,13 +99,16 @@ class AppAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imageUrl != null && imageUrl!.isNotEmpty) {
-      return ClipOval(
-        child: AppCachedImage(
-          imageUrl: imageUrl!,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorWidget: _buildFallback(context),
+      return Center(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(100),
+          child: AppCachedImage(
+            imageUrl: imageUrl!,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorWidget: _buildFallback(context),
+          ),
         ),
       );
     }

@@ -30,7 +30,7 @@ class UserProfile {
       fullName: json['full_name'] as String?,
       avatarUrl: json['avatar_url'] as String?,
       whatsappNumber: json['whatsapp_number'] as String?,
-      userType: _parseUserType(json['user_type'] as String?),
+      userType: _parseUserType(json['role'] as String?),
       isProfileComplete: json['is_profile_complete'] as bool? ?? false,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
@@ -47,7 +47,7 @@ class UserProfile {
       'full_name': fullName,
       'avatar_url': avatarUrl,
       'whatsapp_number': whatsappNumber,
-      'user_type': userType.name,
+      'role': userType.name,
       'is_profile_complete': isProfileComplete,
     };
   }
@@ -78,6 +78,7 @@ class UserProfile {
     return switch (value) {
       'trainer' => UserType.trainer,
       'admin' => UserType.admin,
+      'student' => UserType.student,
       _ => UserType.student,
     };
   }

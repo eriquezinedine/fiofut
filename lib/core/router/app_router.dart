@@ -1,10 +1,15 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:authentication/authentication.dart';
+import 'package:fio_fut/apps/admin/features/admin_content/presentation/screens/admin_content_page.dart';
+import 'package:fio_fut/apps/admin/features/exercises/presentation/screens/exercise_form_screen.dart';
+import 'package:fio_fut/apps/admin/features/meals/presentation/screens/meal_form_screen.dart';
 import 'package:fio_fut/apps/client/features/app_content/presentation/pages/app_content_page.dart';
 import 'package:fio_fut/apps/client/features/complete_profile/complete_profile.dart';
 import 'package:fio_fut/apps/client/features/home/presentation/screens/hydration_screen.dart';
 import 'package:fio_fut/apps/client/features/login/login.dart';
 import 'package:fio_fut/apps/client/features/login_google/login_google.dart';
 import 'package:fio_fut/apps/client/features/register/register.dart';
+import 'package:fio_fut/core/providers/auth_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,7 +28,6 @@ const _publicRoutes = [
 /// Provider del router
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    // initialLocation: AppRoutes.completeProfile,
     initialLocation: AppRoutes.loginGoogle,
     debugLogDiagnostics: true,
     redirect: (context, state) {
@@ -34,11 +38,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // If not logged in and trying to access a protected route, go to login
       if (!isLoggedIn && !isPublicRoute) {
-       return AppRoutes.loginGoogle;
+        return AppRoutes.loginGoogle;
       }
 
-      // If logged in and on a public route, go to home
+      // If logged in and on a public route, redirect based on role
       if (isLoggedIn && isPublicRoute) {
+        final userProfile = ref.read(userProfileProvider).valueOrNull;
+        if (userProfile != null) {
+          return switch (userProfile.userType) {
+            UserType.admin => AppRoutes.admin,
+            UserType.trainer => AppRoutes.trainer,
+            UserType.student => AppRoutes.home,
+          };
+        }
         return AppRoutes.home;
       }
 
@@ -59,7 +71,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const CompleteProfileScreen(),
       ),
 
-      // Home
+      // Client Home
       GoRoute(
         path: AppRoutes.home,
         name: 'home',
@@ -71,6 +83,47 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.hydration,
         name: 'hydration',
         builder: (context, state) => const HydrationScreen(),
+      ),
+
+      // === ADMIN ROUTES ===
+      GoRoute(
+        path: AppRoutes.admin,
+        name: 'admin',
+        builder: (context, state) => const AdminContentPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminExerciseNew,
+        name: 'adminExerciseNew',
+        builder: (context, state) => const ExerciseFormScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminExerciseEdit,
+        name: 'adminExerciseEdit',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return ExerciseFormScreen(exerciseId: id);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.adminMealNew,
+        name: 'adminMealNew',
+        builder: (context, state) => const MealFormScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminMealEdit,
+        name: 'adminMealEdit',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return MealFormScreen(mealId: id);
+        },
+      ),
+
+      // Trainer (placeholder)
+      GoRoute(
+        path: AppRoutes.trainer,
+        name: 'trainer',
+        builder: (context, state) =>
+            const _PlaceholderScreen(title: 'Trainer'),
       ),
 
       // Products
