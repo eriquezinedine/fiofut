@@ -56,10 +56,16 @@ class AdminBottomNav extends StatelessWidget {
               onTap: () => onTap(2),
             ),
             _NavItem(
-              icon: LucideIcons.user,
-              label: 'Perfil',
+              icon: LucideIcons.egg,
+              label: 'Ingredientes',
               isSelected: currentIndex == 3,
               onTap: () => onTap(3),
+            ),
+            _NavItem(
+              icon: LucideIcons.user,
+              label: 'Perfil',
+              isSelected: currentIndex == 4,
+              onTap: () => onTap(4),
             ),
           ],
         ),
@@ -98,13 +104,15 @@ class _NavItem extends StatelessWidget {
                 size: 24,
               ),
               const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected ? AppColors.primary : AppColors.textMuted,
+              FittedBox(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 10,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected ? AppColors.primary : AppColors.textMuted,
+                  ),
                 ),
               ),
             ],

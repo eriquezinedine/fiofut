@@ -32,6 +32,16 @@ abstract class AppRoutes {
   static const String adminMealNew = '/admin/meals/new';
   static const String adminMealEdit = '/admin/meals/:id';
 
+  // Admin - Food
+  static const String adminFoods = '/admin/food';
+  static const String adminFoodNew = '/admin/food/new';
+  static const String adminFoodEdit = '/admin/food/:id';
+
+  // Admin - Ingredients
+  static const String adminIngredients = '/admin/ingredients';
+  static const String adminIngredientNew = '/admin/ingredients/new';
+  static const String adminIngredientEdit = '/admin/ingredients/:id';
+
   // Trainer (placeholder)
   static const String trainer = '/trainer';
 }

@@ -2,7 +2,8 @@ import 'package:app_ui/app_ui.dart';
 import 'package:authentication/authentication.dart';
 import 'package:fio_fut/apps/admin/features/admin_content/presentation/screens/admin_content_page.dart';
 import 'package:fio_fut/apps/admin/features/exercises/presentation/screens/exercise_form_screen.dart';
-import 'package:fio_fut/apps/admin/features/meals/presentation/screens/meal_form_screen.dart';
+import 'package:fio_fut/apps/admin/features/ingredients/presentation/screens/ingredient_form_screen.dart';
+import 'package:fio_fut/apps/admin/features/meals/presentation/screens/food_form_screen.dart';
 import 'package:fio_fut/apps/client/features/app_content/presentation/pages/app_content_page.dart';
 import 'package:fio_fut/apps/client/features/complete_profile/complete_profile.dart';
 import 'package:fio_fut/apps/client/features/home/presentation/screens/hydration_screen.dart';
@@ -122,17 +123,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return ExerciseFormScreen(exerciseId: id);
         },
       ),
+      // Food routes
       GoRoute(
-        path: AppRoutes.adminMealNew,
-        name: 'adminMealNew',
-        builder: (context, state) => const MealFormScreen(),
+        path: AppRoutes.adminFoodNew,
+        name: 'adminFoodNew',
+        builder: (context, state) => const FoodFormScreen(),
       ),
       GoRoute(
-        path: AppRoutes.adminMealEdit,
-        name: 'adminMealEdit',
+        path: AppRoutes.adminFoodEdit,
+        name: 'adminFoodEdit',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
-          return MealFormScreen(mealId: id);
+          return FoodFormScreen(foodId: id);
+        },
+      ),
+
+      // Ingredient routes
+      GoRoute(
+        path: AppRoutes.adminIngredientNew,
+        name: 'adminIngredientNew',
+        builder: (context, state) => const IngredientFormScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminIngredientEdit,
+        name: 'adminIngredientEdit',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return IngredientFormScreen(ingredientId: id);
         },
       ),
 

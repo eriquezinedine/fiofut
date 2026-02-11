@@ -33,6 +33,7 @@ class AppTextField extends StatelessWidget {
     this.textCapitalization = TextCapitalization.none,
     this.expands = false,
     this.textAlignVertical,
+    this.isRequired = false,
     this.fillColor,
     this.borderRadius,
     this.contentPadding,
@@ -64,6 +65,7 @@ class AppTextField extends StatelessWidget {
   final TextCapitalization textCapitalization;
   final bool expands;
   final TextAlignVertical? textAlignVertical;
+  final bool isRequired;
   final Color? fillColor;
   final double? borderRadius;
   final EdgeInsetsGeometry? contentPadding;
@@ -75,10 +77,24 @@ class AppTextField extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (label != null) ...[
-          Text(
-            label!,
-            style: AppTextStyles.labelMedium,
-          ),
+          if (isRequired)
+            Text.rich(
+              TextSpan(
+                text: label!,
+                style: AppTextStyles.labelMedium,
+                children: const [
+                  TextSpan(
+                    text: ' *',
+                    style: TextStyle(color: AppColors.error),
+                  ),
+                ],
+              ),
+            )
+          else
+            Text(
+              label!,
+              style: AppTextStyles.labelMedium,
+            ),
           AppSpacing.verticalXs,
         ],
         TextFormField(

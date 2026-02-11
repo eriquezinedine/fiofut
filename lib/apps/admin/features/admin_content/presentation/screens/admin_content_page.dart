@@ -5,7 +5,8 @@ import 'package:fio_fut/apps/client/features/profile/presentation/screens/profil
 
 import '../../../admin_home/presentation/screens/admin_home_screen.dart';
 import '../../../exercises/presentation/screens/exercises_list_screen.dart';
-import '../../../meals/presentation/screens/meals_list_screen.dart';
+import '../../../ingredients/presentation/screens/ingredients_list_screen.dart';
+import '../../../meals/presentation/screens/food_list_screen.dart';
 import '../../domain/providers/admin_bottom_nav_provider.dart';
 import '../widgets/admin_bottom_nav.dart';
 
@@ -49,7 +50,8 @@ class _AdminContentPageState extends ConsumerState<AdminContentPage> {
               children: const [
                 AdminHomeScreen(),
                 ExercisesListScreen(),
-                MealsListScreen(),
+                FoodListScreen(),
+                IngredientsListScreen(),
                 ProfileScreen(),
               ],
             ),
