@@ -9,12 +9,14 @@ class ExerciseCard extends StatelessWidget {
     required this.exercise,
     required this.onTap,
     required this.onDelete,
+    this.primaryMuscleName,
     super.key,
   });
 
   final Exercise exercise;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final String? primaryMuscleName;
 
   @override
   Widget build(BuildContext context) {
@@ -70,11 +72,12 @@ class ExerciseCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      _Tag(
-                        label: exercise.muscleGroup.displayName,
-                        color: AppColors.blue,
-                      ),
-                      const SizedBox(width: 8),
+                      if (primaryMuscleName != null)
+                        _Tag(
+                          label: primaryMuscleName!,
+                          color: AppColors.blue,
+                        ),
+                      if (primaryMuscleName != null) const SizedBox(width: 8),
                       _Tag(
                         label: exercise.exerciseType.displayName,
                         color: AppColors.orange,

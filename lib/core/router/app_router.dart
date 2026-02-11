@@ -30,7 +30,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: AppRoutes.loginGoogle,
     debugLogDiagnostics: true,
-    redirect: (context, state) {
+    redirect: (context, state) async {
       final session = Supabase.instance.client.auth.currentSession;
       final isLoggedIn = session != null;
       final currentPath = state.matchedLocation;
@@ -43,8 +43,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // If logged in and on a public route, redirect based on role
       if (isLoggedIn && isPublicRoute) {
-        final userProfile = ref.read(userProfileProvider).valueOrNull;
+        // Try provider first (fast path)
+        var userProfile = ref.read(userProfileProvider).valueOrNull;
+
+        // If provider hasn't loaded yet, query Supabase directly
+        if (userProfile == null) {
+          final userId = session.user.id;
+          final data = await Supabase.instance.client
+              .from('profiles')
+              .select()
+              .eq('id', userId)
+              .maybeSingle();
+          if (data != null) {
+            userProfile = UserProfile.fromJson(data);
+          }
+        }
+
         if (userProfile != null) {
+          if (!userProfile.isProfileComplete) {
+            return AppRoutes.completeProfile;
+          }
           return switch (userProfile.userType) {
             UserType.admin => AppRoutes.admin,
             UserType.trainer => AppRoutes.trainer,

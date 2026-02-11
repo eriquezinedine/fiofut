@@ -55,6 +55,12 @@ class AdminBottomNav extends StatelessWidget {
               isSelected: currentIndex == 2,
               onTap: () => onTap(2),
             ),
+            _NavItem(
+              icon: LucideIcons.user,
+              label: 'Perfil',
+              isSelected: currentIndex == 3,
+              onTap: () => onTap(3),
+            ),
           ],
         ),
       ),

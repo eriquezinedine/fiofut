@@ -55,7 +55,6 @@ class AppButton extends StatelessWidget {
       case AppButtonType.primary:
         return SizedBox(
           width: fullWidth ? double.infinity : null,
-          height: buttonHeight,
           child: ElevatedButton(
             onPressed: isEnabled ? onPressed : null,
             style: ElevatedButton.styleFrom(

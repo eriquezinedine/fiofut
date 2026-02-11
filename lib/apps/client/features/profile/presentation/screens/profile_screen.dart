@@ -148,7 +148,6 @@ class ProfileScreen extends ConsumerWidget {
                 // Logout button - white outlined with loading state
                 SizedBox(
                   width: double.infinity,
-                  height: AppSpacing.buttonHeightMd,
                   child: OutlinedButton(
                     onPressed: logoutState.isLoading
                         ? null

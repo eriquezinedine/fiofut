@@ -13,8 +13,11 @@ class ExerciseFormState {
     this.name = '',
     this.description = '',
     this.imageUrl = '',
-    this.muscleGroup = MuscleGroup.pecho,
+    this.primaryMuscleId,
+    this.secondaryMuscleIds = const [],
     this.exerciseType = ExerciseType.fuerza,
+    this.videoUrl = '',
+    this.location = ExerciseLocation.both,
     this.isLoading = false,
     this.errorMessage,
     this.editingId,
@@ -23,31 +26,47 @@ class ExerciseFormState {
   final String name;
   final String description;
   final String imageUrl;
-  final MuscleGroup muscleGroup;
+  final String? primaryMuscleId;
+  final List<String> secondaryMuscleIds;
   final ExerciseType exerciseType;
+  final String videoUrl;
+  final ExerciseLocation location;
   final bool isLoading;
   final String? errorMessage;
   final String? editingId;
 
-  bool get isValid => name.trim().isNotEmpty;
+  bool get isValid =>
+      name.trim().isNotEmpty &&
+      description.trim().isNotEmpty &&
+      imageUrl.trim().isNotEmpty &&
+      videoUrl.trim().isNotEmpty &&
+      primaryMuscleId != null;
   bool get isEditing => editingId != null;
 
   ExerciseFormState copyWith({
     String? name,
     String? description,
     String? imageUrl,
-    MuscleGroup? muscleGroup,
+    String? primaryMuscleId,
+    List<String>? secondaryMuscleIds,
     ExerciseType? exerciseType,
+    String? videoUrl,
+    ExerciseLocation? location,
     bool? isLoading,
     String? errorMessage,
     String? editingId,
+    bool clearPrimaryMuscle = false,
   }) {
     return ExerciseFormState(
       name: name ?? this.name,
       description: description ?? this.description,
       imageUrl: imageUrl ?? this.imageUrl,
-      muscleGroup: muscleGroup ?? this.muscleGroup,
+      primaryMuscleId:
+          clearPrimaryMuscle ? null : (primaryMuscleId ?? this.primaryMuscleId),
+      secondaryMuscleIds: secondaryMuscleIds ?? this.secondaryMuscleIds,
       exerciseType: exerciseType ?? this.exerciseType,
+      videoUrl: videoUrl ?? this.videoUrl,
+      location: location ?? this.location,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
       editingId: editingId ?? this.editingId,
@@ -70,8 +89,11 @@ class ExerciseFormNotifier extends Notifier<ExerciseFormState> {
       name: exercise.name,
       description: exercise.description ?? '',
       imageUrl: exercise.imageUrl ?? '',
-      muscleGroup: exercise.muscleGroup,
+      primaryMuscleId: exercise.primaryMuscleId,
+      secondaryMuscleIds: exercise.secondaryMuscleIds,
       exerciseType: exercise.exerciseType,
+      videoUrl: exercise.videoUrl ?? '',
+      location: exercise.location,
       editingId: exercise.id,
     );
   }
@@ -88,8 +110,40 @@ class ExerciseFormNotifier extends Notifier<ExerciseFormState> {
     state = state.copyWith(imageUrl: value);
   }
 
-  void updateMuscleGroup(MuscleGroup value) {
-    state = state.copyWith(muscleGroup: value);
+  void updatePrimaryMuscle(String? muscleId) {
+    // If selecting the same, deselect
+    if (state.primaryMuscleId == muscleId) {
+      state = state.copyWith(clearPrimaryMuscle: true);
+      return;
+    }
+    // Remove from secondary if it was there
+    final updatedSecondary =
+        state.secondaryMuscleIds.where((id) => id != muscleId).toList();
+    state = state.copyWith(
+      primaryMuscleId: muscleId,
+      secondaryMuscleIds: updatedSecondary,
+    );
+  }
+
+  void toggleSecondaryMuscle(String muscleId) {
+    // Can't add the primary muscle as secondary
+    if (muscleId == state.primaryMuscleId) return;
+
+    final current = List<String>.from(state.secondaryMuscleIds);
+    if (current.contains(muscleId)) {
+      current.remove(muscleId);
+    } else {
+      current.add(muscleId);
+    }
+    state = state.copyWith(secondaryMuscleIds: current);
+  }
+
+  void updateVideoUrl(String value) {
+    state = state.copyWith(videoUrl: value);
+  }
+
+  void updateLocation(ExerciseLocation value) {
+    state = state.copyWith(location: value);
   }
 
   void updateExerciseType(ExerciseType value) {
@@ -98,7 +152,10 @@ class ExerciseFormNotifier extends Notifier<ExerciseFormState> {
 
   Future<bool> save() async {
     if (!state.isValid) {
-      state = state.copyWith(errorMessage: 'El nombre es requerido');
+      state = state.copyWith(
+        errorMessage:
+            'Todos los campos requeridos deben estar completos',
+      );
       return false;
     }
 
@@ -114,8 +171,12 @@ class ExerciseFormNotifier extends Notifier<ExerciseFormState> {
             : state.description.trim(),
         imageUrl:
             state.imageUrl.trim().isEmpty ? null : state.imageUrl.trim(),
-        muscleGroup: state.muscleGroup,
+        primaryMuscleId: state.primaryMuscleId,
+        secondaryMuscleIds: state.secondaryMuscleIds,
         exerciseType: state.exerciseType,
+        videoUrl:
+            state.videoUrl.trim().isEmpty ? null : state.videoUrl.trim(),
+        location: state.location,
       );
 
       if (state.isEditing) {

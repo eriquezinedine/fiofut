@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:fio_fut/apps/client/features/profile/presentation/screens/profile_screen.dart';
+
 import '../../../admin_home/presentation/screens/admin_home_screen.dart';
 import '../../../exercises/presentation/screens/exercises_list_screen.dart';
 import '../../../meals/presentation/screens/meals_list_screen.dart';
@@ -48,6 +50,7 @@ class _AdminContentPageState extends ConsumerState<AdminContentPage> {
                 AdminHomeScreen(),
                 ExercisesListScreen(),
                 MealsListScreen(),
+                ProfileScreen(),
               ],
             ),
           ),

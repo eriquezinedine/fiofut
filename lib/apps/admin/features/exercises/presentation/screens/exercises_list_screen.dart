@@ -6,6 +6,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import 'package:fio_fut/core/router/app_routes.dart';
 import '../../domain/providers/exercises_provider.dart';
+import '../../domain/providers/muscles_provider.dart';
 import '../widgets/exercise_card.dart';
 
 class ExercisesListScreen extends ConsumerStatefulWidget {
@@ -36,6 +37,10 @@ class _ExercisesListScreenState extends ConsumerState<ExercisesListScreen> {
   @override
   Widget build(BuildContext context) {
     final exercisesState = ref.watch(exercisesProvider);
+    final musclesAsync = ref.watch(musclesProvider);
+    final muscleMap = musclesAsync.whenOrNull(
+      data: (muscles) => {for (final m in muscles) m.id: m.name},
+    ) ?? {};
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -160,6 +165,9 @@ class _ExercisesListScreenState extends ConsumerState<ExercisesListScreen> {
                             final exercise = exercises[index];
                             return ExerciseCard(
                               exercise: exercise,
+                              primaryMuscleName: exercise.primaryMuscleId != null
+                                  ? muscleMap[exercise.primaryMuscleId]
+                                  : null,
                               onTap: () => router.GoRouter.of(context).push(
                                 '/admin/exercises/${exercise.id}',
                               ),

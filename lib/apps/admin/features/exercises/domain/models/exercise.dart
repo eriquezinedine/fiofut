@@ -1,25 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-enum MuscleGroup {
-  pecho,
-  espalda,
-  piernas,
-  brazos,
-  hombros,
-  core,
-  fullBody;
-
-  String get displayName => switch (this) {
-        pecho => 'Pecho',
-        espalda => 'Espalda',
-        piernas => 'Piernas',
-        brazos => 'Brazos',
-        hombros => 'Hombros',
-        core => 'Core',
-        fullBody => 'Full Body',
-      };
-}
-
 enum ExerciseType {
   cardio,
   fuerza,
@@ -32,6 +12,18 @@ enum ExerciseType {
       };
 }
 
+enum ExerciseLocation {
+  gym,
+  home,
+  both;
+
+  String get displayName => switch (this) {
+        gym => 'Gimnasio',
+        home => 'Casa',
+        both => 'Ambos',
+      };
+}
+
 @immutable
 class Exercise {
   const Exercise({
@@ -39,8 +31,11 @@ class Exercise {
     required this.name,
     this.description,
     this.imageUrl,
-    required this.muscleGroup,
+    this.primaryMuscleId,
+    this.secondaryMuscleIds = const [],
     required this.exerciseType,
+    this.videoUrl,
+    this.location = ExerciseLocation.both,
     this.createdBy,
     this.createdAt,
     this.updatedAt,
@@ -50,8 +45,11 @@ class Exercise {
   final String name;
   final String? description;
   final String? imageUrl;
-  final MuscleGroup muscleGroup;
+  final String? primaryMuscleId;
+  final List<String> secondaryMuscleIds;
   final ExerciseType exerciseType;
+  final String? videoUrl;
+  final ExerciseLocation location;
   final String? createdBy;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -62,8 +60,14 @@ class Exercise {
       name: json['name'] as String,
       description: json['description'] as String?,
       imageUrl: json['image_url'] as String?,
-      muscleGroup: _parseMuscleGroup(json['muscle_group'] as String),
+      primaryMuscleId: json['primary_muscle_id'] as String?,
+      secondaryMuscleIds: (json['secondary_muscle_ids'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
       exerciseType: _parseExerciseType(json['exercise_type'] as String),
+      videoUrl: json['video_url'] as String?,
+      location: _parseLocation(json['location'] as String?),
       createdBy: json['created_by'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
@@ -79,8 +83,11 @@ class Exercise {
       'name': name,
       'description': description,
       'image_url': imageUrl,
-      'muscle_group': muscleGroup.name,
+      'primary_muscle_id': primaryMuscleId,
+      'secondary_muscle_ids': secondaryMuscleIds,
       'exercise_type': exerciseType.name,
+      'video_url': videoUrl,
+      'location': location.name,
     };
   }
 
@@ -89,8 +96,11 @@ class Exercise {
     String? name,
     String? description,
     String? imageUrl,
-    MuscleGroup? muscleGroup,
+    String? primaryMuscleId,
+    List<String>? secondaryMuscleIds,
     ExerciseType? exerciseType,
+    String? videoUrl,
+    ExerciseLocation? location,
     String? createdBy,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -100,18 +110,14 @@ class Exercise {
       name: name ?? this.name,
       description: description ?? this.description,
       imageUrl: imageUrl ?? this.imageUrl,
-      muscleGroup: muscleGroup ?? this.muscleGroup,
+      primaryMuscleId: primaryMuscleId ?? this.primaryMuscleId,
+      secondaryMuscleIds: secondaryMuscleIds ?? this.secondaryMuscleIds,
       exerciseType: exerciseType ?? this.exerciseType,
+      videoUrl: videoUrl ?? this.videoUrl,
+      location: location ?? this.location,
       createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-    );
-  }
-
-  static MuscleGroup _parseMuscleGroup(String value) {
-    return MuscleGroup.values.firstWhere(
-      (e) => e.name == value,
-      orElse: () => MuscleGroup.fullBody,
     );
   }
 
@@ -119,6 +125,14 @@ class Exercise {
     return ExerciseType.values.firstWhere(
       (e) => e.name == value,
       orElse: () => ExerciseType.fuerza,
+    );
+  }
+
+  static ExerciseLocation _parseLocation(String? value) {
+    if (value == null) return ExerciseLocation.both;
+    return ExerciseLocation.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => ExerciseLocation.both,
     );
   }
 
