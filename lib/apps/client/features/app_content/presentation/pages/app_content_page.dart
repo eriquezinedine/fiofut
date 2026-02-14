@@ -56,9 +56,6 @@ class _AppContentPageState extends ConsumerState<AppContentPage> {
             onTap: (index) {
               ref.read(bottomNavIndexProvider.notifier).setIndex(index);
             },
-            onAddTap: () {
-              // TODO: Open add meal/exercise modal
-            },
           ),
         ],
       ),

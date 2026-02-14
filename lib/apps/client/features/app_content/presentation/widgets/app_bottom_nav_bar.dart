@@ -1,4 +1,5 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/register_food/widgets/center_add_button.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -7,13 +8,11 @@ class AppBottomNavBar extends StatelessWidget {
   const AppBottomNavBar({
     required this.currentIndex,
     required this.onTap,
-    this.onAddTap,
     super.key,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
-  final VoidCallback? onAddTap;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +54,7 @@ class AppBottomNavBar extends StatelessWidget {
               onTap: () => onTap(1),
             ),
             // Add button (center)
-            _CenterAddButton(onTap: onAddTap),
+            CenterAddButton(),
 
             // Progreso
             _NavItem(
@@ -118,38 +117,6 @@ class _NavItem extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CenterAddButton extends StatelessWidget {
-  const _CenterAddButton({this.onTap});
-
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Center(
-        child: GestureDetector(
-          onTap: onTap,
-          child: Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(26),
-            ),
-            child: const Center(
-              child: Icon(
-                LucideIcons.plus,
-                color: AppColors.black,
-                size: 26,
-              ),
-            ),
           ),
         ),
       ),
