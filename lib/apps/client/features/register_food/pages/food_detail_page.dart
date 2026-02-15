@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:app_ui/app_ui.dart';
@@ -5,7 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../../../../core/widgets/modal/delete_ingredient_modal.dart';
+import '../../../../../core/widgets/modal/edit_ingredient_modal.dart';
+import '../../../../../core/widgets/modal/ingredient_options_modal.dart';
 import '../domain/providers/food_provider.dart';
+import '../domain/providers/food_provider_detail.dart';
 
 class FoodDetailPage extends ConsumerStatefulWidget {
   const FoodDetailPage({required this.imageFile, super.key});
@@ -29,6 +34,7 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
   void dispose() {
     Future.microtask(() {
       ref.read(foodImageUploadProvider.notifier).reset();
+      ref.read(foodDetailProvider.notifier).reset();
     });
     super.dispose();
   }
@@ -36,6 +42,7 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
   @override
   Widget build(BuildContext context) {
     final uploadState = ref.watch(foodImageUploadProvider);
+    final detailState = ref.watch(foodDetailProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -55,7 +62,8 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
           children: [
             _buildImageSection(uploadState),
             const SizedBox(height: AppSpacing.lg),
-            _buildInfoSection(uploadState),
+            _buildInfoSection(uploadState, detailState),
+            const SizedBox(height: AppSpacing.xl),
           ],
         ),
       ),
@@ -87,11 +95,7 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
   }
 
   Widget _buildImageShimmer() {
-    return AppShimmer(
-      child: Container(
-        color: AppColors.grey800,
-      ),
-    );
+    return AppShimmer(child: Container(color: AppColors.grey800));
   }
 
   Widget _buildImageError() {
@@ -109,24 +113,90 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
 
   // ── Info Section ──────────────────────────────────────────────
 
-  Widget _buildInfoSection(FoodImageUploadState uploadState) {
-    return switch (uploadState) {
-      FoodImageUploadInitial() || FoodImageUploading() => _buildInfoShimmer(),
-      FoodImageUploaded() => _buildInfoLoaded(),
-      FoodImageUploadError(:final message) => _buildInfoError(message),
+  Widget _buildInfoSection(
+    FoodImageUploadState uploadState,
+    FoodDetailState detailState,
+  ) {
+    if (uploadState is FoodImageUploadInitial ||
+        uploadState is FoodImageUploading) {
+      return _buildContentShimmer();
+    }
+
+    if (uploadState is FoodImageUploadError) {
+      return AppErrorWidget(
+        title: 'Error al subir imagen',
+        message: uploadState.message,
+        onRetry: () {
+          ref
+              .read(foodImageUploadProvider.notifier)
+              .uploadImage(widget.imageFile);
+        },
+      );
+    }
+
+    return switch (detailState) {
+      FoodDetailInitial() || FoodDetailAnalyzing() => _buildAnalyzingState(),
+      FoodDetailLoaded(:final result) => _buildFoodDetail(result),
+      FoodDetailError(:final message) => _buildAnalysisError(message),
     };
   }
 
-  Widget _buildInfoShimmer() {
+  // ── Analyzing State ───────────────────────────────────────────
+
+  Widget _buildAnalyzingState() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Status indicator
+        Container(
+          width: double.infinity,
+          padding: AppSpacing.cardPadding,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            borderRadius: AppSpacing.borderRadiusLg,
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Row(
+            children: [
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'Analizando tu comida con IA...',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        // Content shimmer
+        _buildContentShimmer(),
+      ],
+    );
+  }
+
+  Widget _buildContentShimmer() {
     return AppShimmer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppShimmerBox(width: 200, height: 24),
-          const SizedBox(height: AppSpacing.sm),
-          AppShimmerBox(width: double.infinity, height: 16),
+          const AppShimmerBox(width: 220, height: 24),
           const SizedBox(height: AppSpacing.xs),
-          AppShimmerBox(width: 260, height: 16),
+          const AppShimmerBox(width: 80, height: 22),
+          const SizedBox(height: AppSpacing.sm),
+          const AppShimmerBox(width: double.infinity, height: 16),
+          const SizedBox(height: AppSpacing.xs),
+          const AppShimmerBox(width: 260, height: 16),
           const SizedBox(height: AppSpacing.lg),
           // Nutrition card shimmer
           Container(
@@ -138,7 +208,7 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppShimmerBox(width: 160, height: 20),
+                const AppShimmerBox(width: 160, height: 20),
                 const SizedBox(height: AppSpacing.md),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -152,6 +222,11 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
               ],
             ),
           ),
+          const SizedBox(height: AppSpacing.lg),
+          // Ingredients shimmer
+          const AppShimmerBox(width: 140, height: 20),
+          const SizedBox(height: AppSpacing.sm),
+          ...List.generate(3, (_) => _buildIngredientShimmer()),
         ],
       ),
     );
@@ -160,68 +235,238 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
   Widget _buildNutrientShimmer() {
     return const Column(
       children: [
-        AppShimmerBox(width: 48, height: 48, borderRadius: BorderRadius.all(Radius.circular(AppSpacing.radiusMd))),
+        AppShimmerBox(
+          width: 48,
+          height: 48,
+          borderRadius:
+              BorderRadius.all(Radius.circular(AppSpacing.radiusMd)),
+        ),
         SizedBox(height: AppSpacing.xs),
-        AppShimmerBox(width: 40, height: 12),
+        AppShimmerBox(width: 40, height: 14),
         SizedBox(height: AppSpacing.xxxs),
-        AppShimmerBox(width: 32, height: 10),
+        AppShimmerBox(width: 48, height: 12),
       ],
     );
   }
 
-  Widget _buildInfoLoaded() {
+  Widget _buildIngredientShimmer() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: AppSpacing.borderRadiusMd,
+        ),
+        child: const Row(
+          children: [
+            AppShimmerBox(
+              width: 36,
+              height: 36,
+              borderRadius:
+                  BorderRadius.all(Radius.circular(AppSpacing.radiusSm)),
+            ),
+            SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppShimmerBox(width: 140, height: 14),
+                  SizedBox(height: 6),
+                  AppShimmerBox(width: 200, height: 10),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Food Detail (Loaded) ──────────────────────────────────────
+
+  Widget _buildFoodDetail(FoodRecognitionResult result) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Foto subida correctamente',
-          style: AppTextStyles.h3,
-        ),
+        // Title + type tag
+        Text(result.title, style: AppTextStyles.h3),
         const SizedBox(height: AppSpacing.xs),
-        Text(
-          'La imagen se ha guardado. Pronto podremos analizar su contenido nutricional.',
-          style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
-        ),
+        _FoodTypeTag(typeFood: result.typeFood, label: result.typeFoodDisplay),
+        if (result.description.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            result.description,
+            style:
+                AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+          ),
+        ],
         const SizedBox(height: AppSpacing.lg),
-        Container(
-          width: double.infinity,
-          padding: AppSpacing.cardPadding,
+
+        // Nutrition summary card
+        _buildNutritionCard(result),
+        const SizedBox(height: AppSpacing.lg),
+
+        // Ingredients section
+        Row(
+          children: [
+            Text('Ingredientes', style: AppTextStyles.h3),
+            const SizedBox(width: AppSpacing.xs),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '+ Agregar',
+                style: AppTextStyles.small.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        ...result.ingredients.map(_buildIngredientItem),
+      ],
+    );
+  }
+
+  Widget _buildNutritionCard(FoodRecognitionResult result) {
+    return Container(
+      width: double.infinity,
+      padding: AppSpacing.cardPadding,
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: AppSpacing.borderRadiusXl,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Resumen nutricional',
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              _NutrientBox(
+                icon: LucideIcons.flame,
+                value: result.totalCalories.toStringAsFixed(0),
+                label: 'kcal',
+                color: AppColors.orange,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _NutrientBox(
+                icon: LucideIcons.beef,
+                value: '${result.totalProtein.toStringAsFixed(1)}g',
+                label: 'Proteina',
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _NutrientBox(
+                icon: LucideIcons.wheat,
+                value: '${result.totalCarbohydrates.toStringAsFixed(1)}g',
+                label: 'Carbos',
+                color: AppColors.info,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _NutrientBox(
+                icon: LucideIcons.droplet,
+                value: '${result.totalFat.toStringAsFixed(1)}g',
+                label: 'Grasas',
+                color: AppColors.warning,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIngredientItem(RecognizedIngredient ingredient) {
+    final color = _categoryColor(ingredient.category);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      child: GestureDetector(
+        onTap: () => _showIngredientOptions(ingredient),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
             color: AppColors.card,
-            borderRadius: AppSpacing.borderRadiusXl,
+            borderRadius: AppSpacing.borderRadiusMd,
           ),
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
-                  borderRadius: AppSpacing.borderRadiusMd,
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: AppSpacing.borderRadiusSm,
                 ),
-                child: const Icon(
-                  LucideIcons.check,
-                  color: AppColors.primary,
-                  size: AppSpacing.iconMd,
+                child: Icon(
+                  _categoryIcon(ingredient.category),
+                  color: color,
+                  size: 18,
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Upload completo',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            ingredient.name,
+                            style:
+                                AppTextStyles.bodyMedium.copyWith(fontSize: 14),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          '${ingredient.quantity.toStringAsFixed(0)} ${ingredient.unitAbbreviation}',
+                          style: AppTextStyles.small.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: AppSpacing.xxxs),
-                    Text(
-                      'Imagen guardada en la nube',
-                      style: AppTextStyles.small.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        _MiniChip(
+                          text:
+                              '${ingredient.totalCalories.toStringAsFixed(0)} kcal',
+                          color: AppColors.orange,
+                        ),
+                        const SizedBox(width: 6),
+                        _MiniChip(
+                          text:
+                              '${ingredient.totalProtein.toStringAsFixed(1)}g P',
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 6),
+                        _MiniChip(
+                          text:
+                              '${ingredient.totalCarbohydrates.toStringAsFixed(1)}g C',
+                          color: AppColors.info,
+                        ),
+                        const SizedBox(width: 6),
+                        _MiniChip(
+                          text: '${ingredient.totalFat.toStringAsFixed(1)}g G',
+                          color: AppColors.warning,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -229,17 +474,225 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildInfoError(String message) {
+  // ── Modal Flow ─────────────────────────────────────────────────
+
+  void _showIngredientOptions(RecognizedIngredient ingredient) {
+    IngredientOptionsModal.show(
+      context,
+      ingredientName: ingredient.name,
+      onEdit: () => _showEditModal(ingredient),
+      onDelete: () => _showDeleteModal(ingredient),
+    );
+  }
+
+  Future<void> _showEditModal(RecognizedIngredient ingredient) async {
+    final newQuantity = await EditIngredientModal.show(
+      context,
+      ingredientName: ingredient.name,
+      currentQuantity: ingredient.quantity,
+      unit: ingredient.unit,
+    );
+    if (newQuantity == null || !mounted) return;
+
+    final error = await ref
+        .read(foodDetailProvider.notifier)
+        .updateIngredientQuantity(
+          ingredient.idDetailFoodIngredient,
+          newQuantity,
+        );
+    if (error != null && mounted) {
+      _showErrorSnackBar(error);
+    }
+  }
+
+  Future<void> _showDeleteModal(RecognizedIngredient ingredient) async {
+    final confirmed = await DeleteIngredientModal.show(
+      context,
+      ingredientName: ingredient.name,
+    );
+    if (confirmed != true || !mounted) return;
+
+    final error = await ref
+        .read(foodDetailProvider.notifier)
+        .deleteIngredient(ingredient.idDetailFoodIngredient);
+    if (error != null && mounted) {
+      _showErrorSnackBar(error);
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppSpacing.borderRadiusMd,
+        ),
+      ),
+    );
+  }
+
+  // ── Analysis Error ────────────────────────────────────────────
+
+  Widget _buildAnalysisError(String message) {
+    final uploadState = ref.read(foodImageUploadProvider);
+    log('zineKey - $message');
     return AppErrorWidget(
-      title: 'Error al subir imagen',
+      title: 'Error al analizar comida',
       message: message,
       onRetry: () {
-        ref.read(foodImageUploadProvider.notifier).uploadImage(widget.imageFile);
+        if (uploadState is FoodImageUploaded) {
+          ref
+              .read(foodDetailProvider.notifier)
+              .recognizeFood(uploadState.imageUrl);
+        }
       },
+    );
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────
+
+  static IconData _categoryIcon(String? category) => switch (category) {
+        'vegetables' => LucideIcons.leaf,
+        'meat' => LucideIcons.beef,
+        'fruits' => LucideIcons.apple,
+        'fish_seafood' => LucideIcons.fish,
+        'grains_cereals' => LucideIcons.wheat,
+        'oils_fats' => LucideIcons.droplet,
+        _ => LucideIcons.utensilsCrossed,
+      };
+
+  static Color _categoryColor(String? category) => switch (category) {
+        'vegetables' => AppColors.green,
+        'meat' => AppColors.red,
+        'dairy' => AppColors.blue,
+        'fruits' => AppColors.orange,
+        'fish_seafood' => AppColors.teal,
+        'grains_cereals' => AppColors.warning,
+        'legumes' => AppColors.green,
+        'nuts_seeds' => AppColors.orange,
+        'oils_fats' => AppColors.warning,
+        'spices_herbs' => AppColors.purple,
+        'eggs' => AppColors.orange,
+        'beverages' => AppColors.info,
+        'sauces_condiments' => AppColors.red,
+        'sweets_sugars' => AppColors.pink,
+        'processed' => AppColors.textMuted,
+        _ => AppColors.primary,
+      };
+}
+
+// ── Private Widgets ─────────────────────────────────────────────
+
+class _FoodTypeTag extends StatelessWidget {
+  const _FoodTypeTag({required this.typeFood, required this.label});
+
+  final String typeFood;
+  final String label;
+
+  Color get _color => switch (typeFood) {
+        'breakfast' => AppColors.orange,
+        'lunch' => AppColors.primary,
+        'dinner' => AppColors.purple,
+        'snack' => AppColors.info,
+        _ => AppColors.primary,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: _color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontFamily: 'Inter',
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: _color,
+        ),
+      ),
+    );
+  }
+}
+
+class _NutrientBox extends StatelessWidget {
+  const _NutrientBox({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: AppSpacing.borderRadiusMd,
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            value,
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xxxs),
+          Text(
+            label,
+            style:
+                AppTextStyles.small.copyWith(color: AppColors.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniChip extends StatelessWidget {
+  const _MiniChip({required this.text, required this.color});
+
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontFamily: 'Inter',
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
     );
   }
 }

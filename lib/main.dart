@@ -21,6 +21,8 @@ Future<void> main() async {
     ),
   );
 
+  final isar = await initIsar();
+
   // Set system UI overlay style for dark theme
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -32,8 +34,11 @@ Future<void> main() async {
   );
 
   runApp(
-    const ProviderScope(
-      child: FioFutApp(),
+    ProviderScope(
+      overrides: [
+        isarProvider.overrideWithValue(isar),
+      ],
+      child: const FioFutApp(),
     ),
   );
 }
