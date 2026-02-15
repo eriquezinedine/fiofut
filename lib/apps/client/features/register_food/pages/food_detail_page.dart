@@ -11,6 +11,7 @@ import '../../../../../core/widgets/modal/edit_ingredient_modal.dart';
 import '../../../../../core/widgets/modal/ingredient_options_modal.dart';
 import '../domain/providers/food_provider.dart';
 import '../domain/providers/food_provider_detail.dart';
+import 'select_ingredient_page.dart';
 
 class FoodDetailPage extends ConsumerStatefulWidget {
   const FoodDetailPage({required this.imageFile, super.key});
@@ -312,17 +313,31 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
           children: [
             Text('Ingredientes', style: AppTextStyles.h3),
             const SizedBox(width: AppSpacing.xs),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                '+ Agregar',
-                style: AppTextStyles.small.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
+            GestureDetector(
+              onTap: () async {
+                final added = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SelectIngredientPage(foodId: result.id),
+                  ),
+                );
+                if (added == true && mounted) {
+                  setState(() {});
+                }
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '+ Agregar',
+                  style: AppTextStyles.small.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),

@@ -308,5 +308,76 @@ class FoodDetailNotifier extends Notifier<FoodDetailState> {
     }
   }
 
+  /// Agrega un ingrediente a la comida.
+  /// Retorna un mensaje de error si falla, o `null` si OK.
+  Future<String?> addIngredient({
+    required String foodId,
+    required String ingredientId,
+    required double quantity,
+  }) async {
+    final current = state;
+    if (current is! FoodDetailLoaded) return null;
+
+    try {
+      final supabase = Supabase.instance.client;
+
+      // Fetch full ingredient data + insert detail in parallel
+      final results = await Future.wait([
+        supabase
+            .from('ingredient')
+            .select()
+            .eq('id', ingredientId)
+            .single(),
+        supabase
+            .from('detail_food_ingredient')
+            .insert({
+              'id_food': foodId,
+              'id_ingredient': ingredientId,
+              'quantity': quantity,
+            })
+            .select('id')
+            .single(),
+      ]);
+
+      final ingredientData = results[0];
+      final detailData = results[1];
+
+      final newIngredient = RecognizedIngredient(
+        id: ingredientId,
+        idDetailFoodIngredient: detailData['id'] as String,
+        name: ingredientData['name'] as String? ?? '',
+        slug: ingredientData['slug'] as String? ?? '',
+        calories: (ingredientData['calories'] as num?)?.toDouble() ?? 0,
+        fat: (ingredientData['fat'] as num?)?.toDouble() ?? 0,
+        carbohydrates:
+            (ingredientData['carbohydrates'] as num?)?.toDouble() ?? 0,
+        protein: (ingredientData['protein'] as num?)?.toDouble() ?? 0,
+        unit: ingredientData['unit'] as String? ?? 'grams',
+        baseQuantity:
+            (ingredientData['base_quantity'] as num?)?.toDouble() ?? 100,
+        quantity: quantity,
+        category: ingredientData['category'] as String?,
+      );
+
+      // Actualizar estado
+      final updatedIngredients = [
+        ...current.result.ingredients,
+        newIngredient,
+      ];
+      state = FoodDetailLoaded(
+        result: current.result.copyWith(ingredients: updatedIngredients),
+      );
+
+      developer.log(
+        'zineKey - Ingrediente agregado: $ingredientId',
+        name: 'FoodDetail',
+      );
+      return null;
+    } catch (e) {
+      developer.log('zineKey - Error al agregar: $e', name: 'FoodDetail');
+      return 'No se pudo agregar el ingrediente';
+    }
+  }
+
   void reset() => state = const FoodDetailInitial();
 }

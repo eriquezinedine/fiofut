@@ -1,4 +1,5 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/food_home/feature/food_home_page.dart';
 import 'package:fio_fut/apps/client/features/home/domain/models/models.dart';
 import 'package:flutter/material.dart';
 
@@ -88,7 +89,7 @@ class _MealTabsState extends State<MealTabs>
             controller: _tabController,
             children: [
               // Meals tab
-              _ItemsList(items: _meals),
+              FoodHomePage(items: _meals),
 
               // Exercises tab
               _ItemsList(items: _exercises),
@@ -100,7 +101,6 @@ class _MealTabsState extends State<MealTabs>
   }
 }
 
-/// Items list widget for each tab.
 class _ItemsList extends StatelessWidget {
   const _ItemsList({required this.items});
 
