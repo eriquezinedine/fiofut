@@ -39,6 +39,7 @@ class _IngredientSearchBodyState extends ConsumerState<IngredientSearchBody>
     with SingleTickerProviderStateMixin {
   final _searchController = TextEditingController();
   late TabController _tabController;
+  String _lastSearchText = '';
 
   @override
   void initState() {
@@ -67,7 +68,10 @@ class _IngredientSearchBodyState extends ConsumerState<IngredientSearchBody>
   }
 
   void _onSearchChanged() {
-    ref.read(excludedFoodsListProvider.notifier).search(_searchController.text);
+    final text = _searchController.text;
+    if (text == _lastSearchText) return;
+    _lastSearchText = text;
+    ref.read(excludedFoodsListProvider.notifier).search(text);
   }
 
   bool _onScrollNotification(ScrollNotification notification) {

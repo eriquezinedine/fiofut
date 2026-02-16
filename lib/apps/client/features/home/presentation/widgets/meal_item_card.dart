@@ -22,6 +22,10 @@ class MealItemCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppColors.card,
+          border: Border.all(
+            width: 1.5,
+            color: mealItem.isCompleted?  AppColors.primary :AppColors.card 
+          ),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(

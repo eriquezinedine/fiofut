@@ -14,9 +14,25 @@ import '../domain/providers/food_provider_detail.dart';
 import 'select_ingredient_page.dart';
 
 class FoodDetailPage extends ConsumerStatefulWidget {
-  const FoodDetailPage({required this.imageFile, super.key});
+  const FoodDetailPage({
+    this.imageFile,
+    this.foodId,
+    this.imageUrl,
+    this.initialResult,
+    super.key,
+  }) : assert(imageFile != null || foodId != null);
 
-  final File imageFile;
+  /// For new food flow (take photo -> upload -> recognize).
+  final File? imageFile;
+
+  /// For existing food flow (tap loaded card).
+  final String? foodId;
+  final String? imageUrl;
+
+  /// Pre-loaded detail (skips DB fetch entirely).
+  final FoodRecognitionResult? initialResult;
+
+  bool get isExistingFood => foodId != null;
 
   @override
   ConsumerState<FoodDetailPage> createState() => _FoodDetailPageState();
@@ -27,17 +43,19 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.read(foodImageUploadProvider.notifier).uploadImage(widget.imageFile);
+      if (widget.initialResult != null) {
+        // Data already available — no fetch needed.
+        ref.read(foodDetailProvider.notifier).setResult(widget.initialResult!);
+      } else if (widget.isExistingFood) {
+        ref
+            .read(foodDetailProvider.notifier)
+            .loadExistingFood(widget.foodId!);
+      } else {
+        ref
+            .read(foodImageUploadProvider.notifier)
+            .uploadImage(widget.imageFile!);
+      }
     });
-  }
-
-  @override
-  void dispose() {
-    Future.microtask(() {
-      ref.read(foodImageUploadProvider.notifier).reset();
-      ref.read(foodDetailProvider.notifier).reset();
-    });
-    super.dispose();
   }
 
   @override
@@ -78,19 +96,31 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
       borderRadius: AppSpacing.borderRadiusXl,
       child: AspectRatio(
         aspectRatio: 4 / 3,
-        child: switch (uploadState) {
-          FoodImageUploadInitial() || FoodImageUploading() => _buildImageShimmer(),
-          FoodImageUploaded(:final imageUrl) => Image.network(
-              imageUrl,
-              fit: BoxFit.cover,
-              loadingBuilder: (_, child, progress) {
-                if (progress == null) return child;
-                return _buildImageShimmer();
+        child: widget.isExistingFood
+            ? Image.network(
+                widget.imageUrl ?? '',
+                fit: BoxFit.cover,
+                loadingBuilder: (_, child, progress) {
+                  if (progress == null) return child;
+                  return _buildImageShimmer();
+                },
+                errorBuilder: (_, __, ___) => _buildImageError(),
+              )
+            : switch (uploadState) {
+                FoodImageUploadInitial() ||
+                FoodImageUploading() =>
+                  _buildImageShimmer(),
+                FoodImageUploaded(:final imageUrl) => Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (_, child, progress) {
+                      if (progress == null) return child;
+                      return _buildImageShimmer();
+                    },
+                    errorBuilder: (_, __, ___) => _buildImageError(),
+                  ),
+                FoodImageUploadError() => _buildImageError(),
               },
-              errorBuilder: (_, __, ___) => _buildImageError(),
-            ),
-          FoodImageUploadError() => _buildImageError(),
-        },
       ),
     );
   }
@@ -118,6 +148,16 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
     FoodImageUploadState uploadState,
     FoodDetailState detailState,
   ) {
+    // Existing food: skip upload state checks entirely.
+    if (widget.isExistingFood) {
+      return switch (detailState) {
+        FoodDetailInitial() || FoodDetailAnalyzing() =>
+          _buildContentShimmer(),
+        FoodDetailLoaded(:final result) => _buildFoodDetail(result),
+        FoodDetailError(:final message) => _buildAnalysisError(message),
+      };
+    }
+
     if (uploadState is FoodImageUploadInitial ||
         uploadState is FoodImageUploading) {
       return _buildContentShimmer();
@@ -130,7 +170,7 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
         onRetry: () {
           ref
               .read(foodImageUploadProvider.notifier)
-              .uploadImage(widget.imageFile);
+              .uploadImage(widget.imageFile!);
         },
       );
     }
@@ -310,9 +350,9 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
 
         // Ingredients section
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Ingredientes', style: AppTextStyles.h3),
-            const SizedBox(width: AppSpacing.xs),
             GestureDetector(
               onTap: () async {
                 final added = await Navigator.push<bool>(
@@ -327,7 +367,7 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
               },
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
@@ -555,16 +595,24 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
   // ── Analysis Error ────────────────────────────────────────────
 
   Widget _buildAnalysisError(String message) {
-    final uploadState = ref.read(foodImageUploadProvider);
     log('zineKey - $message');
     return AppErrorWidget(
-      title: 'Error al analizar comida',
+      title: widget.isExistingFood
+          ? 'Error al cargar comida'
+          : 'Error al analizar comida',
       message: message,
       onRetry: () {
-        if (uploadState is FoodImageUploaded) {
+        if (widget.isExistingFood) {
           ref
               .read(foodDetailProvider.notifier)
-              .recognizeFood(uploadState.imageUrl);
+              .loadExistingFood(widget.foodId!);
+        } else {
+          final uploadState = ref.read(foodImageUploadProvider);
+          if (uploadState is FoodImageUploaded) {
+            ref
+                .read(foodDetailProvider.notifier)
+                .recognizeFood(uploadState.imageUrl);
+          }
         }
       },
     );

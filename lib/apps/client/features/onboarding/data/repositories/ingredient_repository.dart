@@ -46,6 +46,19 @@ class IngredientRepository {
 
   static const pageSize = 20;
 
+  /// Removes diacritics for accent-insensitive search.
+  static String _normalize(String s) {
+    return s
+        .toLowerCase()
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ü', 'u')
+        .replaceAll('ñ', 'n');
+  }
+
   /// Loads ingredients with cache-first strategy.
   /// Returns cached data immediately if available,
   /// then fetches from network to update cache.
@@ -54,9 +67,13 @@ class IngredientRepository {
     String? search,
     int page = 0,
   }) async {
+    // Normalize search for accent-insensitive cache lookup
+    final normalizedSearch =
+        (search != null && search.isNotEmpty) ? _normalize(search) : null;
+
     // For search queries, check search result cache
-    if (search != null && search.isNotEmpty) {
-      final cached = await _local.getSearchResult(search, category);
+    if (normalizedSearch != null) {
+      final cached = await _local.getSearchResult(normalizedSearch, category);
       if (cached != null && cached.isNotEmpty) return cached;
     }
 
@@ -94,8 +111,11 @@ class IngredientRepository {
       query = query.eq('category', category);
     }
 
-    if (search != null && search.isNotEmpty) {
-      query = query.ilike('name', '%$search%');
+    final normalizedSearch =
+        (search != null && search.isNotEmpty) ? _normalize(search) : null;
+
+    if (normalizedSearch != null) {
+      query = query.ilike('name_search', '%$normalizedSearch%');
     }
 
     final from = page * pageSize;
@@ -104,9 +124,9 @@ class IngredientRepository {
     final data = await query.order('name').range(from, to);
     final items = data.map((json) => IngredientItem.fromJson(json)).toList();
 
-    // Cache results
-    if (search != null && search.isNotEmpty) {
-      await _local.saveSearchResult(search, category, items);
+    // Cache results (use normalized key so "limón" and "limon" share cache)
+    if (normalizedSearch != null) {
+      await _local.saveSearchResult(normalizedSearch, category, items);
     } else {
       await _local.saveIngredients(items);
     }

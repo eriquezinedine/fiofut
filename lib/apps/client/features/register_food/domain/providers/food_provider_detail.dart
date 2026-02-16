@@ -172,11 +172,11 @@ class FoodDetailError extends FoodDetailState {
 // ── Provider ────────────────────────────────────────────────────
 
 final foodDetailProvider =
-    NotifierProvider<FoodDetailNotifier, FoodDetailState>(
+    AutoDisposeNotifierProvider<FoodDetailNotifier, FoodDetailState>(
   FoodDetailNotifier.new,
 );
 
-class FoodDetailNotifier extends Notifier<FoodDetailState> {
+class FoodDetailNotifier extends AutoDisposeNotifier<FoodDetailState> {
   @override
   FoodDetailState build() {
     ref.listen(foodImageUploadProvider, (prev, next) {
@@ -376,6 +376,72 @@ class FoodDetailNotifier extends Notifier<FoodDetailState> {
     } catch (e) {
       developer.log('zineKey - Error al agregar: $e', name: 'FoodDetail');
       return 'No se pudo agregar el ingrediente';
+    }
+  }
+
+  /// Sets a pre-loaded result directly (no network fetch needed).
+  void setResult(FoodRecognitionResult result) {
+    state = FoodDetailLoaded(result: result);
+  }
+
+  /// Loads an existing food from the database by its ID.
+  Future<void> loadExistingFood(String foodId) async {
+    state = const FoodDetailAnalyzing();
+    try {
+      final supabase = Supabase.instance.client;
+
+      final food = await supabase
+          .from('food')
+          .select('''
+            id, title, description, type_food, image_url,
+            detail_food_ingredient (
+              id, quantity,
+              ingredient:id_ingredient (
+                id, name, slug, calories, fat, carbohydrates, protein,
+                unit, base_quantity, category
+              )
+            )
+          ''')
+          .eq('id', foodId)
+          .single();
+
+      final details =
+          food['detail_food_ingredient'] as List<dynamic>? ?? [];
+      final ingredients = details.map((d) {
+        final detail = d as Map<String, dynamic>;
+        final ing = detail['ingredient'] as Map<String, dynamic>;
+        return RecognizedIngredient(
+          id: ing['id'] as String,
+          idDetailFoodIngredient: detail['id'] as String,
+          name: ing['name'] as String? ?? '',
+          slug: ing['slug'] as String? ?? '',
+          calories: (ing['calories'] as num?)?.toDouble() ?? 0,
+          fat: (ing['fat'] as num?)?.toDouble() ?? 0,
+          carbohydrates: (ing['carbohydrates'] as num?)?.toDouble() ?? 0,
+          protein: (ing['protein'] as num?)?.toDouble() ?? 0,
+          unit: ing['unit'] as String? ?? 'grams',
+          baseQuantity: (ing['base_quantity'] as num?)?.toDouble() ?? 100,
+          quantity: (detail['quantity'] as num?)?.toDouble() ?? 0,
+          category: ing['category'] as String?,
+        );
+      }).toList();
+
+      state = FoodDetailLoaded(
+        result: FoodRecognitionResult(
+          id: food['id'] as String,
+          title: food['title'] as String? ?? '',
+          description: food['description'] as String? ?? '',
+          typeFood: food['type_food'] as String? ?? 'snack',
+          imageUrl: food['image_url'] as String? ?? '',
+          ingredients: ingredients,
+        ),
+      );
+    } catch (e) {
+      developer.log('zineKey - Error loading existing food: $e',
+          name: 'FoodDetail');
+      state = FoodDetailError(
+        message: e.toString().replaceAll('Exception: ', ''),
+      );
     }
   }
 

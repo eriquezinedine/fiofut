@@ -30,11 +30,11 @@ class FoodImageUploadError extends FoodImageUploadState {
 // ── Provider ────────────────────────────────────────────────────
 
 final foodImageUploadProvider =
-    NotifierProvider<FoodImageUploadNotifier, FoodImageUploadState>(
+    AutoDisposeNotifierProvider<FoodImageUploadNotifier, FoodImageUploadState>(
   FoodImageUploadNotifier.new,
 );
 
-class FoodImageUploadNotifier extends Notifier<FoodImageUploadState> {
+class FoodImageUploadNotifier extends AutoDisposeNotifier<FoodImageUploadState> {
   static const _bucket = 'food-images';
 
   @override

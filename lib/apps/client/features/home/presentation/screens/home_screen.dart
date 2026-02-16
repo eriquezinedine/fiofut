@@ -125,7 +125,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ],
                     body: Padding(
                       padding: EdgeInsetsGeometry.only(top: 20),
-                      child: MealTabs(mealItems: mealItems)),
+                      child: MealTabs(
+                        exerciseItems: mealItems
+                            .where((i) => i.type == MealItemType.exercise)
+                            .toList(),
+                      ),
+                    ),
                   ),
                 ),
               ],

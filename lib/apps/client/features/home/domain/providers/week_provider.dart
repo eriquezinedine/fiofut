@@ -124,8 +124,13 @@ class WeekNotifier extends Notifier<WeekState> {
       currentWeekStart: _getMondayOfWeek(selectedDate),
     );
 
-    // Invalidate cache to update selection
-    _weeksCache.clear();
+    // Update selection in cache without losing dot data.
+    for (final entry in _weeksCache.entries) {
+      _weeksCache[entry.key] = entry.value.map((day) {
+        final dayDate = DateTime(day.date.year, day.date.month, day.date.day);
+        return day.copyWith(isSelected: dayDate == selectedDate);
+      }).toList();
+    }
   }
 
   /// Updates the current week being viewed.
@@ -161,6 +166,11 @@ class WeekNotifier extends Notifier<WeekState> {
         }
         return day;
       }).toList();
+
+      // Trigger rebuild so calendar UI updates dots.
+      if (state is WeekLoaded) {
+        state = (state as WeekLoaded).copyWith();
+      }
     }
   }
 

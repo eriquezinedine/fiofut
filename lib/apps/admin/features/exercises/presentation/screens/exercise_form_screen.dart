@@ -2,8 +2,9 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/exercises_repository.dart';
+import 'package:model/model.dart';
+
 import '../../domain/models/exercise.dart';
-import '../../domain/models/muscle.dart';
 import '../../domain/providers/exercise_form_provider.dart';
 import '../../domain/providers/exercises_provider.dart';
 import '../../domain/providers/muscles_provider.dart';

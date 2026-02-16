@@ -168,8 +168,15 @@ class ExcludedFoodsListNotifier extends Notifier<ExcludedFoodsListState> {
         search: state.searchQuery.isEmpty ? null : state.searchQuery,
         page: nextPage,
       );
+
+      // Deduplicate: background refresh may have replaced page 0 with
+      // network data whose ordering differs from the Isar cache, causing
+      // overlap between the current list and the next page.
+      final existingIds = state.ingredients.map((i) => i.id).toSet();
+      final newItems = items.where((i) => !existingIds.contains(i.id)).toList();
+
       state = state.copyWith(
-        ingredients: [...state.ingredients, ...items],
+        ingredients: [...state.ingredients, ...newItems],
         currentPage: nextPage,
         hasMore: items.length >= IngredientRepository.pageSize,
         isLoadingMore: false,

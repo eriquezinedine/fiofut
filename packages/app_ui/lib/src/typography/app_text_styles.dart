@@ -64,7 +64,7 @@ abstract final class AppTextStyles {
   static const TextStyle bodyMedium = TextStyle(
     fontFamily: fontFamily,
     fontSize: 16,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
     height: 1.5,
   );

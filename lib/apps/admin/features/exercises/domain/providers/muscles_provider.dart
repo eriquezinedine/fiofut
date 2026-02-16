@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../models/muscle.dart';
+import 'package:model/model.dart';
 
 /// Provider that fetches all muscles from the database
 final musclesProvider = FutureProvider<List<Muscle>>((ref) async {

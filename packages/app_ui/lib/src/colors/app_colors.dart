@@ -80,6 +80,8 @@ abstract final class AppColors {
   /// Texto muted/hint
   static const Color textMuted = Color(0xFF6B7280);
 
+  static const Color textDescription = Color(0xff9da2ae);
+
   /// Texto dimmed (mas oscuro que muted)
   static const Color textDimmed = Color(0xFF4B5563);
 

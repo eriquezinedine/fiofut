@@ -2,19 +2,20 @@ import 'dart:io';
 
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import 'food_detail_page.dart';
+import '../../food_home/domain/providers/food_home_provider.dart';
 
-class TakePhotoPage extends StatefulWidget {
+class TakePhotoPage extends ConsumerStatefulWidget {
   const TakePhotoPage({super.key});
 
   @override
-  State<TakePhotoPage> createState() => _TakePhotoPageState();
+  ConsumerState<TakePhotoPage> createState() => _TakePhotoPageState();
 }
 
-class _TakePhotoPageState extends State<TakePhotoPage> {
+class _TakePhotoPageState extends ConsumerState<TakePhotoPage> {
   final _picker = ImagePicker();
   bool _hasAttempted = false;
 
@@ -37,12 +38,9 @@ class _TakePhotoPageState extends State<TakePhotoPage> {
     if (!mounted) return;
 
     if (xFile != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute<void>(
-          builder: (_) => FoodDetailPage(imageFile: File(xFile.path)),
-        ),
-      );
+      // Add loading item to home and process in background.
+      ref.read(foodHomeProvider.notifier).addLoadingItem(File(xFile.path));
+      Navigator.pop(context);
     } else {
       Navigator.pop(context);
     }

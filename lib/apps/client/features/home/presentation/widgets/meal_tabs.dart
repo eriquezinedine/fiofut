@@ -1,4 +1,5 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/exercise_home.dart';
 import 'package:fio_fut/apps/client/features/food_home/feature/food_home_page.dart';
 import 'package:fio_fut/apps/client/features/home/domain/models/models.dart';
 import 'package:flutter/material.dart';
@@ -8,11 +9,11 @@ import 'meal_item_card.dart';
 /// Tabs widget for switching between meals and exercises using TabView.
 class MealTabs extends StatefulWidget {
   const MealTabs({
-    required this.mealItems,
+    required this.exerciseItems,
     super.key,
   });
 
-  final List<MealItem> mealItems;
+  final List<MealItem> exerciseItems;
 
   @override
   State<MealTabs> createState() => _MealTabsState();
@@ -33,13 +34,6 @@ class _MealTabsState extends State<MealTabs>
     _tabController.dispose();
     super.dispose();
   }
-
-  List<MealItem> get _meals =>
-      widget.mealItems.where((item) => item.type == MealItemType.meal).toList();
-
-  List<MealItem> get _exercises => widget.mealItems
-      .where((item) => item.type == MealItemType.exercise)
-      .toList();
 
   @override
   Widget build(BuildContext context) {
@@ -65,16 +59,8 @@ class _MealTabsState extends State<MealTabs>
               dividerColor: Colors.transparent,
               labelColor: AppColors.black,
               unselectedLabelColor: AppColors.textMuted,
-              labelStyle: const TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+              labelStyle: AppTextStyles.titleSmall,
+              unselectedLabelStyle: AppTextStyles.labelLarge,
               tabs: const [
                 Tab(text: 'Alimentación'),
                 Tab(text: 'Ejercicios'),
@@ -88,11 +74,12 @@ class _MealTabsState extends State<MealTabs>
           child: TabBarView(
             controller: _tabController,
             children: [
-              // Meals tab
-              FoodHomePage(items: _meals),
+              // Meals tab - now reads from provider
+              const FoodHomePage(),
 
               // Exercises tab
-              _ItemsList(items: _exercises),
+              const ExerciseHomePage()
+              // _ItemsList(items: widget.exerciseItems),
             ],
           ),
         ),
@@ -112,9 +99,7 @@ class _ItemsList extends StatelessWidget {
       return Center(
         child: Text(
           'No hay elementos para mostrar',
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 14,
+          style: AppTextStyles.caption.copyWith(
             color: AppColors.textMuted,
           ),
         ),

@@ -18,5 +18,8 @@
         "fs",
         "http",
         "net"
+    ],
+    "cSpell.words": [
+        "Excercise"
     ]
 }
