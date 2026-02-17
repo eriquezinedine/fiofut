@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart' as router;
 import 'package:lucide_icons/lucide_icons.dart';
 
-import 'package:fio_fut/core/router/app_routes.dart';
 import '../../domain/providers/food_provider.dart';
 import '../widgets/food_card.dart';
+import 'food_form_screen.dart';
 
 class FoodListScreen extends ConsumerStatefulWidget {
   const FoodListScreen({super.key});
@@ -58,7 +58,7 @@ class _FoodListScreenState extends ConsumerState<FoodListScreen> {
                   const Spacer(),
                   GestureDetector(
                     onTap: () => router.GoRouter.of(context)
-                        .push(AppRoutes.adminFoodNew),
+                        .push(FoodFormScreen.pathNew),
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(

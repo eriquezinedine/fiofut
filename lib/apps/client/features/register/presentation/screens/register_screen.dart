@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart' as router;
 
-import '../../../../../../core/router/app_routes.dart';
 import '../../domain/providers/providers.dart';
+import '../../../onboarding/presentation/screens/onboarding_wizard.dart';
 
 class RegisterScreen extends ConsumerWidget {
+  static const String name = 'register';
+  static const String path = '/register';
+
   const RegisterScreen({super.key});
 
   @override
@@ -295,7 +298,7 @@ class RegisterScreen extends ConsumerWidget {
   Future<void> _handleRegister(BuildContext context, WidgetRef ref) async {
     final success = await ref.read(registerProvider.notifier).register();
     if (success && context.mounted) {
-      router.GoRouter.of(context).go(AppRoutes.onboarding);
+      router.GoRouter.of(context).go(OnboardingWizard.path);
     }
   }
 }

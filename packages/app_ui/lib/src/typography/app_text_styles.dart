@@ -82,7 +82,7 @@ abstract final class AppTextStyles {
   static const TextStyle small = TextStyle(
     fontFamily: fontFamily,
     fontSize: 12,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w600,
     color: AppColors.textMuted,
     height: 1.33,
   );

@@ -27,7 +27,7 @@ extension BuildContextExtensions on BuildContext {
   // ============== Navigation ==============
   NavigatorState get navigator => Navigator.of(this);
 
-  void pop<T>([T? result]) => navigator.pop(result);
+  // void pop<T>([T? result]) => navigator.pop(result);
 
   Future<T?> push<T>(Widget page) => navigator.push<T>(
         MaterialPageRoute(builder: (_) => page),
@@ -94,33 +94,33 @@ extension BuildContextExtensions on BuildContext {
     );
   }
 
-  Future<bool?> showConfirmDialog({
-    required String title,
-    required String message,
-    String confirmText = 'Confirmar',
-    String cancelText = 'Cancelar',
-    bool isDangerous = false,
-  }) {
-    return showAppDialog<bool>(
-      child: AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => pop(false),
-            child: Text(cancelText),
-          ),
-          TextButton(
-            onPressed: () => pop(true),
-            style: isDangerous
-                ? TextButton.styleFrom(foregroundColor: AppColors.error)
-                : null,
-            child: Text(confirmText),
-          ),
-        ],
-      ),
-    );
-  }
+  // Future<bool?> showConfirmDialog({
+  //   required String title,
+  //   required String message,
+  //   String confirmText = 'Confirmar',
+  //   String cancelText = 'Cancelar',
+  //   bool isDangerous = false,
+  // }) {
+  //   return showAppDialog<bool>(
+  //     child: AlertDialog(
+  //       title: Text(title),
+  //       content: Text(message),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => pop(false),
+  //           child: Text(cancelText),
+  //         ),
+  //         TextButton(
+  //           onPressed: () => pop(true),
+  //           style: isDangerous
+  //               ? TextButton.styleFrom(foregroundColor: AppColors.error)
+  //               : null,
+  //           child: Text(confirmText),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   // ============== Bottom Sheet ==============
   Future<T?> showAppBottomSheet<T>({

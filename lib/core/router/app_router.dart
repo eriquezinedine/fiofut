@@ -6,6 +6,8 @@ import 'package:fio_fut/apps/admin/features/ingredients/presentation/screens/ing
 import 'package:fio_fut/apps/admin/features/meals/presentation/screens/food_form_screen.dart';
 import 'package:fio_fut/apps/client/features/app_content/presentation/pages/app_content_page.dart';
 import 'package:fio_fut/apps/client/features/complete_profile/complete_profile.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/presentation/pages/exercise_image_page.dart';
 import 'package:fio_fut/apps/client/features/home/presentation/screens/hydration_screen.dart';
 import 'package:fio_fut/apps/client/features/login/login.dart';
 import 'package:fio_fut/apps/client/features/login_google/login_google.dart';
@@ -21,15 +23,15 @@ import '../../apps/client/features/onboarding/onboarding.dart';
 
 /// Auth routes that don't require authentication
 const _publicRoutes = [
-  AppRoutes.login,
-  AppRoutes.loginGoogle,
-  AppRoutes.register,
+  LoginScreen.path,
+  LoginGoogleScreen.path,
+  RegisterScreen.path,
 ];
 
 /// Provider del router
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: AppRoutes.loginGoogle,
+    initialLocation: LoginGoogleScreen.path,
     debugLogDiagnostics: true,
     redirect: (context, state) async {
       final session = Supabase.instance.client.auth.currentSession;
@@ -39,7 +41,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // If not logged in and trying to access a protected route, go to login
       if (!isLoggedIn && !isPublicRoute) {
-        return AppRoutes.loginGoogle;
+        return LoginGoogleScreen.path;
       }
 
       // If logged in and on a public route, redirect based on role
@@ -62,15 +64,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
         if (userProfile != null) {
           if (!userProfile.isProfileComplete) {
-            return AppRoutes.completeProfile;
+            return CompleteProfileScreen.path;
           }
           return switch (userProfile.userType) {
-            UserType.admin => AppRoutes.admin,
+            UserType.admin => AdminContentPage.path,
             UserType.trainer => AppRoutes.trainer,
-            UserType.student => AppRoutes.home,
+            UserType.student => AppContentPage.path,
           };
         }
-        return AppRoutes.home;
+        return AppContentPage.path;
       }
 
       return null;
@@ -78,46 +80,56 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       // Onboarding
       GoRoute(
-        path: AppRoutes.onboarding,
-        name: 'onboarding',
+        path: OnboardingWizard.path,
+        name: OnboardingWizard.name,
         builder: (context, state) => const OnboardingWizard(),
       ),
 
       // Complete Profile (WhatsApp)
       GoRoute(
-        path: AppRoutes.completeProfile,
-        name: 'completeProfile',
+        path: CompleteProfileScreen.path,
+        name: CompleteProfileScreen.name,
         builder: (context, state) => const CompleteProfileScreen(),
       ),
 
       // Client Home
       GoRoute(
-        path: AppRoutes.home,
-        name: 'home',
+        path: AppContentPage.path,
+        name: AppContentPage.name,
         builder: (context, state) => const AppContentPage(),
       ),
 
       // Hydration
       GoRoute(
-        path: AppRoutes.hydration,
-        name: 'hydration',
+        path: HydrationScreen.path,
+        name: HydrationScreen.name,
         builder: (context, state) => const HydrationScreen(),
+      ),
+
+      // Exercise Image
+      GoRoute(
+        path: ExerciseImagePage.path,
+        name: ExerciseImagePage.name,
+        builder: (context, state) {
+          final exercise = state.extra as Exercise;
+          return ExerciseImagePage(exercise: exercise);
+        },
       ),
 
       // === ADMIN ROUTES ===
       GoRoute(
-        path: AppRoutes.admin,
-        name: 'admin',
+        path: AdminContentPage.path,
+        name: AdminContentPage.name,
         builder: (context, state) => const AdminContentPage(),
       ),
       GoRoute(
-        path: AppRoutes.adminExerciseNew,
-        name: 'adminExerciseNew',
+        path: ExerciseFormScreen.pathNew,
+        name: '${ExerciseFormScreen.name}-new',
         builder: (context, state) => const ExerciseFormScreen(),
       ),
       GoRoute(
-        path: AppRoutes.adminExerciseEdit,
-        name: 'adminExerciseEdit',
+        path: ExerciseFormScreen.pathEdit,
+        name: '${ExerciseFormScreen.name}-edit',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return ExerciseFormScreen(exerciseId: id);
@@ -125,13 +137,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       // Food routes
       GoRoute(
-        path: AppRoutes.adminFoodNew,
-        name: 'adminFoodNew',
+        path: FoodFormScreen.pathNew,
+        name: '${FoodFormScreen.name}-new',
         builder: (context, state) => const FoodFormScreen(),
       ),
       GoRoute(
-        path: AppRoutes.adminFoodEdit,
-        name: 'adminFoodEdit',
+        path: FoodFormScreen.pathEdit,
+        name: '${FoodFormScreen.name}-edit',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return FoodFormScreen(foodId: id);
@@ -140,13 +152,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Ingredient routes
       GoRoute(
-        path: AppRoutes.adminIngredientNew,
-        name: 'adminIngredientNew',
+        path: IngredientFormScreen.pathNew,
+        name: '${IngredientFormScreen.name}-new',
         builder: (context, state) => const IngredientFormScreen(),
       ),
       GoRoute(
-        path: AppRoutes.adminIngredientEdit,
-        name: 'adminIngredientEdit',
+        path: IngredientFormScreen.pathEdit,
+        name: '${IngredientFormScreen.name}-edit',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return IngredientFormScreen(ingredientId: id);
@@ -169,7 +181,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: ':id',
-            name: 'productDetail',
+            name: 'product-detail',
             builder: (context, state) {
               final id = state.pathParameters['id']!;
               return _PlaceholderScreen(title: 'Product $id');
@@ -207,7 +219,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: ':id',
-            name: 'orderDetail',
+            name: 'order-detail',
             builder: (context, state) {
               final id = state.pathParameters['id']!;
               return _PlaceholderScreen(title: 'Order $id');
@@ -225,18 +237,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Auth
       GoRoute(
-        path: AppRoutes.login,
-        name: 'login',
+        path: LoginScreen.path,
+        name: LoginScreen.name,
         builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
-        path: AppRoutes.loginGoogle,
-        name: 'loginGoogle',
+        path: LoginGoogleScreen.path,
+        name: LoginGoogleScreen.name,
         builder: (context, state) => const LoginGoogleScreen(),
       ),
       GoRoute(
-        path: AppRoutes.register,
-        name: 'register',
+        path: RegisterScreen.path,
+        name: RegisterScreen.name,
         builder: (context, state) => const RegisterScreen(),
       ),
     ],
@@ -300,7 +312,7 @@ class _ErrorScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             CustomGestureDetector(
-              onTap: () => context.go(AppRoutes.home),
+              onTap: () => context.go(AppContentPage.path),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 decoration: BoxDecoration(

@@ -9,6 +9,10 @@ import '../../domain/providers/ingredient_form_provider.dart';
 import '../../domain/providers/ingredients_provider.dart';
 
 class IngredientFormScreen extends ConsumerStatefulWidget {
+  static const String name = 'admin-ingredient-form';
+  static const String pathNew = '/admin/ingredients/new';
+  static const String pathEdit = '/admin/ingredients/:id';
+
   const IngredientFormScreen({this.ingredientId, super.key});
 
   final String? ingredientId;

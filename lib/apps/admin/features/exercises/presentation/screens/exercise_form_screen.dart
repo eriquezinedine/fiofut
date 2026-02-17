@@ -10,6 +10,10 @@ import '../../domain/providers/exercises_provider.dart';
 import '../../domain/providers/muscles_provider.dart';
 
 class ExerciseFormScreen extends ConsumerStatefulWidget {
+  static const String name = 'admin-exercise-form';
+  static const String pathNew = '/admin/exercises/new';
+  static const String pathEdit = '/admin/exercises/:id';
+
   const ExerciseFormScreen({this.exerciseId, super.key});
 
   final String? exerciseId;

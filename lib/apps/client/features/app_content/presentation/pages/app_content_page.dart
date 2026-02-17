@@ -7,6 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AppContentPage extends ConsumerStatefulWidget {
+  static const String name = 'home';
+  static const String path = '/';
+
   const AppContentPage({super.key});
 
   @override

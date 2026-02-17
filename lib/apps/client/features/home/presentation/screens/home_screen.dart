@@ -1,5 +1,4 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/core/router/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +7,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../domain/models/models.dart';
 import '../../domain/providers/providers.dart';
 import '../widgets/widgets.dart';
+import 'hydration_screen.dart';
 
 /// Home screen showing the user's daily progress and meal plan.
 class HomeScreen extends ConsumerStatefulWidget {
@@ -108,7 +108,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         onAddWater: (amount) {
                           ref.read(homeProvider.notifier).addWater(amount);
                         },
-                        onTap: () => GoRouter.of(context).push(AppRoutes.hydration),
+                        onTap: () => GoRouter.of(context).push(HydrationScreen.path),
                       ),
 
                       const SliverToBoxAdapter(

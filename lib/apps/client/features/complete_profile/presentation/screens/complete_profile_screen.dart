@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:nation_code_picker/nation_code_picker.dart';
 
-import '../../../../../../core/router/app_routes.dart';
 import '../../domain/providers/providers.dart';
 import '../widgets/widgets.dart';
 
 class CompleteProfileScreen extends ConsumerStatefulWidget {
+  static const String name = 'complete-profile';
+  static const String path = '/complete-profile';
+
   const CompleteProfileScreen({super.key});
 
   @override
@@ -133,7 +135,7 @@ class _CompleteProfileScreenState
     final success =
         await ref.read(completeProfileProvider.notifier).submitProfile();
     if (success && context.mounted) {
-      context.go(AppRoutes.home);
+      context.go('/');
     }
   }
 }

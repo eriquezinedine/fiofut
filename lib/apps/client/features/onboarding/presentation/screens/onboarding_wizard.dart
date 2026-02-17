@@ -7,6 +7,9 @@ import 'screens.dart';
 
 /// Widget principal que coordina el flujo del onboarding wizard.
 class OnboardingWizard extends ConsumerStatefulWidget {
+  static const String name = 'onboarding';
+  static const String path = '/onboarding';
+
   const OnboardingWizard({super.key});
 
   @override

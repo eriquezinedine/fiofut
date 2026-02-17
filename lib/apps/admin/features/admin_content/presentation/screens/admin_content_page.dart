@@ -11,6 +11,9 @@ import '../../domain/providers/admin_bottom_nav_provider.dart';
 import '../widgets/admin_bottom_nav.dart';
 
 class AdminContentPage extends ConsumerStatefulWidget {
+  static const String name = 'admin';
+  static const String path = '/admin';
+
   const AdminContentPage({super.key});
 
   @override

@@ -1,7 +1,7 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/profile/domain/providers/logout_provider.dart';
 import 'package:fio_fut/core/providers/auth_providers.dart';
-import 'package:fio_fut/core/router/app_routes.dart';
+import 'package:fio_fut/apps/client/features/login_google/presentation/screens/login_google_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -212,7 +212,7 @@ class ProfileScreen extends ConsumerWidget {
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     final success = await ref.read(logoutProvider.notifier).signOut();
     if (success && context.mounted) {
-      GoRouter.of(context).go(AppRoutes.loginGoogle);
+      GoRouter.of(context).go(LoginGoogleScreen.path);
     }
   }
 

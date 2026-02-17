@@ -13,6 +13,10 @@ import '../../domain/providers/food_provider.dart';
 import '../widgets/ingredient_selector_sheet.dart';
 
 class FoodFormScreen extends ConsumerStatefulWidget {
+  static const String name = 'admin-food-form';
+  static const String pathNew = '/admin/food/new';
+  static const String pathEdit = '/admin/food/:id';
+
   const FoodFormScreen({this.foodId, super.key});
 
   final String? foodId;

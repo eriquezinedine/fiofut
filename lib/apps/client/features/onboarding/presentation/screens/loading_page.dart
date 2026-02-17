@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../core/router/app_routes.dart';
 import '../../domain/providers/providers.dart';
 import '../widgets/widgets.dart';
 
@@ -171,7 +170,7 @@ class _LoadingPageState extends ConsumerState<LoadingPage>
                     onPressed: _isComplete
                         ? () {
                             notifier.completeOnboarding();
-                            context.go(AppRoutes.home);
+                            context.go('/');
                           }
                         : null,
                     text: 'Comenzar',

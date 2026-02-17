@@ -14,6 +14,8 @@ abstract final class AppColors {
 
   /// Rojo Principal
   static const Color red = Color(0xFFE53935);
+  /// Rojo Principal
+  static const Color favorite = Color(0xFFef4244);
 
   /// Rojo Brillante
   static const Color redBright = Color(0xFFEF4444);
@@ -176,6 +178,12 @@ abstract final class AppColors {
   /// Blue Gradient
   static const List<Color> blueGradient = [
     Color(0xFF3B82F6),
+    Color(0xFF2563EB),
+  ];
+
+  /// Blue Gradient
+  static const List<Color> blackGradient = [
+    Color(0xFF000000),
     Color(0xFF2563EB),
   ];
 }

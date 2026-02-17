@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart' as router;
 
-import '../../../../../../core/router/app_routes.dart';
 import '../../domain/providers/providers.dart';
+import '../../../register/presentation/screens/register_screen.dart';
 
 class LoginScreen extends ConsumerWidget {
+  static const String name = 'login';
+  static const String path = '/login';
+
   const LoginScreen({super.key});
 
   @override
@@ -219,7 +222,7 @@ class LoginScreen extends ConsumerWidget {
                   ),
                   GestureDetector(
                     onTap: () =>
-                        router.GoRouter.of(context).push(AppRoutes.register),
+                        router.GoRouter.of(context).push(RegisterScreen.path),
                     child: Text(
                       'Regístrate',
                       style: AppTextStyles.bodyMedium.copyWith(
@@ -241,7 +244,7 @@ class LoginScreen extends ConsumerWidget {
   Future<void> _handleLogin(BuildContext context, WidgetRef ref) async {
     final success = await ref.read(loginProvider.notifier).login();
     if (success && context.mounted) {
-      router.GoRouter.of(context).go(AppRoutes.home);
+      router.GoRouter.of(context).go('/');
     }
   }
 }

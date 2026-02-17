@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart' as router;
 import 'package:lucide_icons/lucide_icons.dart';
 
-import 'package:fio_fut/core/router/app_routes.dart';
 import '../../domain/providers/ingredients_provider.dart';
 import '../widgets/ingredient_card.dart';
+import 'ingredient_form_screen.dart';
 
 class IngredientsListScreen extends ConsumerStatefulWidget {
   const IngredientsListScreen({super.key});
@@ -60,7 +60,7 @@ class _IngredientsListScreenState
                   const Spacer(),
                   GestureDetector(
                     onTap: () => router.GoRouter.of(context)
-                        .push(AppRoutes.adminIngredientNew),
+                        .push(IngredientFormScreen.pathNew),
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(

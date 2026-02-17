@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart' as router;
 import 'package:lucide_icons/lucide_icons.dart';
 
-import 'package:fio_fut/core/router/app_routes.dart';
 import '../../domain/providers/exercises_provider.dart';
 import '../../domain/providers/muscles_provider.dart';
 import '../widgets/exercise_card_admin.dart';
+import 'exercise_form_screen.dart';
 
 class ExercisesListScreen extends ConsumerStatefulWidget {
   const ExercisesListScreen({super.key});
@@ -65,7 +65,7 @@ class _ExercisesListScreenState extends ConsumerState<ExercisesListScreen> {
                   const Spacer(),
                   GestureDetector(
                     onTap: () =>
-                        router.GoRouter.of(context).push(AppRoutes.adminExerciseNew),
+                        router.GoRouter.of(context).push(ExerciseFormScreen.pathNew),
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(

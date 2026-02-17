@@ -1,8 +1,10 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/presentation/pages/exercise_image_page.dart';
 import 'package:fio_fut/core/extension/muscle_group_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:model/model.dart';
 
@@ -13,7 +15,7 @@ class ExcerciseCardImage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        
+        context.pushNamed(ExerciseImagePage.name, extra: exercise);   
       },
       child: Stack(
         clipBehavior: Clip.none,

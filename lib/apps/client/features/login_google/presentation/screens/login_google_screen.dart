@@ -6,10 +6,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart' as router;
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../core/router/app_routes.dart';
 import '../../domain/providers/providers.dart';
+import '../../../complete_profile/presentation/screens/complete_profile_screen.dart';
+import '../../../../../../apps/admin/features/admin_content/presentation/screens/admin_content_page.dart';
 
 class LoginGoogleScreen extends ConsumerWidget {
+  static const String name = 'login-google';
+  static const String path = '/login-google';
+
   const LoginGoogleScreen({super.key});
 
   @override
@@ -170,13 +174,13 @@ class LoginGoogleScreen extends ConsumerWidget {
         await ref.read(loginGoogleProvider.notifier).signInWithGoogle();
     if (profile != null && context.mounted) {
       if (!profile.isProfileComplete) {
-        router.GoRouter.of(context).go(AppRoutes.completeProfile);
+        router.GoRouter.of(context).go(CompleteProfileScreen.path);
         return;
       }
       final route = switch (profile.userType) {
-        UserType.admin => AppRoutes.admin,
-        UserType.trainer => AppRoutes.trainer,
-        UserType.student => AppRoutes.home,
+        UserType.admin => AdminContentPage.path,
+        UserType.trainer => '/trainer',
+        UserType.student => '/',
       };
       router.GoRouter.of(context).go(route);
     }

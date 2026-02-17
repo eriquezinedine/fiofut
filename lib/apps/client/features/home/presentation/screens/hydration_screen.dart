@@ -11,6 +11,9 @@ import '../../domain/providers/providers.dart';
 
 /// Hydration modal screen for tracking water intake.
 class HydrationScreen extends ConsumerStatefulWidget {
+  static const String name = 'hydration';
+  static const String path = '/hydration';
+
   const HydrationScreen({super.key});
 
   @override
