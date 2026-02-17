@@ -4,8 +4,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../domain/models/exercise.dart';
 
-class ExerciseCard extends StatelessWidget {
-  const ExerciseCard({
+class ExerciseCardAdmin extends StatelessWidget {
+  const ExerciseCardAdmin({
     required this.exercise,
     required this.onTap,
     required this.onDelete,
@@ -32,27 +32,7 @@ class ExerciseCard extends StatelessWidget {
         child: Row(
           children: [
             // Image or icon placeholder
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(12),
-                image: exercise.imageUrl != null
-                    ? DecorationImage(
-                        image: NetworkImage(exercise.imageUrl!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: exercise.imageUrl == null
-                  ? const Icon(
-                      LucideIcons.dumbbell,
-                      color: AppColors.textMuted,
-                      size: 24,
-                    )
-                  : null,
-            ),
+            _image(),
             const SizedBox(width: 14),
 
             // Info
@@ -104,6 +84,30 @@ class ExerciseCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Container _image() {
+    return Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              image: exercise.imageUrl != null
+                  ? DecorationImage(
+                      image: NetworkImage(exercise.imageUrl!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: exercise.imageUrl == null
+                ? const Icon(
+                    LucideIcons.dumbbell,
+                    color: AppColors.textMuted,
+                    size: 24,
+                  )
+                : null,
+          );
   }
 }
 

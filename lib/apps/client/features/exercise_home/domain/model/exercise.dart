@@ -30,6 +30,7 @@ class Exercise {
     required this.title,
     required this.description,
     this.imageUrl,
+    this.videoUrl,
     required this.currentValue,
     required this.targetValue,
     required this.metricType,
@@ -40,6 +41,7 @@ class Exercise {
   final String title;
   final String description;
   final String? imageUrl;
+  final String? videoUrl;
   final double currentValue;
   final double targetValue;
   final MetricType metricType;
@@ -63,6 +65,7 @@ class Exercise {
     String? title,
     String? description,
     String? imageUrl,
+    String? videoUrl,
     double? currentValue,
     double? targetValue,
     MetricType? metricType,
@@ -73,6 +76,7 @@ class Exercise {
       title: title ?? this.title,
       description: description ?? this.description,
       imageUrl: imageUrl ?? this.imageUrl,
+      videoUrl: videoUrl ?? this.videoUrl,
       currentValue: currentValue ?? this.currentValue,
       targetValue: targetValue ?? this.targetValue,
       metricType: metricType ?? this.metricType,

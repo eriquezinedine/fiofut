@@ -163,7 +163,7 @@ class _HomeHeader extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'FioFut',
+                'FioFit',
                 style: AppTextStyles.h2.copyWith(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 28,

@@ -1,42 +1,57 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
+import 'package:fio_fut/core/extension/muscle_group_extension.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:model/model.dart';
 
 class ExcerciseCardImage extends StatelessWidget {
   const ExcerciseCardImage({super.key, required this.exercise});
   final Exercise exercise;
   @override
   Widget build(BuildContext context) {
-    return  ClipRRect(
+    return GestureDetector(
+      onTap: () {
+        
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: IntrinsicHeight(
-              child: SizedBox(
-                width: 80,
-                // height: double.infinity,
-                // height: 80,
-                child: exercise.imageUrl != null &&
-                        exercise.imageUrl!.isNotEmpty
-                    ? Image.network(
-                        exercise.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _buildPlaceholder(),
-                      )
-                    : _buildPlaceholder(),
-              ),
+            child: SizedBox(
+              width: 80,
+              height: double.infinity,
+              child: exercise.imageUrl != null && exercise.imageUrl!.isNotEmpty
+                  ? Image.network(
+                      exercise.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                    )
+                  : _buildPlaceholder(),
             ),
-          );
+          ),
+          Positioned(
+            bottom: -4,
+            right: -4,
+            child: SizedBox.square(
+              dimension: 44,
+              child: SvgPicture.asset(MuscleGroup.back.getIcon)))
+        ],
+      ),
+    );
   }
 }
 
 
 Widget _buildPlaceholder() {
     return Container(
-      color: AppColors.surfaceAlt,
+      color: AppColors.textDescription,
       child: const Center(
         child: Icon(
           LucideIcons.dumbbell,
-          color: AppColors.textMuted,
+          color: AppColors.card,
           size: 32,
         ),
       ),

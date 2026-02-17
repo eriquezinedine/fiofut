@@ -7,7 +7,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:fio_fut/core/router/app_routes.dart';
 import '../../domain/providers/exercises_provider.dart';
 import '../../domain/providers/muscles_provider.dart';
-import '../widgets/exercise_card.dart';
+import '../widgets/exercise_card_admin.dart';
 
 class ExercisesListScreen extends ConsumerStatefulWidget {
   const ExercisesListScreen({super.key});
@@ -163,7 +163,7 @@ class _ExercisesListScreenState extends ConsumerState<ExercisesListScreen> {
                           itemCount: exercises.length,
                           itemBuilder: (context, index) {
                             final exercise = exercises[index];
-                            return ExerciseCard(
+                            return ExerciseCardAdmin(
                               exercise: exercise,
                               primaryMuscleName: exercise.primaryMuscleId != null
                                   ? muscleMap[exercise.primaryMuscleId]

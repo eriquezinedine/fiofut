@@ -39,7 +39,7 @@ class ExerciseCard extends StatelessWidget {
           child: Row(
             children: [
               ExcerciseCardImage(exercise: exercise),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               // Content section
               Expanded(
                 child: Column(

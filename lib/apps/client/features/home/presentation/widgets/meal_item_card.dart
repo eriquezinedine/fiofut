@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/home/domain/models/models.dart';
+import 'package:fio_fut/core/widgets/status_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -28,100 +29,104 @@ class MealItemCard extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                width: 80,
-                height: 80,
-                child: mealItem.imageUrl.isNotEmpty
-                    ? Image.network(
-                        mealItem.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            _buildPlaceholder(),
-                      )
-                    : _buildPlaceholder(),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Image
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 80,
+                  height: double.infinity,
+                  child: mealItem.imageUrl.isNotEmpty
+                      ? Image.network(
+                          mealItem.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildPlaceholder(),
+                        )
+                      : _buildPlaceholder(),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            // Content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Name and status badge row
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          mealItem.name,
+              const SizedBox(width: 12),
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Name and status badge row
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            mealItem.name,
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.white,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Status badge
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    // Calories row
+                    Row(
+                      children: [
+                        const Icon(
+                          LucideIcons.flame,
+                          color: AppColors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${mealItem.calories} calorías',
                           style: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: AppColors.white,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Status badge
-                      _buildStatusBadge(),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  // Calories row
-                  Row(
-                    children: [
-                      const Icon(
-                        LucideIcons.flame,
-                        color: AppColors.white,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${mealItem.calories} calorías',
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.white,
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    // Macros row
+                    Row(
+                      children: [
+                        _MacroBadge(
+                          icon: LucideIcons.beef,
+                          iconColor: AppColors.redBright,
+                          value: '${mealItem.protein}g',
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  // Macros row
-                  Row(
-                    children: [
-                      _MacroBadge(
-                        icon: LucideIcons.beef,
-                        iconColor: AppColors.redBright,
-                        value: '${mealItem.protein}g',
-                      ),
-                      const SizedBox(width: 12),
-                      _MacroBadge(
-                        icon: LucideIcons.wheat,
-                        iconColor: AppColors.orange,
-                        value: '${mealItem.carbs}g',
-                      ),
-                      const SizedBox(width: 12),
-                      _MacroBadge(
-                        icon: LucideIcons.droplet,
-                        iconColor: AppColors.blue,
-                        value: '${mealItem.fat}g',
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 12),
+                        _MacroBadge(
+                          icon: LucideIcons.wheat,
+                          iconColor: AppColors.orange,
+                          value: '${mealItem.carbs}g',
+                        ),
+                        const SizedBox(width: 12),
+                        _MacroBadge(
+                          icon: LucideIcons.droplet,
+                          iconColor: AppColors.blue,
+                          value: '${mealItem.fat}g',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                                          _buildStatusBadge(),
+          
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -143,51 +148,7 @@ class MealItemCard extends StatelessWidget {
   }
 
   Widget _buildStatusBadge() {
-    if (mealItem.isCompleted) {
-      // Completed badge - green/lime
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            LucideIcons.checkCircle,
-            color: AppColors.primary,
-            size: 18,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            'Completado',
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: AppColors.primary,
-            ),
-          ),
-        ],
-      );
-    } else {
-      // Pending badge - grey with time
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            LucideIcons.clock4,
-            color: AppColors.textMuted,
-            size: 16,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            mealItem.time ?? '',
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textMuted,
-            ),
-          ),
-        ],
-      );
-    }
+    return StatusWidget(isCompleted: mealItem.isCompleted,);
   }
 }
 
