@@ -145,6 +145,9 @@ class Exercise {
       ],
       instruccion: '''Acuéstate de espaldas en una colchoneta o en el suelo, con las piernas extendidas y los brazos a los lados
 Activa tu núcleo y levanta los brazos rectos por encima de tu cabeza, alineados con tus orejas.
+Manteniendo las piernas y los brazos rectos, levanta simultáneamente las piernas y el torso del suelo y trata de alcanzar tus dedos de los pies con las manos.
+Acuéstate de espaldas en una colchoneta o en el suelo, con las piernas extendidas y los brazos a los lados
+Activa tu núcleo y levanta los brazos rectos por encima de tu cabeza, alineados con tus orejas.
 Manteniendo las piernas y los brazos rectos, levanta simultáneamente las piernas y el torso del suelo y trata de alcanzar tus dedos de los pies con las manos.''',
       currentValue: 2,
       targetValue: 5,

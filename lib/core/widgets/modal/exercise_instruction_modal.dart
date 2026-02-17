@@ -40,40 +40,45 @@ class ExerciseInstructionModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppSpacing.xl),
+    final maxHeight = MediaQuery.of(context).size.height * 0.9;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppSpacing.xl),
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildDragHandle(),
-          _buildHeader(context),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                0,
-                AppSpacing.lg,
-                AppSpacing.lg,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInstructionsSection(),
-                  const SizedBox(height: AppSpacing.xl),
-                  _buildTargetMuscleSection(),
-                ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildDragHandle(),
+            _buildHeader(context),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  0,
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInstructionsSection(),
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildTargetMuscleSection(),
+                  ],
+                ),
               ),
             ),
-          ),
-          SizedBox(
-            height: MediaQuery.of(context).viewPadding.bottom + AppSpacing.xs,
-          ),
-        ],
+            SizedBox(
+              height: MediaQuery.of(context).viewPadding.bottom + AppSpacing.xs,
+            ),
+          ],
+        ),
       ),
     );
   }
