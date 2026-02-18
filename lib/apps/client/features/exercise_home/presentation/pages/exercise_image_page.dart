@@ -153,7 +153,7 @@ class _ExerciseImagePageState extends State<ExerciseImagePage> {
                       spacing: 24,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        ExerciseFavorite(initialValue: false, onChangeValue: (bool value) {  },),
+                        ExerciseFavorite(initialValue: false, onChangeValue: (bool value) {  }, exercise: widget.exercise,),
                         PlaybackSpeedButton(
                           speed: _playbackSpeed,
                           onTap: _changePlaybackSpeed,

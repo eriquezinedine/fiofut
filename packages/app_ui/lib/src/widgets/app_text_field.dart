@@ -36,6 +36,7 @@ class AppTextField extends StatelessWidget {
     this.isRequired = false,
     this.fillColor,
     this.borderRadius,
+    this.borderColor,
     this.contentPadding,
   });
 
@@ -68,6 +69,7 @@ class AppTextField extends StatelessWidget {
   final bool isRequired;
   final Color? fillColor;
   final double? borderRadius;
+  final Color? borderColor;
   final EdgeInsetsGeometry? contentPadding;
 
   @override
@@ -133,19 +135,25 @@ class AppTextField extends StatelessWidget {
             border: borderRadius != null
                 ? OutlineInputBorder(
                     borderRadius: BorderRadius.circular(borderRadius!),
-                    borderSide: BorderSide.none,
+                    borderSide: borderColor != null
+                        ? BorderSide(color: borderColor!)
+                        : BorderSide.none,
                   )
                 : null,
             enabledBorder: borderRadius != null
                 ? OutlineInputBorder(
                     borderRadius: BorderRadius.circular(borderRadius!),
-                    borderSide: BorderSide.none,
+                    borderSide: borderColor != null
+                        ? BorderSide(color: borderColor!)
+                        : BorderSide.none,
                   )
                 : null,
             focusedBorder: borderRadius != null
                 ? OutlineInputBorder(
                     borderRadius: BorderRadius.circular(borderRadius!),
-                    borderSide: BorderSide.none,
+                    borderSide: borderColor != null
+                        ? BorderSide(color: borderColor!)
+                        : BorderSide.none,
                   )
                 : null,
             prefixIcon: prefixIcon != null
@@ -173,6 +181,9 @@ class AppSearchField extends StatelessWidget {
     this.onSubmitted,
     this.onClear,
     this.autofocus = false,
+    this.fillColor,
+    this.borderRadius,
+    this.borderColor,
   });
 
   final TextEditingController? controller;
@@ -181,23 +192,56 @@ class AppSearchField extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
   final VoidCallback? onClear;
   final bool autofocus;
+  final Color? fillColor;
+  final double? borderRadius;
+  final Color? borderColor;
+
+  OutlineInputBorder _border(double radius) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(radius),
+        borderSide: borderColor != null
+            ? BorderSide(color: borderColor!)
+            : BorderSide.none,
+      );
 
   @override
   Widget build(BuildContext context) {
+    final radius = borderRadius ?? 12;
+    final hasText = controller?.text.isNotEmpty == true;
+
     return TextField(
       controller: controller,
       autofocus: autofocus,
       style: AppTextStyles.bodyMedium,
       decoration: InputDecoration(
         hintText: hint,
-        prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-        suffixIcon: controller?.text.isNotEmpty == true
+        hintStyle: AppTextStyles.bodyMedium.copyWith(
+          color: AppColors.textMuted,
+          fontWeight: FontWeight.w400,
+        ),
+        filled: fillColor != null,
+        fillColor: fillColor,
+        border: _border(radius),
+        enabledBorder: _border(radius),
+        focusedBorder: _border(radius),
+        prefixIcon: const Icon(
+          Icons.search_rounded,
+          color: AppColors.textMuted,
+        ),
+        suffixIcon: hasText
             ? GestureDetector(
                 onTap: () {
                   controller?.clear();
                   onClear?.call();
                 },
-                child: const Icon(Icons.close, color: AppColors.textSecondary),
+                child: CircleAvatar(
+                  radius: 10,
+                  backgroundColor: AppColors.textMuted,
+                  child: const Icon(
+                    Icons.close,
+                    color: AppColors.background,
+                    size: 12,
+                  ),
+                ),
               )
             : null,
       ),

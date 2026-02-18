@@ -41,9 +41,9 @@ class ListExercise extends StatelessWidget {
         final exercise = exercises[index];
         return ExerciseCard(
           exercise: exercise,
-          onTap: onExerciseTap != null
-              ? () => onExerciseTap!(exercise)
-              : null,
+          // onTap: onExerciseTap != null
+          //     ? () => onExerciseTap!(exercise)
+          //     : null,
         );
       },
     );

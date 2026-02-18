@@ -1,20 +1,20 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/pages/exercise_detail_page.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/excercise_card/excercise_card_header.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/excercise_card/excercise_card_image.dart';
 import 'package:fio_fut/core/widgets/status_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class ExerciseCard extends StatelessWidget {
   const ExerciseCard({
     super.key,
     required this.exercise,
-    this.onTap,
   });
 
   final Exercise exercise;
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class ExerciseCard extends StatelessWidget {
       child: CircleAvatar(radius: 2,backgroundColor: AppColors.textDescription,));
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => context.pushNamed(ExerciseDetailPage.name, extra: exercise),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(

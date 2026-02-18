@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/widgets/add_exercise/add_exercise.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/list-exercise.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/muscle_reset.dart';
 import 'package:flutter/material.dart';
@@ -37,9 +38,14 @@ class ExerciseTitleCard extends StatelessWidget {
     return Padding(
       padding: EdgeInsetsGeometry.only(bottom: 16),
       child: GestureDetector(
-        onTap: () {
-          /// tap agregar mas
-        },
+        onTap: () => AddExerciseModal.show(
+          context,
+          exercises: Exercise.sampleData,
+          recentExercises: Exercise.sampleData.take(2).toList(),
+          onConfirm: (selected) {
+            // TODO: agregar ejercicios seleccionados
+          },
+        ),
         child: Padding(
           padding: EdgeInsetsGeometry.all(4).add(EdgeInsets.only(right: 0)),
           child: Row(

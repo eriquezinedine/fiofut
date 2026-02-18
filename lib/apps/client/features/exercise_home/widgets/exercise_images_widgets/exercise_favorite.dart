@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
 import 'package:flutter/material.dart';
 
 /// Widget que muestra el botón de favoritos con estado manejado por ValueNotifier
@@ -15,7 +16,7 @@ class ExerciseFavorite extends StatefulWidget {
     required this.initialValue,
     required this.onChangeValue,
     this.debounceDuration = const Duration(milliseconds: 500),
-    super.key,
+    super.key, required Exercise exercise,
   });
 
   /// Valor inicial del estado de favorito
