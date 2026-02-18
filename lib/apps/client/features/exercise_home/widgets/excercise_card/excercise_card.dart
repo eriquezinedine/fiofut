@@ -1,12 +1,11 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
-import 'package:fio_fut/apps/client/features/exercise_home/pages/exercise_detail_page.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/exercise_detail_page.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/excercise_card/excercise_card_header.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/excercise_card/excercise_card_image.dart';
 import 'package:fio_fut/core/widgets/status_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 
 class ExerciseCard extends StatelessWidget {
   const ExerciseCard({
@@ -110,45 +109,45 @@ class ExerciseCard extends StatelessWidget {
 
   
 
-  IconData _metricIcon(MetricType type) => switch (type) {
-        MetricType.weight => LucideIcons.dumbbell,
-        MetricType.distance => LucideIcons.mapPin,
-        MetricType.time => LucideIcons.timer,
-        MetricType.reps => LucideIcons.repeat,
-      };
+  // IconData _metricIcon(MetricType type) => switch (type) {
+  //       MetricType.weight => LucideIcons.dumbbell,
+  //       MetricType.distance => LucideIcons.mapPin,
+  //       MetricType.time => LucideIcons.timer,
+  //       MetricType.reps => LucideIcons.repeat,
+  //     };
 }
 
-class _ProgressBar extends StatelessWidget {
-  const _ProgressBar({required this.progress, required this.status});
+// class _ProgressBar extends StatelessWidget {
+//   const _ProgressBar({required this.progress, required this.status});
 
-  final double progress;
-  final ExerciseStatus status;
+//   final double progress;
+//   final ExerciseStatus status;
 
-  @override
-  Widget build(BuildContext context) {
-    final color = switch (status) {
-      ExerciseStatus.pending => AppColors.textMuted,
-      ExerciseStatus.inProgress => AppColors.warning,
-      ExerciseStatus.completed => AppColors.primary,
-    };
+//   @override
+//   Widget build(BuildContext context) {
+//     final color = switch (status) {
+//       ExerciseStatus.pending => AppColors.textMuted,
+//       ExerciseStatus.inProgress => AppColors.warning,
+//       ExerciseStatus.completed => AppColors.primary,
+//     };
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(4),
-      child: SizedBox(
-        height: 6,
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: progress),
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeOutCubic,
-          builder: (context, value, _) {
-            return LinearProgressIndicator(
-              value: value,
-              backgroundColor: AppColors.surface,
-              valueColor: AlwaysStoppedAnimation(color),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
+//     return ClipRRect(
+//       borderRadius: BorderRadius.circular(4),
+//       child: SizedBox(
+//         height: 6,
+//         child: TweenAnimationBuilder<double>(
+//           tween: Tween(begin: 0, end: progress),
+//           duration: const Duration(milliseconds: 600),
+//           curve: Curves.easeOutCubic,
+//           builder: (context, value, _) {
+//             return LinearProgressIndicator(
+//               value: value,
+//               backgroundColor: AppColors.surface,
+//               valueColor: AlwaysStoppedAnimation(color),
+//             );
+//           },
+//         ),
+//       ),
+//     );
+//   }
+// }

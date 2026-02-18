@@ -22,26 +22,32 @@ class DetailActionChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      spacing: AppSpacing.xs,
-      children: [
-        _Chip(
-          icon: LucideIcons.timer,
-          label: _durationLabel,
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20,vertical: 8),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          spacing: AppSpacing.xs,
+          children: [
+            _Chip(
+              icon: LucideIcons.timer,
+              label: _durationLabel,
+            ),
+            _Chip(
+              icon: LucideIcons.playCircle,
+              label: 'Instrucciones',
+              onTap: () => ExerciseInstructionModal.show(
+                context,
+                exercise: exercise,
+              ),
+            ),
+            _Chip(
+              icon: LucideIcons.barChart2,
+              label: 'Analíticas',
+            ),
+          ],
         ),
-        _Chip(
-          icon: LucideIcons.playCircle,
-          label: 'Instrucciones',
-          onTap: () => ExerciseInstructionModal.show(
-            context,
-            exercise: exercise,
-          ),
-        ),
-        _Chip(
-          icon: LucideIcons.barChart2,
-          label: 'Analíticas',
-        ),
-      ],
+      ),
     );
   }
 }
@@ -67,20 +73,19 @@ class _Chip extends StatelessWidget {
           vertical: AppSpacing.xxs + 2,
         ),
         decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          border: Border.all(color: AppColors.surface),
+          color: AppColors.backgroundSecondary,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           spacing: AppSpacing.xxs,
           children: [
-            Icon(icon, color: AppColors.textDescription, size: 14),
+            Icon(icon, color: AppColors.white, size: 14),
             Text(
               label,
               style: AppTextStyles.caption.copyWith(
-                color: AppColors.textDescription,
-                fontWeight: FontWeight.w500,
+                color: AppColors.white,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],

@@ -7,7 +7,7 @@ import 'package:fio_fut/apps/admin/features/meals/presentation/screens/food_form
 import 'package:fio_fut/apps/client/features/app_content/presentation/pages/app_content_page.dart';
 import 'package:fio_fut/apps/client/features/complete_profile/complete_profile.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
-import 'package:fio_fut/apps/client/features/exercise_home/pages/exercise_detail_page.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/exercise_detail_page.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/presentation/pages/exercise_image_page.dart';
 import 'package:fio_fut/apps/client/features/home/presentation/screens/hydration_screen.dart';
 import 'package:fio_fut/apps/client/features/login/login.dart';

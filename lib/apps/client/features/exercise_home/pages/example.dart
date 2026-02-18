@@ -1,3 +1,4 @@
+
 import 'dart:async';
 
 import 'package:app_ui/app_ui.dart';
@@ -271,7 +272,7 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
 
   Widget _buildSetupBody() {
     final isWeight = _type == MetricType.weight;
-
+    return SizedBox();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

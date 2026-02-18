@@ -15,7 +15,7 @@ abstract final class AppColors {
   /// Rojo Principal
   static const Color red = Color(0xFFE53935);
   /// Rojo Principal
-  static const Color favorite = Color(0xFFef4244);
+  static const Color favorite = Color(0xFFFE6A6B);
 
   /// Rojo Brillante
   static const Color redBright = Color(0xFFEF4444);

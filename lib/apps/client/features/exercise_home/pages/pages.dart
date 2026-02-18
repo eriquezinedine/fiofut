@@ -1,2 +1,2 @@
-export 'exercise_detail_page.dart';
+export '../../exercise_detail/presentation/pages/exercise_detail_page.dart';
 export 'exercise_home_page.dart';
