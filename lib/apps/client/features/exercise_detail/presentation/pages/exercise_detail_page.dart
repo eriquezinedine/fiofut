@@ -88,6 +88,23 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     }
   }
 
+  Future<void> _completeAllSeries() async {
+    final confirmed = await _showConfirmCompleteSheet();
+    if (!confirmed) return;
+
+    ref
+        .read(serieDetailProvider(SerieGroupType.effective).notifier)
+        .completeAll();
+
+    if (widget.exercise.hasWarmup) {
+      ref
+          .read(serieDetailProvider(SerieGroupType.warmup).notifier)
+          .completeAll();
+    }
+
+    _stopDescanso();
+  }
+
   void _startDescansoTimer() {
     _descansoTimer?.cancel();
     _descansoTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -144,6 +161,42 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     }
   }
 
+  // ── Bottom Sheets ──────────────────────────────────────────────
+
+  Future<bool> _showConfirmCompleteSheet() async {
+    return await showModalBottomSheet<bool>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => _ConfirmSheet(
+            title: 'Completar ejercicio',
+            subtitle: '¿Deseas completar todas las series?',
+            icon: LucideIcons.checkCircle,
+            confirmText: 'Completar',
+          ),
+        ) ??
+        false;
+  }
+
+  Future<void> _showExitConfirmation() async {
+    final shouldExit = await showModalBottomSheet<bool>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => _ConfirmSheet(
+            title: 'Entrenamiento en progreso',
+            subtitle: '¿Estás en pleno entrenamiento, deseas regresar?',
+            icon: LucideIcons.alertTriangle,
+            confirmText: 'Regresar',
+          ),
+        ) ??
+        false;
+
+    if (shouldExit && mounted) {
+      Navigator.pop(context);
+    }
+  }
+
   // ── Helpers ─────────────────────────────────────────────────────
 
   String? _currentSerieId(SerieDetailState state) {
@@ -169,68 +222,79 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     final effectiveState =
         ref.watch(serieDetailProvider(SerieGroupType.effective));
     final currentId = _currentSerieId(effectiveState);
-    final allDone = _isStarted && _allCompleted(effectiveState);
+    final effectiveDone = _allCompleted(effectiveState);
 
+    bool warmupDone = true;
     String? warmupCurrentId;
     if (widget.exercise.hasWarmup) {
       final warmupState =
           ref.watch(serieDetailProvider(SerieGroupType.warmup));
       warmupCurrentId = _currentSerieId(warmupState);
+      warmupDone = _allCompleted(warmupState);
     }
+
+    final allDone = _isStarted && effectiveDone && warmupDone;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        body: CustomScrollView(
-          slivers: [
-            ExerciseDetailSliverAppBar(
-              title: widget.exercise.title,
-              imageUrl: widget.exercise.imageUrl,
-            ),
-            SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DetailActionChips(
-                    exercise: widget.exercise,
-                    duration: Duration(seconds: 20),
-                  ),
-                  if (widget.exercise.hasWarmup)
+      child: PopScope(
+        canPop: !_isStarted || allDone,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          _showExitConfirmation();
+        },
+        child: Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              ExerciseDetailSliverAppBar(
+                title: widget.exercise.title,
+                imageUrl: widget.exercise.imageUrl,
+              ),
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DetailActionChips(
+                      exercise: widget.exercise,
+                      duration: Duration(seconds: 20),
+                    ),
+                    if (widget.exercise.hasWarmup)
+                      SerieExerciseWidget(
+                        repiteType: _repiteType,
+                        groupType: SerieGroupType.warmup,
+                        isStarted: _isStarted,
+                        currentSerieId: warmupCurrentId,
+                      ),
                     SerieExerciseWidget(
                       repiteType: _repiteType,
-                      groupType: SerieGroupType.warmup,
+                      groupType: SerieGroupType.effective,
                       isStarted: _isStarted,
-                      currentSerieId: warmupCurrentId,
+                      currentSerieId: currentId,
                     ),
-                  SerieExerciseWidget(
-                    repiteType: _repiteType,
-                    groupType: SerieGroupType.effective,
-                    isStarted: _isStarted,
-                    currentSerieId: currentId,
-                  ),
-                  AddSerieButton(onTap: _onAddSerie),
-                  if (_showDescanso) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
+                    AddSerieButton(onTap: _onAddSerie),
+                    if (_showDescanso) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                        ),
+                        child: DescansoWidget(
+                          seconds: _descansoSeconds,
+                          isRunning: _descansoRunning,
+                          onToggle: _toggleDescanso,
+                          onAdjust: _adjustDescanso,
+                          onStop: _stopDescanso,
+                        ),
                       ),
-                      child: DescansoWidget(
-                        seconds: _descansoSeconds,
-                        isRunning: _descansoRunning,
-                        onToggle: _toggleDescanso,
-                        onAdjust: _adjustDescanso,
-                        onStop: _stopDescanso,
-                      ),
-                    ),
+                    ],
+                    const SizedBox(height: AppSpacing.md),
                   ],
-                  const SizedBox(height: AppSpacing.md),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
+          bottomNavigationBar: _buildFooter(allDone, context),
         ),
-        bottomNavigationBar: _buildFooter(allDone, context),
       ),
     );
   }
@@ -285,12 +349,23 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
           color: AppColors.primary,
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
         ),
-        child: Text(
-          'Hecho',
-          style: AppTextStyles.button.copyWith(
-            color: AppColors.black,
-            fontWeight: FontWeight.w700,
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              LucideIcons.arrowLeft,
+              color: AppColors.black,
+              size: 20,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              'Ejercicio terminado',
+              style: AppTextStyles.button.copyWith(
+                color: AppColors.black,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -322,7 +397,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
         ),
         const SizedBox(width: AppSpacing.md),
         GestureDetector(
-          onTap: _registerSerie,
+          onTap: _completeAllSeries,
           child: Container(
             width: 56,
             height: 56,
@@ -339,6 +414,148 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── Confirm Bottom Sheet ───────────────────────────────────────
+
+class _ConfirmSheet extends StatelessWidget {
+  const _ConfirmSheet({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.confirmText,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final String confirmText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.xl),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.md),
+            child: Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+          ),
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg - 4,
+              vertical: AppSpacing.md,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(title, style: AppTextStyles.h2),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(
+                    LucideIcons.x,
+                    color: AppColors.textPrimary,
+                    size: AppSpacing.iconMd,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Content
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg - 4,
+            ),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: AppSpacing.borderRadiusXl,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                      borderRadius: AppSpacing.borderRadiusMd,
+                    ),
+                    child: Icon(
+                      icon,
+                      color: AppColors.primary,
+                      size: AppSpacing.iconMd,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Text(
+                      subtitle,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Buttons
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg - 4,
+              AppSpacing.md,
+              AppSpacing.lg - 4,
+              AppSpacing.lg,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: AppButton(
+                    text: 'Cancelar',
+                    onPressed: () => Navigator.pop(context, false),
+                    fullWidth: true,
+                    type: AppButtonType.secondary,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: AppButton(
+                    text: confirmText,
+                    onPressed: () => Navigator.pop(context, true),
+                    fullWidth: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height:
+                MediaQuery.of(context).viewPadding.bottom + AppSpacing.xs,
+          ),
+        ],
+      ),
     );
   }
 }

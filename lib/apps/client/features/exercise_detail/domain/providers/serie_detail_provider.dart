@@ -165,6 +165,25 @@ class SerieDetailNotifier
     );
   }
 
+  // ── Complete all series ─────────────────────────────────────────
+
+  void completeAll() {
+    final current = _loaded;
+    if (current == null) return;
+
+    final updatedSeries = current.series.map((s) {
+      if (s.isCompleted) return s;
+      return s.copyWith(status: SerieStatus.completed);
+    }).toList();
+
+    state = current.copyWith(
+      workout: current.workout.copyWith(
+        series: updatedSeries,
+        status: WorkoutStatus.completed,
+      ),
+    );
+  }
+
   // ── Helpers ─────────────────────────────────────────────────────
 
   void _updateSerie(String serieId, SerieSet Function(SerieSet) update) {
