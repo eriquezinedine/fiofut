@@ -13,25 +13,32 @@ class SerieExerciseWidget extends ConsumerWidget {
   const SerieExerciseWidget({
     super.key,
     this.repiteType = RepiteType.byKm,
+    this.groupType = SerieGroupType.effective,
   });
 
   final RepiteType repiteType;
+  final SerieGroupType groupType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final title = switch (groupType) {
+      SerieGroupType.effective => 'Series efectivas',
+      SerieGroupType.warmup => 'Sets de calentamiento',
+    };
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24)
-          .add(EdgeInsets.only(bottom: 12)),
+          .add(EdgeInsets.only(bottom: 0)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Series efectivas',
+            title,
             style: AppTextStyles.h3.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
-          SireBody(repiteType: repiteType),
+          SireBody(repiteType: repiteType, groupType: groupType),
         ],
       ),
     );
@@ -42,13 +49,15 @@ class SireBody extends ConsumerWidget {
   const SireBody({
     super.key,
     this.repiteType = RepiteType.byKg,
+    this.groupType = SerieGroupType.effective,
   });
 
   final RepiteType repiteType;
+  final SerieGroupType groupType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(serieDetailProvider);
+    final state = ref.watch(serieDetailProvider(groupType));
     final isRetryOnly = repiteType == RepiteType.retryOnly;
     final middleHeader = switch (repiteType) {
       RepiteType.byKg => 'Repeticiones',
@@ -69,20 +78,19 @@ class SireBody extends ConsumerWidget {
             RepiteType.byKg => _SerieRowByKg(
                 serie: serie,
                 isActive: !serie.isCompleted,
+                groupType: groupType,
               ),
             RepiteType.byKm => _SerieRowByKm(
                 serie: serie,
                 isActive: !serie.isCompleted,
+                groupType: groupType,
               ),
             RepiteType.retryOnly => _SerieRowRetryOnly(
                 serie: serie,
                 isActive: !serie.isCompleted,
+                groupType: groupType,
               ),
           },
-        // Añadir Serie button
-        _AddSerieButton(
-          onTap: () => ref.read(serieDetailProvider.notifier).addSerie(),
-        ),
       ],
     );
   }
@@ -90,8 +98,8 @@ class SireBody extends ConsumerWidget {
 
 // ── Añadir Serie button ─────────────────────────────────────────────
 
-class _AddSerieButton extends StatelessWidget {
-  const _AddSerieButton({required this.onTap});
+class AddSerieButton extends StatelessWidget {
+  const AddSerieButton({super.key, required this.onTap});
 
   final VoidCallback onTap;
 
@@ -397,10 +405,12 @@ class _SerieRowByKg extends ConsumerStatefulWidget {
   const _SerieRowByKg({
     required this.serie,
     required this.isActive,
+    required this.groupType,
   });
 
   final SerieSet serie;
   final bool isActive;
+  final SerieGroupType groupType;
 
   @override
   ConsumerState<_SerieRowByKg> createState() => _SerieRowByKgState();
@@ -424,7 +434,8 @@ class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
   Widget build(BuildContext context) {
     final serie = widget.serie;
     final isActive = widget.isActive;
-    final notifier = ref.read(serieDetailProvider.notifier);
+    final notifier =
+        ref.read(serieDetailProvider(widget.groupType).notifier);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20)
@@ -479,14 +490,16 @@ class _SerieRowByKm extends ConsumerWidget {
   const _SerieRowByKm({
     required this.serie,
     required this.isActive,
+    required this.groupType,
   });
 
   final SerieSet serie;
   final bool isActive;
+  final SerieGroupType groupType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.read(serieDetailProvider.notifier);
+    final notifier = ref.read(serieDetailProvider(groupType).notifier);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20)
@@ -573,14 +586,16 @@ class _SerieRowRetryOnly extends ConsumerWidget {
   const _SerieRowRetryOnly({
     required this.serie,
     required this.isActive,
+    required this.groupType,
   });
 
   final SerieSet serie;
   final bool isActive;
+  final SerieGroupType groupType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.read(serieDetailProvider.notifier);
+    final notifier = ref.read(serieDetailProvider(groupType).notifier);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20)

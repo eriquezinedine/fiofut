@@ -40,6 +40,7 @@ class Exercise {
     required this.targetValue,
     required this.metricType,
     required this.status,
+    this.hasWarmup = false,
   });
 
   final String id;
@@ -54,6 +55,7 @@ class Exercise {
   final double targetValue;
   final MetricType metricType;
   final ExerciseStatus status;
+  final bool hasWarmup;
 
   double get progress =>
       targetValue > 0 ? (currentValue / targetValue).clamp(0.0, 1.0) : 0.0;
@@ -81,6 +83,7 @@ class Exercise {
     double? targetValue,
     MetricType? metricType,
     ExerciseStatus? status,
+    bool? hasWarmup,
   }) {
     return Exercise(
       id: id ?? this.id,
@@ -95,6 +98,7 @@ class Exercise {
       targetValue: targetValue ?? this.targetValue,
       metricType: metricType ?? this.metricType,
       status: status ?? this.status,
+      hasWarmup: hasWarmup ?? this.hasWarmup,
     );
   }
 
@@ -174,6 +178,7 @@ Manteniendo las piernas y los brazos rectos, levanta simultáneamente las pierna
       targetValue: 60,
       metricType: MetricType.weight,
       status: ExerciseStatus.completed,
+      hasWarmup: true,
     ),
     Exercise(
       id: '3',

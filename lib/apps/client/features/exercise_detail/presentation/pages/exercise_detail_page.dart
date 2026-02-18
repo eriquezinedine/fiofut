@@ -1,9 +1,10 @@
-import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/exercise_detail_sliver_app_bar.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/serie_exercise_widget.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/model.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/detail_action_chips.dart';
+import 'package:fio_fut/core/widgets/modal/add_serie_group_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -26,11 +27,28 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.read(serieDetailProvider.notifier).init(
-            exercise: widget.exercise,
-            repiteType: _repiteType,
-          );
+      ref
+          .read(serieDetailProvider(SerieGroupType.effective).notifier)
+          .init(exercise: widget.exercise, repiteType: _repiteType);
+
+      if (widget.exercise.hasWarmup) {
+        ref
+            .read(serieDetailProvider(SerieGroupType.warmup).notifier)
+            .init(exercise: widget.exercise, repiteType: _repiteType);
+      }
     });
+  }
+
+  Future<void> _onAddSerie() async {
+    if (widget.exercise.hasWarmup) {
+      final group = await AddSerieGroupModal.show(context);
+      if (group == null) return;
+      ref.read(serieDetailProvider(group).notifier).addSerie();
+    } else {
+      ref
+          .read(serieDetailProvider(SerieGroupType.effective).notifier)
+          .addSerie();
+    }
   }
 
   @override
@@ -52,9 +70,16 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                     exercise: widget.exercise,
                     duration: Duration(seconds: 20),
                   ),
+                  if (widget.exercise.hasWarmup)
+                    SerieExerciseWidget(
+                      repiteType: _repiteType,
+                      groupType: SerieGroupType.warmup,
+                    ),
                   SerieExerciseWidget(
                     repiteType: _repiteType,
+                    groupType: SerieGroupType.effective,
                   ),
+                  AddSerieButton(onTap: _onAddSerie),
                 ],
               ),
             ),

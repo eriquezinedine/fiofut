@@ -8,15 +8,17 @@ part 'serie_detail_state.dart';
 
 const _uuid = Uuid();
 
-/// AutoDispose provider — se limpia al salir de la pantalla
-final serieDetailProvider =
-    AutoDisposeNotifierProvider<SerieDetailNotifier, SerieDetailState>(
+/// Family provider keyed by [SerieGroupType] — each group gets its own instance.
+/// AutoDispose cleans up when leaving the page.
+final serieDetailProvider = NotifierProvider.autoDispose
+    .family<SerieDetailNotifier, SerieDetailState, SerieGroupType>(
   SerieDetailNotifier.new,
 );
 
-class SerieDetailNotifier extends AutoDisposeNotifier<SerieDetailState> {
+class SerieDetailNotifier
+    extends AutoDisposeFamilyNotifier<SerieDetailState, SerieGroupType> {
   @override
-  SerieDetailState build() => const SerieDetailInitial();
+  SerieDetailState build(SerieGroupType arg) => const SerieDetailInitial();
 
   /// Initializes the workout with an exercise and its type.
   /// Call this from the page's initState or on first build.
