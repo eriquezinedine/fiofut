@@ -6,6 +6,7 @@ import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/se
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 enum RepiteType { byKg, byKm, retryOnly }
 
@@ -14,10 +15,14 @@ class SerieExerciseWidget extends ConsumerWidget {
     super.key,
     this.repiteType = RepiteType.byKm,
     this.groupType = SerieGroupType.effective,
+    this.isStarted = false,
+    this.currentSerieId,
   });
 
   final RepiteType repiteType;
   final SerieGroupType groupType;
+  final bool isStarted;
+  final String? currentSerieId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,7 +43,12 @@ class SerieExerciseWidget extends ConsumerWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          SireBody(repiteType: repiteType, groupType: groupType),
+          SireBody(
+            repiteType: repiteType,
+            groupType: groupType,
+            isStarted: isStarted,
+            currentSerieId: currentSerieId,
+          ),
         ],
       ),
     );
@@ -50,10 +60,14 @@ class SireBody extends ConsumerWidget {
     super.key,
     this.repiteType = RepiteType.byKg,
     this.groupType = SerieGroupType.effective,
+    this.isStarted = false,
+    this.currentSerieId,
   });
 
   final RepiteType repiteType;
   final SerieGroupType groupType;
+  final bool isStarted;
+  final String? currentSerieId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -79,16 +93,22 @@ class SireBody extends ConsumerWidget {
                 serie: serie,
                 isActive: !serie.isCompleted,
                 groupType: groupType,
+                isStarted: isStarted,
+                isCurrent: serie.id == currentSerieId,
               ),
             RepiteType.byKm => _SerieRowByKm(
                 serie: serie,
                 isActive: !serie.isCompleted,
                 groupType: groupType,
+                isStarted: isStarted,
+                isCurrent: serie.id == currentSerieId,
               ),
             RepiteType.retryOnly => _SerieRowRetryOnly(
                 serie: serie,
                 isActive: !serie.isCompleted,
                 groupType: groupType,
+                isStarted: isStarted,
+                isCurrent: serie.id == currentSerieId,
               ),
           },
       ],
@@ -202,30 +222,56 @@ class _SerieNumberCell extends StatelessWidget {
   const _SerieNumberCell({
     required this.number,
     required this.isActive,
+    this.isStarted = false,
+    this.isCurrent = false,
   });
 
   final int number;
   final bool isActive;
+  final bool isStarted;
+  final bool isCurrent;
+
+  bool get _isCompleted => !isActive;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    // When started: current/completed = green bg, pending = card bg
+    // When not started: same as before (white bg for active, secondary for completed)
+    final Color bg;
+    final Color textColor;
+
+    if (!isStarted) {
+      bg = isActive ? AppColors.white : AppColors.backgroundSecondary;
+      textColor = isActive ? AppColors.background : AppColors.white;
+    } else if (_isCompleted || isCurrent) {
+      bg = AppColors.primary;
+      textColor = AppColors.black;
+    } else {
+      bg = AppColors.card;
+      textColor = AppColors.white;
+    }
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        color: isActive ? AppColors.white : AppColors.backgroundSecondary,
+        color: bg,
         borderRadius: BorderRadius.circular(12),
       ),
       alignment: Alignment.center,
-      child: Text(
-        '$number',
-        textAlign: TextAlign.center,
-        style: AppTextStyles.bodyMedium.copyWith(
-          color: isActive ? AppColors.background : AppColors.white,
-          letterSpacing: -0.32,
-          height: 1.25,
-        ),
-      ),
+      child: isStarted && _isCompleted
+          ? Icon(LucideIcons.check, color: AppColors.black, size: 18)
+          : Text(
+              '$number',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.32,
+                height: 1.25,
+              ),
+            ),
     );
   }
 }
@@ -238,6 +284,8 @@ class SerieTextField extends StatefulWidget {
     this.initialValue,
     this.hint,
     this.isActive = true,
+    this.isStarted = false,
+    this.isCurrent = false,
     this.keyboardType,
     this.inputFormatters,
     this.onChanged,
@@ -250,6 +298,8 @@ class SerieTextField extends StatefulWidget {
   final String? initialValue;
   final String? hint;
   final bool isActive;
+  final bool isStarted;
+  final bool isCurrent;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final ValueChanged<String>? onChanged;
@@ -306,10 +356,20 @@ class _SerieTextFieldState extends State<SerieTextField> {
     );
   }
 
+  Color get _textColor {
+    if (!widget.isStarted) {
+      return widget.isActive ? AppColors.background : AppColors.white;
+    }
+    // Started: current/completed = black, pending = white
+    if (!widget.isActive || widget.isCurrent) {
+      return AppColors.black;
+    }
+    return AppColors.white;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final textColor =
-        widget.isActive ? AppColors.background : AppColors.white;
+    final textColor = _textColor;
 
     final formatters = <TextInputFormatter>[
       if (widget.inputFormatters != null) ...widget.inputFormatters!,
@@ -380,17 +440,34 @@ class _CellContainer extends StatelessWidget {
   const _CellContainer({
     required this.isActive,
     required this.child,
+    this.isStarted = false,
+    this.isCurrent = false,
   });
 
   final bool isActive;
+  final bool isStarted;
+  final bool isCurrent;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final Color bg;
+
+    if (!isStarted) {
+      bg = isActive ? AppColors.white : AppColors.backgroundSecondary;
+    } else if (!isActive || isCurrent) {
+      // completed or current
+      bg = AppColors.primary;
+    } else {
+      // pending
+      bg = AppColors.card;
+    }
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
       height: 44,
       decoration: BoxDecoration(
-        color: isActive ? AppColors.white : AppColors.backgroundSecondary,
+        color: bg,
         borderRadius: BorderRadius.circular(12),
       ),
       alignment: Alignment.center,
@@ -406,11 +483,15 @@ class _SerieRowByKg extends ConsumerStatefulWidget {
     required this.serie,
     required this.isActive,
     required this.groupType,
+    this.isStarted = false,
+    this.isCurrent = false,
   });
 
   final SerieSet serie;
   final bool isActive;
   final SerieGroupType groupType;
+  final bool isStarted;
+  final bool isCurrent;
 
   @override
   ConsumerState<_SerieRowByKg> createState() => _SerieRowByKgState();
@@ -434,6 +515,8 @@ class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
   Widget build(BuildContext context) {
     final serie = widget.serie;
     final isActive = widget.isActive;
+    final isStarted = widget.isStarted;
+    final isCurrent = widget.isCurrent;
     final notifier =
         ref.read(serieDetailProvider(widget.groupType).notifier);
 
@@ -442,16 +525,25 @@ class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
           .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
       child: Row(
         children: [
-          _SerieNumberCell(number: serie.number, isActive: isActive),
+          _SerieNumberCell(
+            number: serie.number,
+            isActive: isActive,
+            isStarted: isStarted,
+            isCurrent: isCurrent,
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: _CellContainer(
               isActive: isActive,
+              isStarted: isStarted,
+              isCurrent: isCurrent,
               child: SerieTextField(
                 key: ValueKey('${serie.id}_reps'),
                 initialValue: serie.reps?.toString(),
                 hint: '0',
                 isActive: isActive,
+                isStarted: isStarted,
+                isCurrent: isCurrent,
                 nextFocusNode: _kgFocusNode,
                 autoAdvanceMs: 300,
                 onChanged: (v) {
@@ -465,11 +557,15 @@ class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
           Expanded(
             child: _CellContainer(
               isActive: isActive,
+              isStarted: isStarted,
+              isCurrent: isCurrent,
               child: SerieTextField(
                 key: ValueKey('${serie.id}_kg'),
                 initialValue: _formatKg(serie.kg),
                 hint: '0',
                 isActive: isActive,
+                isStarted: isStarted,
+                isCurrent: isCurrent,
                 focusNode: _kgFocusNode,
                 onChanged: (v) {
                   final kg = double.tryParse(v);
@@ -491,11 +587,23 @@ class _SerieRowByKm extends ConsumerWidget {
     required this.serie,
     required this.isActive,
     required this.groupType,
+    this.isStarted = false,
+    this.isCurrent = false,
   });
 
   final SerieSet serie;
   final bool isActive;
   final SerieGroupType groupType;
+  final bool isStarted;
+  final bool isCurrent;
+
+  Color get _separatorColor {
+    if (!isStarted) {
+      return isActive ? AppColors.background : AppColors.white;
+    }
+    if (!isActive || isCurrent) return AppColors.black;
+    return AppColors.white;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -506,11 +614,18 @@ class _SerieRowByKm extends ConsumerWidget {
           .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
       child: Row(
         children: [
-          _SerieNumberCell(number: serie.number, isActive: isActive),
+          _SerieNumberCell(
+            number: serie.number,
+            isActive: isActive,
+            isStarted: isStarted,
+            isCurrent: isCurrent,
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: _CellContainer(
               isActive: isActive,
+              isStarted: isStarted,
+              isCurrent: isCurrent,
               child: Row(
                 children: [
                   Expanded(
@@ -519,6 +634,8 @@ class _SerieRowByKm extends ConsumerWidget {
                       initialValue: serie.mins?.toString(),
                       hint: '00',
                       isActive: isActive,
+                      isStarted: isStarted,
+                      isCurrent: isCurrent,
                       maxLength: 2,
                       onChanged: (v) {
                         final mins = int.tryParse(v);
@@ -529,9 +646,7 @@ class _SerieRowByKm extends ConsumerWidget {
                   Text(
                     ':',
                     style: AppTextStyles.h3.copyWith(
-                      color: isActive
-                          ? AppColors.background
-                          : AppColors.white,
+                      color: _separatorColor,
                       fontSize: 20,
                       letterSpacing: -0.4,
                       height: 1.25,
@@ -543,6 +658,8 @@ class _SerieRowByKm extends ConsumerWidget {
                       initialValue: serie.segs?.toString(),
                       hint: '00',
                       isActive: isActive,
+                      isStarted: isStarted,
+                      isCurrent: isCurrent,
                       maxLength: 2,
                       onChanged: (v) {
                         final segs = int.tryParse(v);
@@ -558,6 +675,8 @@ class _SerieRowByKm extends ConsumerWidget {
           Expanded(
             child: _CellContainer(
               isActive: isActive,
+              isStarted: isStarted,
+              isCurrent: isCurrent,
               child: SerieTextField(
                 key: ValueKey('${serie.id}_kg'),
                 initialValue: serie.kg != null
@@ -567,6 +686,8 @@ class _SerieRowByKm extends ConsumerWidget {
                     : null,
                 hint: '0',
                 isActive: isActive,
+                isStarted: isStarted,
+                isCurrent: isCurrent,
                 onChanged: (v) {
                   final kg = double.tryParse(v);
                   if (kg != null) notifier.updateKg(serie.id, kg);
@@ -587,11 +708,15 @@ class _SerieRowRetryOnly extends ConsumerWidget {
     required this.serie,
     required this.isActive,
     required this.groupType,
+    this.isStarted = false,
+    this.isCurrent = false,
   });
 
   final SerieSet serie;
   final bool isActive;
   final SerieGroupType groupType;
+  final bool isStarted;
+  final bool isCurrent;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -602,16 +727,25 @@ class _SerieRowRetryOnly extends ConsumerWidget {
           .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
       child: Row(
         children: [
-          _SerieNumberCell(number: serie.number, isActive: isActive),
+          _SerieNumberCell(
+            number: serie.number,
+            isActive: isActive,
+            isStarted: isStarted,
+            isCurrent: isCurrent,
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: _CellContainer(
               isActive: isActive,
+              isStarted: isStarted,
+              isCurrent: isCurrent,
               child: SerieTextField(
                 key: ValueKey('${serie.id}_reps'),
                 initialValue: serie.reps?.toString(),
                 hint: '0',
                 isActive: isActive,
+                isStarted: isStarted,
+                isCurrent: isCurrent,
                 onChanged: (v) {
                   final reps = int.tryParse(v);
                   if (reps != null) notifier.updateReps(serie.id, reps);

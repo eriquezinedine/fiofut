@@ -31,9 +31,14 @@ class SerieDetailNotifier
     final now = DateTime.now();
     final date = scheduledDate ?? DateTime(now.year, now.month, now.day);
 
+    final defaults = _defaultsFor(repiteType);
     final firstSerie = SerieSet(
       id: _uuid.v4(),
       number: 1,
+      reps: defaults.reps,
+      kg: defaults.kg,
+      mins: defaults.mins,
+      segs: defaults.segs,
     );
 
     final workout = WorkoutExercise(
@@ -56,14 +61,15 @@ class SerieDetailNotifier
     if (current == null) return;
 
     final last = current.series.last;
+    final defaults = _defaultsFor(current.repiteType);
     final newNumber = current.series.length + 1;
     final newSerie = SerieSet(
       id: _uuid.v4(),
       number: newNumber,
-      reps: last.reps,
-      kg: last.kg,
-      mins: last.mins,
-      segs: last.segs,
+      reps: last.reps ?? defaults.reps,
+      kg: last.kg ?? defaults.kg,
+      mins: last.mins ?? defaults.mins,
+      segs: last.segs ?? defaults.segs,
     );
 
     final updatedSeries = [...current.series, newSerie];
@@ -176,4 +182,15 @@ class SerieDetailNotifier
 
   SerieDetailLoaded? get _loaded =>
       state is SerieDetailLoaded ? state as SerieDetailLoaded : null;
+
+  /// Default values per RepiteType — used for first serie and fallback.
+  ({int? reps, double? kg, int? mins, int? segs}) _defaultsFor(
+    RepiteType type,
+  ) {
+    return switch (type) {
+      RepiteType.byKg => (reps: 5, kg: 5.0, mins: null, segs: null),
+      RepiteType.byKm => (reps: null, kg: 5.0, mins: 5, segs: 5),
+      RepiteType.retryOnly => (reps: 5, kg: null, mins: null, segs: null),
+    };
+  }
 }
