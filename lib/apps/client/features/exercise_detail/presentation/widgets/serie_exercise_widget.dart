@@ -1,10 +1,13 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum RepiteType { byKg, byKm, retryOnly }
 
-class SerieExerciseWidget extends StatelessWidget {
+class SerieExerciseWidget extends ConsumerWidget {
   const SerieExerciseWidget({
     super.key,
     this.repiteType = RepiteType.byKm,
@@ -13,7 +16,7 @@ class SerieExerciseWidget extends StatelessWidget {
   final RepiteType repiteType;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24)
           .add(EdgeInsets.only(bottom: 12)),
@@ -26,14 +29,14 @@ class SerieExerciseWidget extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          SireBody(repiteType: repiteType)
+          SireBody(repiteType: repiteType),
         ],
       ),
     );
   }
 }
 
-class SireBody extends StatelessWidget {
+class SireBody extends ConsumerWidget {
   const SireBody({
     super.key,
     this.repiteType = RepiteType.byKg,
@@ -42,7 +45,8 @@ class SireBody extends StatelessWidget {
   final RepiteType repiteType;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(serieDetailProvider);
     final isRetryOnly = repiteType == RepiteType.retryOnly;
     final middleHeader = switch (repiteType) {
       RepiteType.byKg => 'Repeticiones',
@@ -50,20 +54,77 @@ class SireBody extends StatelessWidget {
       RepiteType.retryOnly => 'Repeticiones',
     };
 
+    final series = switch (state) {
+      SerieDetailLoaded(:final workout) => workout.series,
+      _ => <SerieSet>[],
+    };
+
     return Column(
       children: [
         _SerieHeaders(middleHeader: middleHeader, showKg: !isRetryOnly),
-        if (repiteType == RepiteType.byKg) ...[
-          _SerieRowByKg(serieNumber: 1, isActive: true),
-          _SerieRowByKg(serieNumber: 2, isActive: false),
-          _SerieRowByKg(serieNumber: 3, isActive: false),
-          _SerieRowByKg(serieNumber: 4, isActive: false),
-        ] else if (repiteType == RepiteType.byKm) ...[
-          _SerieRowByKm(serieNumber: 1, isActive: true),
-        ] else ...[
-          _SerieRowRetryOnly(serieNumber: 1, isActive: true),
-        ],
+        for (final serie in series)
+          switch (repiteType) {
+            RepiteType.byKg => _SerieRowByKg(
+                serie: serie,
+                isActive: !serie.isCompleted,
+              ),
+            RepiteType.byKm => _SerieRowByKm(
+                serie: serie,
+                isActive: !serie.isCompleted,
+              ),
+            RepiteType.retryOnly => _SerieRowRetryOnly(
+                serie: serie,
+                isActive: !serie.isCompleted,
+              ),
+          },
+        // Añadir Serie button
+        _AddSerieButton(
+          onTap: () => ref.read(serieDetailProvider.notifier).addSerie(),
+        ),
       ],
+    );
+  }
+}
+
+// ── Añadir Serie button ─────────────────────────────────────────────
+
+class _AddSerieButton extends StatelessWidget {
+  const _AddSerieButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20, right: 20, top: 4, bottom: 8),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.green.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.add,
+                size: 20,
+                color: AppColors.green,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Añadir Serie',
+              style: AppTextStyles.titleSmall.copyWith(
+                color: AppColors.green,
+                letterSpacing: -0.28,
+                height: 1.25,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -267,35 +328,51 @@ class _CellContainer extends StatelessWidget {
 
 // ── Row: byKg (Serie | Repeticiones | Kg) ───────────────────────────
 
-class _SerieRowByKg extends StatelessWidget {
+class _SerieRowByKg extends ConsumerWidget {
   const _SerieRowByKg({
-    required this.serieNumber,
+    required this.serie,
     required this.isActive,
   });
 
-  final int serieNumber;
+  final SerieSet serie;
   final bool isActive;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(serieDetailProvider.notifier);
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20)
           .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
       child: Row(
         children: [
-          _SerieNumberCell(number: serieNumber, isActive: isActive),
+          _SerieNumberCell(number: serie.number, isActive: isActive),
           const SizedBox(width: 16),
           Expanded(
             child: _CellContainer(
               isActive: isActive,
-              child: SerieTextField(hint: '0', isActive: isActive),
+              child: SerieTextField(
+                hint: '0',
+                isActive: isActive,
+                onChanged: (v) {
+                  final reps = int.tryParse(v);
+                  if (reps != null) notifier.updateReps(serie.id, reps);
+                },
+              ),
             ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: _CellContainer(
               isActive: isActive,
-              child: SerieTextField(hint: '0', isActive: isActive),
+              child: SerieTextField(
+                hint: '0',
+                isActive: isActive,
+                onChanged: (v) {
+                  final kg = double.tryParse(v);
+                  if (kg != null) notifier.updateKg(serie.id, kg);
+                },
+              ),
             ),
           ),
         ],
@@ -306,25 +383,26 @@ class _SerieRowByKg extends StatelessWidget {
 
 // ── Row: byKm (Serie | [Mins : Segs] | Kg) ─────────────────────────
 
-class _SerieRowByKm extends StatelessWidget {
+class _SerieRowByKm extends ConsumerWidget {
   const _SerieRowByKm({
-    required this.serieNumber,
+    required this.serie,
     required this.isActive,
   });
 
-  final int serieNumber;
+  final SerieSet serie;
   final bool isActive;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(serieDetailProvider.notifier);
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20)
           .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
       child: Row(
         children: [
-          _SerieNumberCell(number: serieNumber, isActive: isActive),
+          _SerieNumberCell(number: serie.number, isActive: isActive),
           const SizedBox(width: 16),
-          // Mins : Segs — two TextFields inside one container
           Expanded(
             child: _CellContainer(
               isActive: isActive,
@@ -335,6 +413,10 @@ class _SerieRowByKm extends StatelessWidget {
                       hint: '00',
                       isActive: isActive,
                       maxLength: 2,
+                      onChanged: (v) {
+                        final mins = int.tryParse(v);
+                        if (mins != null) notifier.updateMins(serie.id, mins);
+                      },
                     ),
                   ),
                   Text(
@@ -353,6 +435,10 @@ class _SerieRowByKm extends StatelessWidget {
                       hint: '00',
                       isActive: isActive,
                       maxLength: 2,
+                      onChanged: (v) {
+                        final segs = int.tryParse(v);
+                        if (segs != null) notifier.updateSegs(serie.id, segs);
+                      },
                     ),
                   ),
                 ],
@@ -363,7 +449,14 @@ class _SerieRowByKm extends StatelessWidget {
           Expanded(
             child: _CellContainer(
               isActive: isActive,
-              child: SerieTextField(hint: '0', isActive: isActive),
+              child: SerieTextField(
+                hint: '0',
+                isActive: isActive,
+                onChanged: (v) {
+                  final kg = double.tryParse(v);
+                  if (kg != null) notifier.updateKg(serie.id, kg);
+                },
+              ),
             ),
           ),
         ],
@@ -374,28 +467,37 @@ class _SerieRowByKm extends StatelessWidget {
 
 // ── Row: retryOnly (Serie | Repeticiones) ───────────────────────────
 
-class _SerieRowRetryOnly extends StatelessWidget {
+class _SerieRowRetryOnly extends ConsumerWidget {
   const _SerieRowRetryOnly({
-    required this.serieNumber,
+    required this.serie,
     required this.isActive,
   });
 
-  final int serieNumber;
+  final SerieSet serie;
   final bool isActive;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(serieDetailProvider.notifier);
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20)
           .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
       child: Row(
         children: [
-          _SerieNumberCell(number: serieNumber, isActive: isActive),
+          _SerieNumberCell(number: serie.number, isActive: isActive),
           const SizedBox(width: 16),
           Expanded(
             child: _CellContainer(
               isActive: isActive,
-              child: SerieTextField(hint: '0', isActive: isActive),
+              child: SerieTextField(
+                hint: '0',
+                isActive: isActive,
+                onChanged: (v) {
+                  final reps = int.tryParse(v);
+                  if (reps != null) notifier.updateReps(serie.id, reps);
+                },
+              ),
             ),
           ),
         ],
