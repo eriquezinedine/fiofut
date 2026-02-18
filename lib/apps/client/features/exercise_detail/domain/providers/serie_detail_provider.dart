@@ -53,10 +53,15 @@ class SerieDetailNotifier extends AutoDisposeNotifier<SerieDetailState> {
     final current = _loaded;
     if (current == null) return;
 
+    final last = current.series.last;
     final newNumber = current.series.length + 1;
     final newSerie = SerieSet(
       id: _uuid.v4(),
       number: newNumber,
+      reps: last.reps,
+      kg: last.kg,
+      mins: last.mins,
+      segs: last.segs,
     );
 
     final updatedSeries = [...current.series, newSerie];

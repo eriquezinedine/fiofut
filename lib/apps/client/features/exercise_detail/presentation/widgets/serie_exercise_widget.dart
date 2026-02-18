@@ -222,10 +222,10 @@ class _SerieNumberCell extends StatelessWidget {
 
 // ── Transparent TextField for serie cells ───────────────────────────
 
-class SerieTextField extends StatelessWidget {
+class SerieTextField extends StatefulWidget {
   const SerieTextField({
     super.key,
-    this.controller,
+    this.initialValue,
     this.hint,
     this.isActive = true,
     this.keyboardType,
@@ -234,7 +234,7 @@ class SerieTextField extends StatelessWidget {
     this.maxLength,
   });
 
-  final TextEditingController? controller;
+  final String? initialValue;
   final String? hint;
   final bool isActive;
   final TextInputType? keyboardType;
@@ -243,20 +243,53 @@ class SerieTextField extends StatelessWidget {
   final int? maxLength;
 
   @override
+  State<SerieTextField> createState() => _SerieTextFieldState();
+}
+
+class _SerieTextFieldState extends State<SerieTextField> {
+  late final TextEditingController _controller;
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void didUpdateWidget(covariant SerieTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Sync controller with state, but only when user is NOT actively typing
+    if (!_isEditing && widget.initialValue != oldWidget.initialValue) {
+      _controller.text = widget.initialValue ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final textColor = isActive ? AppColors.background : AppColors.white;
+    final textColor =
+        widget.isActive ? AppColors.background : AppColors.white;
 
     final formatters = <TextInputFormatter>[
-      if (inputFormatters != null) ...inputFormatters!,
-      if (maxLength != null) _ClearOnOverflowFormatter(maxLength!),
+      if (widget.inputFormatters != null) ...widget.inputFormatters!,
+      if (widget.maxLength != null)
+        _ClearOnOverflowFormatter(widget.maxLength!),
     ];
 
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType ?? TextInputType.number,
+    return Focus(
+      onFocusChange: (hasFocus) => _isEditing = hasFocus,
+      child: TextField(
+      controller: _controller,
+      keyboardType: widget.keyboardType ?? TextInputType.number,
       inputFormatters: formatters,
       textAlign: TextAlign.center,
-      onChanged: onChanged,
+      onChanged: widget.onChanged,
       style: AppTextStyles.h3.copyWith(
         color: textColor,
         fontSize: 20,
@@ -264,7 +297,7 @@ class SerieTextField extends StatelessWidget {
         height: 1.25,
       ),
       decoration: InputDecoration(
-        hintText: hint,
+        hintText: widget.hint,
         hintStyle: AppTextStyles.h3.copyWith(
           color: AppColors.textDescription,
           fontSize: 20,
@@ -280,6 +313,7 @@ class SerieTextField extends StatelessWidget {
         isDense: true,
         counterText: '',
       ),
+    ),
     );
   }
 }
@@ -352,6 +386,8 @@ class _SerieRowByKg extends ConsumerWidget {
             child: _CellContainer(
               isActive: isActive,
               child: SerieTextField(
+                key: ValueKey('${serie.id}_reps'),
+                initialValue: serie.reps?.toString(),
                 hint: '0',
                 isActive: isActive,
                 onChanged: (v) {
@@ -366,6 +402,12 @@ class _SerieRowByKg extends ConsumerWidget {
             child: _CellContainer(
               isActive: isActive,
               child: SerieTextField(
+                key: ValueKey('${serie.id}_kg'),
+                initialValue: serie.kg != null
+                    ? (serie.kg == serie.kg!.roundToDouble()
+                        ? serie.kg!.toInt().toString()
+                        : serie.kg.toString())
+                    : null,
                 hint: '0',
                 isActive: isActive,
                 onChanged: (v) {
@@ -410,6 +452,8 @@ class _SerieRowByKm extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: SerieTextField(
+                      key: ValueKey('${serie.id}_mins'),
+                      initialValue: serie.mins?.toString(),
                       hint: '00',
                       isActive: isActive,
                       maxLength: 2,
@@ -432,6 +476,8 @@ class _SerieRowByKm extends ConsumerWidget {
                   ),
                   Expanded(
                     child: SerieTextField(
+                      key: ValueKey('${serie.id}_segs'),
+                      initialValue: serie.segs?.toString(),
                       hint: '00',
                       isActive: isActive,
                       maxLength: 2,
@@ -450,6 +496,12 @@ class _SerieRowByKm extends ConsumerWidget {
             child: _CellContainer(
               isActive: isActive,
               child: SerieTextField(
+                key: ValueKey('${serie.id}_kg'),
+                initialValue: serie.kg != null
+                    ? (serie.kg == serie.kg!.roundToDouble()
+                        ? serie.kg!.toInt().toString()
+                        : serie.kg.toString())
+                    : null,
                 hint: '0',
                 isActive: isActive,
                 onChanged: (v) {
@@ -491,6 +543,8 @@ class _SerieRowRetryOnly extends ConsumerWidget {
             child: _CellContainer(
               isActive: isActive,
               child: SerieTextField(
+                key: ValueKey('${serie.id}_reps'),
+                initialValue: serie.reps?.toString(),
                 hint: '0',
                 isActive: isActive,
                 onChanged: (v) {
