@@ -17,12 +17,14 @@ class SerieExerciseWidget extends ConsumerWidget {
     this.groupType = SerieGroupType.effective,
     this.isStarted = false,
     this.currentSerieId,
+    this.onRegisterSerie,
   });
 
   final RepiteType repiteType;
   final SerieGroupType groupType;
   final bool isStarted;
   final String? currentSerieId;
+  final VoidCallback? onRegisterSerie;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,6 +50,7 @@ class SerieExerciseWidget extends ConsumerWidget {
             groupType: groupType,
             isStarted: isStarted,
             currentSerieId: currentSerieId,
+            onRegisterSerie: onRegisterSerie,
           ),
         ],
       ),
@@ -62,12 +65,14 @@ class SireBody extends ConsumerWidget {
     this.groupType = SerieGroupType.effective,
     this.isStarted = false,
     this.currentSerieId,
+    this.onRegisterSerie,
   });
 
   final RepiteType repiteType;
   final SerieGroupType groupType;
   final bool isStarted;
   final String? currentSerieId;
+  final VoidCallback? onRegisterSerie;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -107,6 +112,7 @@ class SireBody extends ConsumerWidget {
                 isStarted: isStarted,
                 isCurrent: serie.id == currentSerieId,
                 isLastCompleted: serie.id == lastCompletedId,
+                onRegisterSerie: onRegisterSerie,
               ),
             RepiteType.byKm => _SerieRowByKm(
                 serie: serie,
@@ -115,6 +121,7 @@ class SireBody extends ConsumerWidget {
                 isStarted: isStarted,
                 isCurrent: serie.id == currentSerieId,
                 isLastCompleted: serie.id == lastCompletedId,
+                onRegisterSerie: onRegisterSerie,
               ),
             RepiteType.retryOnly => _SerieRowRetryOnly(
                 serie: serie,
@@ -123,6 +130,7 @@ class SireBody extends ConsumerWidget {
                 isStarted: isStarted,
                 isCurrent: serie.id == currentSerieId,
                 isLastCompleted: serie.id == lastCompletedId,
+                onRegisterSerie: onRegisterSerie,
               ),
           },
       ],
@@ -238,19 +246,19 @@ class _SerieNumberCell extends StatelessWidget {
     required this.isActive,
     this.isStarted = false,
     this.isCurrent = false,
+    this.onTap,
   });
 
   final int number;
   final bool isActive;
   final bool isStarted;
   final bool isCurrent;
+  final VoidCallback? onTap;
 
   bool get _isCompleted => !isActive;
 
   @override
   Widget build(BuildContext context) {
-    // When started: current/completed = green bg, pending = card bg
-    // When not started: same as before (white bg for active, secondary for completed)
     final Color bg;
     final Color textColor;
 
@@ -268,27 +276,30 @@ class _SerieNumberCell extends StatelessWidget {
       textColor = AppColors.white;
     }
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      alignment: Alignment.center,
-      child: isStarted && _isCompleted
-          ? Icon(LucideIcons.check, color: AppColors.black, size: 18)
-          : Text(
-              '$number',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: textColor,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.32,
-                height: 1.25,
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.center,
+        child: isStarted && _isCompleted
+            ? Icon(LucideIcons.check, color: AppColors.black, size: 18)
+            : Text(
+                '$number',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.32,
+                  height: 1.25,
+                ),
               ),
-            ),
+      ),
     );
   }
 }
@@ -505,6 +516,7 @@ class _SerieRowByKg extends ConsumerStatefulWidget {
     this.isStarted = false,
     this.isCurrent = false,
     this.isLastCompleted = false,
+    this.onRegisterSerie,
   });
 
   final SerieSet serie;
@@ -513,6 +525,7 @@ class _SerieRowByKg extends ConsumerStatefulWidget {
   final bool isStarted;
   final bool isCurrent;
   final bool isLastCompleted;
+  final VoidCallback? onRegisterSerie;
 
   @override
   ConsumerState<_SerieRowByKg> createState() => _SerieRowByKgState();
@@ -541,21 +554,25 @@ class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
     final notifier =
         ref.read(serieDetailProvider(widget.groupType).notifier);
 
-    return GestureDetector(
-      onTap: widget.isLastCompleted
-          ? () => notifier.toggleSerieCompleted(serie.id)
-          : null,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20)
-            .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
-        child: Row(
-          children: [
-            _SerieNumberCell(
-              number: serie.number,
-              isActive: isActive,
-              isStarted: isStarted,
-              isCurrent: isCurrent,
-            ),
+    VoidCallback? numberCellTap;
+    if (widget.isCurrent) {
+      numberCellTap = widget.onRegisterSerie;
+    } else if (widget.isLastCompleted) {
+      numberCellTap = () => notifier.toggleSerieCompleted(serie.id);
+    }
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20)
+          .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
+      child: Row(
+        children: [
+          _SerieNumberCell(
+            number: serie.number,
+            isActive: isActive,
+            isStarted: isStarted,
+            isCurrent: isCurrent,
+            onTap: numberCellTap,
+          ),
             const SizedBox(width: 16),
             Expanded(
               child: _CellContainer(
@@ -601,7 +618,6 @@ class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
             ),
           ],
         ),
-      ),
     );
   }
 }
@@ -616,6 +632,7 @@ class _SerieRowByKm extends ConsumerWidget {
     this.isStarted = false,
     this.isCurrent = false,
     this.isLastCompleted = false,
+    this.onRegisterSerie,
   });
 
   final SerieSet serie;
@@ -624,6 +641,7 @@ class _SerieRowByKm extends ConsumerWidget {
   final bool isStarted;
   final bool isCurrent;
   final bool isLastCompleted;
+  final VoidCallback? onRegisterSerie;
 
   Color get _separatorColor {
     if (!isStarted) {
@@ -638,102 +656,105 @@ class _SerieRowByKm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(serieDetailProvider(groupType).notifier);
 
-    return GestureDetector(
-      onTap: isLastCompleted
-          ? () => notifier.toggleSerieCompleted(serie.id)
-          : null,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20)
-            .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
-        child: Row(
-          children: [
-            _SerieNumberCell(
-              number: serie.number,
+    VoidCallback? numberCellTap;
+    if (isCurrent) {
+      numberCellTap = onRegisterSerie;
+    } else if (isLastCompleted) {
+      numberCellTap = () => notifier.toggleSerieCompleted(serie.id);
+    }
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20)
+          .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
+      child: Row(
+        children: [
+          _SerieNumberCell(
+            number: serie.number,
+            isActive: isActive,
+            isStarted: isStarted,
+            isCurrent: isCurrent,
+            onTap: numberCellTap,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _CellContainer(
               isActive: isActive,
               isStarted: isStarted,
               isCurrent: isCurrent,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SerieTextField(
+                      key: ValueKey('${serie.id}_mins'),
+                      initialValue: serie.mins?.toString(),
+                      hint: '00',
+                      isActive: isActive,
+                      isStarted: isStarted,
+                      isCurrent: isCurrent,
+                      maxLength: 2,
+                      onChanged: (v) {
+                        final mins = int.tryParse(v);
+                        if (mins != null) {
+                          notifier.updateMins(serie.id, mins);
+                        }
+                      },
+                    ),
+                  ),
+                  Text(
+                    ':',
+                    style: AppTextStyles.h3.copyWith(
+                      color: _separatorColor,
+                      fontSize: 20,
+                      letterSpacing: -0.4,
+                      height: 1.25,
+                    ),
+                  ),
+                  Expanded(
+                    child: SerieTextField(
+                      key: ValueKey('${serie.id}_segs'),
+                      initialValue: serie.segs?.toString(),
+                      hint: '00',
+                      isActive: isActive,
+                      isStarted: isStarted,
+                      isCurrent: isCurrent,
+                      maxLength: 2,
+                      onChanged: (v) {
+                        final segs = int.tryParse(v);
+                        if (segs != null) {
+                          notifier.updateSegs(serie.id, segs);
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _CellContainer(
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _CellContainer(
+              isActive: isActive,
+              isStarted: isStarted,
+              isCurrent: isCurrent,
+              child: SerieTextField(
+                key: ValueKey('${serie.id}_kg'),
+                initialValue: serie.kg != null
+                    ? (serie.kg == serie.kg!.roundToDouble()
+                        ? serie.kg!.toInt().toString()
+                        : serie.kg.toString())
+                    : null,
+                hint: '0',
                 isActive: isActive,
                 isStarted: isStarted,
                 isCurrent: isCurrent,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: SerieTextField(
-                        key: ValueKey('${serie.id}_mins'),
-                        initialValue: serie.mins?.toString(),
-                        hint: '00',
-                        isActive: isActive,
-                        isStarted: isStarted,
-                        isCurrent: isCurrent,
-                        maxLength: 2,
-                        onChanged: (v) {
-                          final mins = int.tryParse(v);
-                          if (mins != null) {
-                            notifier.updateMins(serie.id, mins);
-                          }
-                        },
-                      ),
-                    ),
-                    Text(
-                      ':',
-                      style: AppTextStyles.h3.copyWith(
-                        color: _separatorColor,
-                        fontSize: 20,
-                        letterSpacing: -0.4,
-                        height: 1.25,
-                      ),
-                    ),
-                    Expanded(
-                      child: SerieTextField(
-                        key: ValueKey('${serie.id}_segs'),
-                        initialValue: serie.segs?.toString(),
-                        hint: '00',
-                        isActive: isActive,
-                        isStarted: isStarted,
-                        isCurrent: isCurrent,
-                        maxLength: 2,
-                        onChanged: (v) {
-                          final segs = int.tryParse(v);
-                          if (segs != null) {
-                            notifier.updateSegs(serie.id, segs);
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+                onChanged: (v) {
+                  final kg = double.tryParse(v);
+                  if (kg != null) notifier.updateKg(serie.id, kg);
+                },
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _CellContainer(
-                isActive: isActive,
-                isStarted: isStarted,
-                isCurrent: isCurrent,
-                child: SerieTextField(
-                  key: ValueKey('${serie.id}_kg'),
-                  initialValue: serie.kg != null
-                      ? (serie.kg == serie.kg!.roundToDouble()
-                          ? serie.kg!.toInt().toString()
-                          : serie.kg.toString())
-                      : null,
-                  hint: '0',
-                  isActive: isActive,
-                  isStarted: isStarted,
-                  isCurrent: isCurrent,
-                  onChanged: (v) {
-                    final kg = double.tryParse(v);
-                    if (kg != null) notifier.updateKg(serie.id, kg);
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -749,6 +770,7 @@ class _SerieRowRetryOnly extends ConsumerWidget {
     this.isStarted = false,
     this.isCurrent = false,
     this.isLastCompleted = false,
+    this.onRegisterSerie,
   });
 
   final SerieSet serie;
@@ -757,48 +779,52 @@ class _SerieRowRetryOnly extends ConsumerWidget {
   final bool isStarted;
   final bool isCurrent;
   final bool isLastCompleted;
+  final VoidCallback? onRegisterSerie;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(serieDetailProvider(groupType).notifier);
 
-    return GestureDetector(
-      onTap: isLastCompleted
-          ? () => notifier.toggleSerieCompleted(serie.id)
-          : null,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20)
-            .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
-        child: Row(
-          children: [
-            _SerieNumberCell(
-              number: serie.number,
+    VoidCallback? numberCellTap;
+    if (isCurrent) {
+      numberCellTap = onRegisterSerie;
+    } else if (isLastCompleted) {
+      numberCellTap = () => notifier.toggleSerieCompleted(serie.id);
+    }
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20)
+          .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
+      child: Row(
+        children: [
+          _SerieNumberCell(
+            number: serie.number,
+            isActive: isActive,
+            isStarted: isStarted,
+            isCurrent: isCurrent,
+            onTap: numberCellTap,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _CellContainer(
               isActive: isActive,
               isStarted: isStarted,
               isCurrent: isCurrent,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _CellContainer(
+              child: SerieTextField(
+                key: ValueKey('${serie.id}_reps'),
+                initialValue: serie.reps?.toString(),
+                hint: '0',
                 isActive: isActive,
                 isStarted: isStarted,
                 isCurrent: isCurrent,
-                child: SerieTextField(
-                  key: ValueKey('${serie.id}_reps'),
-                  initialValue: serie.reps?.toString(),
-                  hint: '0',
-                  isActive: isActive,
-                  isStarted: isStarted,
-                  isCurrent: isCurrent,
-                  onChanged: (v) {
-                    final reps = int.tryParse(v);
-                    if (reps != null) notifier.updateReps(serie.id, reps);
-                  },
-                ),
+                onChanged: (v) {
+                  final reps = int.tryParse(v);
+                  if (reps != null) notifier.updateReps(serie.id, reps);
+                },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

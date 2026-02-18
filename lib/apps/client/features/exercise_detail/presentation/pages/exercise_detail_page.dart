@@ -267,12 +267,14 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                         groupType: SerieGroupType.warmup,
                         isStarted: _isStarted,
                         currentSerieId: warmupCurrentId,
+                        onRegisterSerie: _registerSerie,
                       ),
                     SerieExerciseWidget(
                       repiteType: _repiteType,
                       groupType: SerieGroupType.effective,
                       isStarted: _isStarted,
                       currentSerieId: currentId,
+                      onRegisterSerie: _registerSerie,
                     ),
                     AddSerieButton(onTap: _onAddSerie),
                     if (_showDescanso) ...[
