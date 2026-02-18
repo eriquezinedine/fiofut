@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider.dart';
@@ -232,6 +234,9 @@ class SerieTextField extends StatefulWidget {
     this.inputFormatters,
     this.onChanged,
     this.maxLength,
+    this.focusNode,
+    this.nextFocusNode,
+    this.autoAdvanceMs,
   });
 
   final String? initialValue;
@@ -241,6 +246,9 @@ class SerieTextField extends StatefulWidget {
   final List<TextInputFormatter>? inputFormatters;
   final ValueChanged<String>? onChanged;
   final int? maxLength;
+  final FocusNode? focusNode;
+  final FocusNode? nextFocusNode;
+  final int? autoAdvanceMs;
 
   @override
   State<SerieTextField> createState() => _SerieTextFieldState();
@@ -249,6 +257,7 @@ class SerieTextField extends StatefulWidget {
 class _SerieTextFieldState extends State<SerieTextField> {
   late final TextEditingController _controller;
   bool _isEditing = false;
+  Timer? _advanceTimer;
 
   @override
   void initState() {
@@ -259,7 +268,6 @@ class _SerieTextFieldState extends State<SerieTextField> {
   @override
   void didUpdateWidget(covariant SerieTextField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Sync controller with state, but only when user is NOT actively typing
     if (!_isEditing && widget.initialValue != oldWidget.initialValue) {
       _controller.text = widget.initialValue ?? '';
     }
@@ -267,8 +275,27 @@ class _SerieTextFieldState extends State<SerieTextField> {
 
   @override
   void dispose() {
+    _advanceTimer?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onChanged(String value) {
+    widget.onChanged?.call(value);
+    _scheduleAutoAdvance();
+  }
+
+  void _scheduleAutoAdvance() {
+    if (widget.nextFocusNode == null || widget.autoAdvanceMs == null) return;
+    _advanceTimer?.cancel();
+    _advanceTimer = Timer(
+      Duration(milliseconds: widget.autoAdvanceMs!),
+      () {
+        if (_isEditing && mounted) {
+          widget.nextFocusNode!.requestFocus();
+        }
+      },
+    );
   }
 
   @override
@@ -283,37 +310,41 @@ class _SerieTextFieldState extends State<SerieTextField> {
     ];
 
     return Focus(
-      onFocusChange: (hasFocus) => _isEditing = hasFocus,
+      onFocusChange: (hasFocus) {
+        _isEditing = hasFocus;
+        if (!hasFocus) _advanceTimer?.cancel();
+      },
       child: TextField(
-      controller: _controller,
-      keyboardType: widget.keyboardType ?? TextInputType.number,
-      inputFormatters: formatters,
-      textAlign: TextAlign.center,
-      onChanged: widget.onChanged,
-      style: AppTextStyles.h3.copyWith(
-        color: textColor,
-        fontSize: 20,
-        letterSpacing: -0.4,
-        height: 1.25,
-      ),
-      decoration: InputDecoration(
-        hintText: widget.hint,
-        hintStyle: AppTextStyles.h3.copyWith(
-          color: AppColors.textDescription,
+        controller: _controller,
+        focusNode: widget.focusNode,
+        keyboardType: widget.keyboardType ?? TextInputType.number,
+        inputFormatters: formatters,
+        textAlign: TextAlign.center,
+        onChanged: _onChanged,
+        style: AppTextStyles.h3.copyWith(
+          color: textColor,
           fontSize: 20,
           letterSpacing: -0.4,
           height: 1.25,
         ),
-        filled: true,
-        fillColor: AppColors.transparent,
-        border: InputBorder.none,
-        enabledBorder: InputBorder.none,
-        focusedBorder: InputBorder.none,
-        contentPadding: const EdgeInsets.symmetric(vertical: 10),
-        isDense: true,
-        counterText: '',
+        decoration: InputDecoration(
+          hintText: widget.hint,
+          hintStyle: AppTextStyles.h3.copyWith(
+            color: AppColors.textDescription,
+            fontSize: 20,
+            letterSpacing: -0.4,
+            height: 1.25,
+          ),
+          filled: true,
+          fillColor: AppColors.transparent,
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+          isDense: true,
+          counterText: '',
+        ),
       ),
-    ),
     );
   }
 }
@@ -362,7 +393,7 @@ class _CellContainer extends StatelessWidget {
 
 // ── Row: byKg (Serie | Repeticiones | Kg) ───────────────────────────
 
-class _SerieRowByKg extends ConsumerWidget {
+class _SerieRowByKg extends ConsumerStatefulWidget {
   const _SerieRowByKg({
     required this.serie,
     required this.isActive,
@@ -372,7 +403,27 @@ class _SerieRowByKg extends ConsumerWidget {
   final bool isActive;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SerieRowByKg> createState() => _SerieRowByKgState();
+}
+
+class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
+  final _kgFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _kgFocusNode.dispose();
+    super.dispose();
+  }
+
+  String? _formatKg(double? kg) {
+    if (kg == null) return null;
+    return kg == kg.roundToDouble() ? kg.toInt().toString() : kg.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final serie = widget.serie;
+    final isActive = widget.isActive;
     final notifier = ref.read(serieDetailProvider.notifier);
 
     return Padding(
@@ -390,6 +441,8 @@ class _SerieRowByKg extends ConsumerWidget {
                 initialValue: serie.reps?.toString(),
                 hint: '0',
                 isActive: isActive,
+                nextFocusNode: _kgFocusNode,
+                autoAdvanceMs: 300,
                 onChanged: (v) {
                   final reps = int.tryParse(v);
                   if (reps != null) notifier.updateReps(serie.id, reps);
@@ -403,13 +456,10 @@ class _SerieRowByKg extends ConsumerWidget {
               isActive: isActive,
               child: SerieTextField(
                 key: ValueKey('${serie.id}_kg'),
-                initialValue: serie.kg != null
-                    ? (serie.kg == serie.kg!.roundToDouble()
-                        ? serie.kg!.toInt().toString()
-                        : serie.kg.toString())
-                    : null,
+                initialValue: _formatKg(serie.kg),
                 hint: '0',
                 isActive: isActive,
+                focusNode: _kgFocusNode,
                 onChanged: (v) {
                   final kg = double.tryParse(v);
                   if (kg != null) notifier.updateKg(serie.id, kg);

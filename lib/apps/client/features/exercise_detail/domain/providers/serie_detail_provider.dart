@@ -94,7 +94,23 @@ class SerieDetailNotifier extends AutoDisposeNotifier<SerieDetailState> {
   }
 
   void updateKg(String serieId, double kg) {
-    _updateSerie(serieId, (s) => s.copyWith(kg: kg));
+    final current = _loaded;
+    if (current == null) return;
+
+    final index = current.series.indexWhere((s) => s.id == serieId);
+    if (index == -1) return;
+
+    final updatedSeries = [
+      for (var i = 0; i < current.series.length; i++)
+        if (i >= index)
+          current.series[i].copyWith(kg: kg)
+        else
+          current.series[i],
+    ];
+
+    state = current.copyWith(
+      workout: current.workout.copyWith(series: updatedSeries),
+    );
   }
 
   void updateMins(String serieId, int mins) {
