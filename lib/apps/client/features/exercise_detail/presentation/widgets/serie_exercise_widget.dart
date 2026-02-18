@@ -84,6 +84,17 @@ class SireBody extends ConsumerWidget {
       _ => <SerieSet>[],
     };
 
+    // Find the last completed serie id (only that one can be untoggled)
+    String? lastCompletedId;
+    if (isStarted) {
+      for (var i = series.length - 1; i >= 0; i--) {
+        if (series[i].isCompleted) {
+          lastCompletedId = series[i].id;
+          break;
+        }
+      }
+    }
+
     return Column(
       children: [
         _SerieHeaders(middleHeader: middleHeader, showKg: !isRetryOnly),
@@ -95,6 +106,7 @@ class SireBody extends ConsumerWidget {
                 groupType: groupType,
                 isStarted: isStarted,
                 isCurrent: serie.id == currentSerieId,
+                isLastCompleted: serie.id == lastCompletedId,
               ),
             RepiteType.byKm => _SerieRowByKm(
                 serie: serie,
@@ -102,6 +114,7 @@ class SireBody extends ConsumerWidget {
                 groupType: groupType,
                 isStarted: isStarted,
                 isCurrent: serie.id == currentSerieId,
+                isLastCompleted: serie.id == lastCompletedId,
               ),
             RepiteType.retryOnly => _SerieRowRetryOnly(
                 serie: serie,
@@ -109,6 +122,7 @@ class SireBody extends ConsumerWidget {
                 groupType: groupType,
                 isStarted: isStarted,
                 isCurrent: serie.id == currentSerieId,
+                isLastCompleted: serie.id == lastCompletedId,
               ),
           },
       ],
@@ -490,6 +504,7 @@ class _SerieRowByKg extends ConsumerStatefulWidget {
     required this.groupType,
     this.isStarted = false,
     this.isCurrent = false,
+    this.isLastCompleted = false,
   });
 
   final SerieSet serie;
@@ -497,6 +512,7 @@ class _SerieRowByKg extends ConsumerStatefulWidget {
   final SerieGroupType groupType;
   final bool isStarted;
   final bool isCurrent;
+  final bool isLastCompleted;
 
   @override
   ConsumerState<_SerieRowByKg> createState() => _SerieRowByKgState();
@@ -525,61 +541,66 @@ class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
     final notifier =
         ref.read(serieDetailProvider(widget.groupType).notifier);
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20)
-          .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
-      child: Row(
-        children: [
-          _SerieNumberCell(
-            number: serie.number,
-            isActive: isActive,
-            isStarted: isStarted,
-            isCurrent: isCurrent,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _CellContainer(
+    return GestureDetector(
+      onTap: widget.isLastCompleted
+          ? () => notifier.toggleSerieCompleted(serie.id)
+          : null,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20)
+            .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
+        child: Row(
+          children: [
+            _SerieNumberCell(
+              number: serie.number,
               isActive: isActive,
               isStarted: isStarted,
               isCurrent: isCurrent,
-              child: SerieTextField(
-                key: ValueKey('${serie.id}_reps'),
-                initialValue: serie.reps?.toString(),
-                hint: '0',
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _CellContainer(
                 isActive: isActive,
                 isStarted: isStarted,
                 isCurrent: isCurrent,
-                nextFocusNode: _kgFocusNode,
-                autoAdvanceMs: 300,
-                onChanged: (v) {
-                  final reps = int.tryParse(v);
-                  if (reps != null) notifier.updateReps(serie.id, reps);
-                },
+                child: SerieTextField(
+                  key: ValueKey('${serie.id}_reps'),
+                  initialValue: serie.reps?.toString(),
+                  hint: '0',
+                  isActive: isActive,
+                  isStarted: isStarted,
+                  isCurrent: isCurrent,
+                  nextFocusNode: _kgFocusNode,
+                  autoAdvanceMs: 300,
+                  onChanged: (v) {
+                    final reps = int.tryParse(v);
+                    if (reps != null) notifier.updateReps(serie.id, reps);
+                  },
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _CellContainer(
-              isActive: isActive,
-              isStarted: isStarted,
-              isCurrent: isCurrent,
-              child: SerieTextField(
-                key: ValueKey('${serie.id}_kg'),
-                initialValue: _formatKg(serie.kg),
-                hint: '0',
+            const SizedBox(width: 16),
+            Expanded(
+              child: _CellContainer(
                 isActive: isActive,
                 isStarted: isStarted,
                 isCurrent: isCurrent,
-                focusNode: _kgFocusNode,
-                onChanged: (v) {
-                  final kg = double.tryParse(v);
-                  if (kg != null) notifier.updateKg(serie.id, kg);
-                },
+                child: SerieTextField(
+                  key: ValueKey('${serie.id}_kg'),
+                  initialValue: _formatKg(serie.kg),
+                  hint: '0',
+                  isActive: isActive,
+                  isStarted: isStarted,
+                  isCurrent: isCurrent,
+                  focusNode: _kgFocusNode,
+                  onChanged: (v) {
+                    final kg = double.tryParse(v);
+                    if (kg != null) notifier.updateKg(serie.id, kg);
+                  },
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -594,6 +615,7 @@ class _SerieRowByKm extends ConsumerWidget {
     required this.groupType,
     this.isStarted = false,
     this.isCurrent = false,
+    this.isLastCompleted = false,
   });
 
   final SerieSet serie;
@@ -601,6 +623,7 @@ class _SerieRowByKm extends ConsumerWidget {
   final SerieGroupType groupType;
   final bool isStarted;
   final bool isCurrent;
+  final bool isLastCompleted;
 
   Color get _separatorColor {
     if (!isStarted) {
@@ -615,93 +638,102 @@ class _SerieRowByKm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(serieDetailProvider(groupType).notifier);
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20)
-          .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
-      child: Row(
-        children: [
-          _SerieNumberCell(
-            number: serie.number,
-            isActive: isActive,
-            isStarted: isStarted,
-            isCurrent: isCurrent,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _CellContainer(
+    return GestureDetector(
+      onTap: isLastCompleted
+          ? () => notifier.toggleSerieCompleted(serie.id)
+          : null,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20)
+            .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
+        child: Row(
+          children: [
+            _SerieNumberCell(
+              number: serie.number,
               isActive: isActive,
               isStarted: isStarted,
               isCurrent: isCurrent,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SerieTextField(
-                      key: ValueKey('${serie.id}_mins'),
-                      initialValue: serie.mins?.toString(),
-                      hint: '00',
-                      isActive: isActive,
-                      isStarted: isStarted,
-                      isCurrent: isCurrent,
-                      maxLength: 2,
-                      onChanged: (v) {
-                        final mins = int.tryParse(v);
-                        if (mins != null) notifier.updateMins(serie.id, mins);
-                      },
-                    ),
-                  ),
-                  Text(
-                    ':',
-                    style: AppTextStyles.h3.copyWith(
-                      color: _separatorColor,
-                      fontSize: 20,
-                      letterSpacing: -0.4,
-                      height: 1.25,
-                    ),
-                  ),
-                  Expanded(
-                    child: SerieTextField(
-                      key: ValueKey('${serie.id}_segs'),
-                      initialValue: serie.segs?.toString(),
-                      hint: '00',
-                      isActive: isActive,
-                      isStarted: isStarted,
-                      isCurrent: isCurrent,
-                      maxLength: 2,
-                      onChanged: (v) {
-                        final segs = int.tryParse(v);
-                        if (segs != null) notifier.updateSegs(serie.id, segs);
-                      },
-                    ),
-                  ),
-                ],
-              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _CellContainer(
-              isActive: isActive,
-              isStarted: isStarted,
-              isCurrent: isCurrent,
-              child: SerieTextField(
-                key: ValueKey('${serie.id}_kg'),
-                initialValue: serie.kg != null
-                    ? (serie.kg == serie.kg!.roundToDouble()
-                        ? serie.kg!.toInt().toString()
-                        : serie.kg.toString())
-                    : null,
-                hint: '0',
+            const SizedBox(width: 16),
+            Expanded(
+              child: _CellContainer(
                 isActive: isActive,
                 isStarted: isStarted,
                 isCurrent: isCurrent,
-                onChanged: (v) {
-                  final kg = double.tryParse(v);
-                  if (kg != null) notifier.updateKg(serie.id, kg);
-                },
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SerieTextField(
+                        key: ValueKey('${serie.id}_mins'),
+                        initialValue: serie.mins?.toString(),
+                        hint: '00',
+                        isActive: isActive,
+                        isStarted: isStarted,
+                        isCurrent: isCurrent,
+                        maxLength: 2,
+                        onChanged: (v) {
+                          final mins = int.tryParse(v);
+                          if (mins != null) {
+                            notifier.updateMins(serie.id, mins);
+                          }
+                        },
+                      ),
+                    ),
+                    Text(
+                      ':',
+                      style: AppTextStyles.h3.copyWith(
+                        color: _separatorColor,
+                        fontSize: 20,
+                        letterSpacing: -0.4,
+                        height: 1.25,
+                      ),
+                    ),
+                    Expanded(
+                      child: SerieTextField(
+                        key: ValueKey('${serie.id}_segs'),
+                        initialValue: serie.segs?.toString(),
+                        hint: '00',
+                        isActive: isActive,
+                        isStarted: isStarted,
+                        isCurrent: isCurrent,
+                        maxLength: 2,
+                        onChanged: (v) {
+                          final segs = int.tryParse(v);
+                          if (segs != null) {
+                            notifier.updateSegs(serie.id, segs);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: _CellContainer(
+                isActive: isActive,
+                isStarted: isStarted,
+                isCurrent: isCurrent,
+                child: SerieTextField(
+                  key: ValueKey('${serie.id}_kg'),
+                  initialValue: serie.kg != null
+                      ? (serie.kg == serie.kg!.roundToDouble()
+                          ? serie.kg!.toInt().toString()
+                          : serie.kg.toString())
+                      : null,
+                  hint: '0',
+                  isActive: isActive,
+                  isStarted: isStarted,
+                  isCurrent: isCurrent,
+                  onChanged: (v) {
+                    final kg = double.tryParse(v);
+                    if (kg != null) notifier.updateKg(serie.id, kg);
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -716,6 +748,7 @@ class _SerieRowRetryOnly extends ConsumerWidget {
     required this.groupType,
     this.isStarted = false,
     this.isCurrent = false,
+    this.isLastCompleted = false,
   });
 
   final SerieSet serie;
@@ -723,43 +756,49 @@ class _SerieRowRetryOnly extends ConsumerWidget {
   final SerieGroupType groupType;
   final bool isStarted;
   final bool isCurrent;
+  final bool isLastCompleted;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(serieDetailProvider(groupType).notifier);
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20)
-          .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
-      child: Row(
-        children: [
-          _SerieNumberCell(
-            number: serie.number,
-            isActive: isActive,
-            isStarted: isStarted,
-            isCurrent: isCurrent,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _CellContainer(
+    return GestureDetector(
+      onTap: isLastCompleted
+          ? () => notifier.toggleSerieCompleted(serie.id)
+          : null,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20)
+            .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
+        child: Row(
+          children: [
+            _SerieNumberCell(
+              number: serie.number,
               isActive: isActive,
               isStarted: isStarted,
               isCurrent: isCurrent,
-              child: SerieTextField(
-                key: ValueKey('${serie.id}_reps'),
-                initialValue: serie.reps?.toString(),
-                hint: '0',
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _CellContainer(
                 isActive: isActive,
                 isStarted: isStarted,
                 isCurrent: isCurrent,
-                onChanged: (v) {
-                  final reps = int.tryParse(v);
-                  if (reps != null) notifier.updateReps(serie.id, reps);
-                },
+                child: SerieTextField(
+                  key: ValueKey('${serie.id}_reps'),
+                  initialValue: serie.reps?.toString(),
+                  hint: '0',
+                  isActive: isActive,
+                  isStarted: isStarted,
+                  isCurrent: isCurrent,
+                  onChanged: (v) {
+                    final reps = int.tryParse(v);
+                    if (reps != null) notifier.updateReps(serie.id, reps);
+                  },
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
