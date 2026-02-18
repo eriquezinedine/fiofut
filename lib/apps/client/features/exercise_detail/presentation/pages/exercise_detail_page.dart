@@ -10,6 +10,7 @@ import 'package:fio_fut/apps/client/features/exercise_home/widgets/exercise_deta
 import 'package:fio_fut/core/widgets/modal/add_serie_group_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lottie/lottie.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class ExerciseDetailPage extends ConsumerStatefulWidget {
@@ -243,8 +244,10 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
           if (didPop) return;
           _showExitConfirmation();
         },
-        child: Scaffold(
-          body: CustomScrollView(
+        child: Stack(
+          children: [
+            Scaffold(
+              body: CustomScrollView(
             slivers: [
               ExerciseDetailSliverAppBar(
                 title: widget.exercise.title,
@@ -293,7 +296,21 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
               ),
             ],
           ),
-          bottomNavigationBar: _buildFooter(allDone, context),
+              bottomNavigationBar: _buildFooter(allDone, context),
+            ),
+            if (allDone)
+              Positioned.fill(
+                top: 0,
+                child: IgnorePointer(
+                  child: Lottie.asset(
+                    'assets/lottie/confeti.json',
+                    fit: BoxFit.fitWidth,
+                    alignment: Alignment.topCenter,
+                    repeat: false,
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
