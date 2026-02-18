@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class DescansoWidget extends StatelessWidget {
   const DescansoWidget({
@@ -7,12 +8,14 @@ class DescansoWidget extends StatelessWidget {
     required this.isRunning,
     required this.onToggle,
     required this.onAdjust,
+    this.onStop,
     super.key,
   });
 
   final int seconds;
   final bool isRunning;
   final VoidCallback onToggle;
+  final VoidCallback? onStop;
 
   /// [delta] is +15 or -15
   final void Function(int delta) onAdjust;
@@ -38,18 +41,35 @@ class DescansoWidget extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Play / Pause toggle
+          GestureDetector(
+            onTap: onToggle,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                isRunning ? LucideIcons.pause : LucideIcons.play,
+                color: AppColors.black,
+                size: 18,
+              ),
+            ),
+          ),
+
+          // Timer area
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: AppSpacing.md,
               children: [
-                // -15s
                 _AdjustButton(
                   label: '-15s',
                   onTap: () => onAdjust(-15),
                 ),
-
-                // Timer display
                 Text(
                   _label,
                   style: AppTextStyles.h2.copyWith(
@@ -57,8 +77,6 @@ class DescansoWidget extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-
-                // +15s
                 _AdjustButton(
                   label: '+15s',
                   onTap: () => onAdjust(15),
@@ -67,28 +85,21 @@ class DescansoWidget extends StatelessWidget {
             ),
           ),
 
-          // Toggle switch
+          // Stop button
           GestureDetector(
-            onTap: onToggle,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 40,
-              height: 24,
-              padding: const EdgeInsets.all(3),
+            onTap: onStop,
+            child: Container(
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
-                color: isRunning ? AppColors.primary : AppColors.surface,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                color: AppColors.surface,
+                shape: BoxShape.circle,
               ),
-              alignment:
-                  isRunning ? Alignment.centerRight : Alignment.centerLeft,
-              child: Container(
-                width: 18,
-                height: 18,
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius:
-                      BorderRadius.circular(AppSpacing.radiusFull),
-                ),
+              alignment: Alignment.center,
+              child: Icon(
+                LucideIcons.square,
+                color: AppColors.white,
+                size: 14,
               ),
             ),
           ),

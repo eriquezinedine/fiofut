@@ -121,6 +121,15 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     });
   }
 
+  void _stopDescanso() {
+    _descansoTimer?.cancel();
+    setState(() {
+      _showDescanso = false;
+      _descansoRunning = false;
+      _descansoSeconds = 58;
+    });
+  }
+
   void _done() => Navigator.pop(context);
 
   Future<void> _onAddSerie() async {
@@ -211,6 +220,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                         isRunning: _descansoRunning,
                         onToggle: _toggleDescanso,
                         onAdjust: _adjustDescanso,
+                        onStop: _stopDescanso,
                       ),
                     ),
                   ],

@@ -243,9 +243,12 @@ class _SerieNumberCell extends StatelessWidget {
     if (!isStarted) {
       bg = isActive ? AppColors.white : AppColors.backgroundSecondary;
       textColor = isActive ? AppColors.background : AppColors.white;
-    } else if (_isCompleted || isCurrent) {
+    } else if (_isCompleted) {
       bg = AppColors.primary;
       textColor = AppColors.black;
+    } else if (isCurrent) {
+      bg = AppColors.white;
+      textColor = AppColors.background;
     } else {
       bg = AppColors.card;
       textColor = AppColors.white;
@@ -360,10 +363,9 @@ class _SerieTextFieldState extends State<SerieTextField> {
     if (!widget.isStarted) {
       return widget.isActive ? AppColors.background : AppColors.white;
     }
-    // Started: current/completed = black, pending = white
-    if (!widget.isActive || widget.isCurrent) {
-      return AppColors.black;
-    }
+    // Started: completed = black, current = dark (white bg), pending = white
+    if (!widget.isActive) return AppColors.black;
+    if (widget.isCurrent) return AppColors.background;
     return AppColors.white;
   }
 
@@ -455,9 +457,12 @@ class _CellContainer extends StatelessWidget {
 
     if (!isStarted) {
       bg = isActive ? AppColors.white : AppColors.backgroundSecondary;
-    } else if (!isActive || isCurrent) {
-      // completed or current
+    } else if (!isActive) {
+      // completed
       bg = AppColors.primary;
+    } else if (isCurrent) {
+      // current — white like setup
+      bg = AppColors.white;
     } else {
       // pending
       bg = AppColors.card;
@@ -601,7 +606,8 @@ class _SerieRowByKm extends ConsumerWidget {
     if (!isStarted) {
       return isActive ? AppColors.background : AppColors.white;
     }
-    if (!isActive || isCurrent) return AppColors.black;
+    if (!isActive) return AppColors.black;
+    if (isCurrent) return AppColors.background;
     return AppColors.white;
   }
 
