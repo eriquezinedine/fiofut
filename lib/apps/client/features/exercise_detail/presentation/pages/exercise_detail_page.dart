@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_flow_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/exercise_detail_sliver_app_bar.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/serie_exercise_widget.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/model.dart';
@@ -64,22 +65,13 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   }
 
   void _registerSerie() {
-    final state =
-        ref.read(serieDetailProvider(SerieGroupType.effective));
-    if (state is! SerieDetailLoaded) return;
+    final flowNotifier = ref.read(workoutFlowProvider.notifier);
+    final hasWarmup = widget.exercise.hasWarmup;
 
-    final currentSerie =
-        state.series.where((s) => !s.isCompleted).firstOrNull;
-    if (currentSerie == null) return;
+    flowNotifier.registerNext(hasWarmup: hasWarmup);
 
-    ref
-        .read(serieDetailProvider(SerieGroupType.effective).notifier)
-        .toggleSerieCompleted(currentSerie.id);
-
-    // Check if there are more series to do
-    final updatedState =
-        ref.read(serieDetailProvider(SerieGroupType.effective));
-    if (updatedState is SerieDetailLoaded && !updatedState.allCompleted) {
+    // Show descanso if there are more series to do
+    if (flowNotifier.nextSerieToRegister(hasWarmup: hasWarmup) != null) {
       setState(() {
         _showDescanso = true;
         _descansoRunning = true;
@@ -94,14 +86,8 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     if (!confirmed) return;
 
     ref
-        .read(serieDetailProvider(SerieGroupType.effective).notifier)
-        .completeAll();
-
-    if (widget.exercise.hasWarmup) {
-      ref
-          .read(serieDetailProvider(SerieGroupType.warmup).notifier)
-          .completeAll();
-    }
+        .read(workoutFlowProvider.notifier)
+        .completeAll(hasWarmup: widget.exercise.hasWarmup);
 
     _stopDescanso();
   }
@@ -198,43 +184,39 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     }
   }
 
-  // ── Helpers ─────────────────────────────────────────────────────
-
-  String? _currentSerieId(SerieDetailState state) {
-    if (!_isStarted) return null;
-    return switch (state) {
-      SerieDetailLoaded(:final series) =>
-        series.where((s) => !s.isCompleted).firstOrNull?.id,
-      _ => null,
-    };
-  }
-
-  bool _allCompleted(SerieDetailState state) {
-    return switch (state) {
-      SerieDetailLoaded(:final allCompleted) => allCompleted,
-      _ => false,
-    };
-  }
-
   // ── Build ───────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    final effectiveState =
-        ref.watch(serieDetailProvider(SerieGroupType.effective));
-    final currentId = _currentSerieId(effectiveState);
-    final effectiveDone = _allCompleted(effectiveState);
+    final flowState = ref.watch(workoutFlowProvider);
+    final hasWarmup = widget.exercise.hasWarmup;
 
-    bool warmupDone = true;
-    String? warmupCurrentId;
-    if (widget.exercise.hasWarmup) {
-      final warmupState =
-          ref.watch(serieDetailProvider(SerieGroupType.warmup));
-      warmupCurrentId = _currentSerieId(warmupState);
-      warmupDone = _allCompleted(warmupState);
+    // Watch serie providers to trigger rebuilds on series changes
+    ref.watch(serieDetailProvider(SerieGroupType.effective));
+    if (hasWarmup) {
+      ref.watch(serieDetailProvider(SerieGroupType.warmup));
     }
 
-    final allDone = _isStarted && effectiveDone && warmupDone;
+    // Derive current serie from the flow provider
+    String? currentId;
+    String? warmupCurrentId;
+    if (_isStarted) {
+      final next = ref
+          .read(workoutFlowProvider.notifier)
+          .nextSerieToRegister(hasWarmup: hasWarmup);
+      if (next != null) {
+        if (next.group == SerieGroupType.warmup) {
+          warmupCurrentId = next.id;
+        } else {
+          currentId = next.id;
+        }
+      }
+    }
+
+    final allDone = _isStarted &&
+        ref
+            .read(workoutFlowProvider.notifier)
+            .isAllCompleted(hasWarmup: hasWarmup);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -261,14 +243,48 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                       exercise: widget.exercise,
                       duration: Duration(seconds: 20),
                     ),
-                    if (widget.exercise.hasWarmup)
-                      SerieExerciseWidget(
-                        repiteType: _repiteType,
-                        groupType: SerieGroupType.warmup,
-                        isStarted: _isStarted,
-                        currentSerieId: warmupCurrentId,
-                        onRegisterSerie: _registerSerie,
+                    if (hasWarmup) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: 20,
+                          right: 20,
+                          top: 16,
+                        ),
+                        child: GestureDetector(
+                          onTap: () => ref
+                              .read(workoutFlowProvider.notifier)
+                              .toggleWarmupHidden(),
+                          child: Row(
+                            children: [
+                              Icon(
+                                flowState.warmupHidden
+                                    ? LucideIcons.eyeOff
+                                    : LucideIcons.eye,
+                                color: AppColors.textDescription,
+                                size: 16,
+                              ),
+                              const SizedBox(width: AppSpacing.xs),
+                              Text(
+                                flowState.warmupHidden
+                                    ? 'Mostrar calentamiento'
+                                    : 'Ocultar calentamiento',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.textDescription,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
+                      if (!flowState.warmupHidden)
+                        SerieExerciseWidget(
+                          repiteType: _repiteType,
+                          groupType: SerieGroupType.warmup,
+                          isStarted: _isStarted,
+                          currentSerieId: warmupCurrentId,
+                          onRegisterSerie: _registerSerie,
+                        ),
+                    ],
                     SerieExerciseWidget(
                       repiteType: _repiteType,
                       groupType: SerieGroupType.effective,
