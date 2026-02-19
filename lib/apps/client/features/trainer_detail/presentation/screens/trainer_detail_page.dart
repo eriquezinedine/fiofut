@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:fio_fut/core/widgets/modal/schedule_info_modal.dart';
+
 import '../../domain/models/trainer_schedule.dart';
 import '../widgets/widgets.dart';
 
@@ -123,20 +125,13 @@ class TrainerDetailPage extends StatelessWidget {
 
                   const SizedBox(height: AppSpacing.lg),
 
+                  // Alcance de consultas
+                  const _ConsultationScopeCard(),
+
+                  const SizedBox(height: AppSpacing.lg),
+
                   // Horario section
-                  Text(
-                    'Horario Disponible',
-                    style: AppTextStyles.titleMedium.copyWith(
-                      color: AppColors.white,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    'Dias y horas en los que tu entrenador esta disponible',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textMuted,
-                    ),
-                  ),
+                  const _ScheduleHeader(),
                   const SizedBox(height: AppSpacing.md),
 
                   // Schedule list
@@ -167,6 +162,85 @@ class TrainerDetailPage extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Header de la seccion horario con icono de info animado.
+class _ScheduleHeader extends StatefulWidget {
+  const _ScheduleHeader();
+
+  @override
+  State<_ScheduleHeader> createState() => _ScheduleHeaderState();
+}
+
+class _ScheduleHeaderState extends State<_ScheduleHeader>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Horario Disponible',
+              style: AppTextStyles.titleMedium.copyWith(
+                color: AppColors.white,
+              ),
+            ),
+            GestureDetector(
+              onTap: () => ScheduleInfoModal.show(context),
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.info.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    LucideIcons.info,
+                    color: AppColors.info,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xxs),
+        Text(
+          'Dias y horas en los que tu entrenador esta disponible',
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.textMuted,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -608,6 +682,64 @@ class _WhatsAppButton extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Card informativa sobre el alcance de consultas del entrenador.
+class _ConsultationScopeCard extends StatelessWidget {
+  const _ConsultationScopeCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.info.withValues(alpha: 0.06),
+        borderRadius: AppSpacing.borderRadiusLg,
+        border: Border.all(
+          color: AppColors.info.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.info.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              LucideIcons.messageSquare,
+              color: AppColors.info,
+              size: AppSpacing.iconMd,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Alcance de consultas',
+            style: AppTextStyles.titleSmall.copyWith(
+              color: AppColors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Tu entrenador esta disponible para resolver dudas '
+            'sobre tu plan de entrenamiento, alimentacion, '
+            'tecnica de ejercicios y bienestar fisico.\n\n'
+            'Para consultas medicas o tratamientos especializados, '
+            'te recomendamos acudir con un profesional de la salud.',
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textMuted,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
