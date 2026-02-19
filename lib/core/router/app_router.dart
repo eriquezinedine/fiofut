@@ -10,6 +10,7 @@ import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/exercise_detail_page.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/presentation/pages/exercise_image_page.dart';
 import 'package:fio_fut/apps/client/features/home/presentation/screens/hydration_screen.dart';
+import 'package:fio_fut/apps/client/features/trainer_detail/presentation/screens/trainer_detail_page.dart';
 import 'package:fio_fut/apps/client/features/login/login.dart';
 import 'package:fio_fut/apps/client/features/login_google/login_google.dart';
 import 'package:fio_fut/apps/client/features/register/register.dart';
@@ -105,6 +106,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: HydrationScreen.path,
         name: HydrationScreen.name,
         builder: (context, state) => const HydrationScreen(),
+      ),
+
+      // Trainer Detail
+      GoRoute(
+        path: TrainerDetailPage.path,
+        name: TrainerDetailPage.name,
+        builder: (context, state) {
+          final trainer = state.extra as UserProfile;
+          return TrainerDetailPage(trainer: trainer);
+        },
       ),
 
       // Exercise Image

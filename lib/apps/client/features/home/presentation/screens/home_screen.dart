@@ -1,4 +1,6 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/trainer_detail/presentation/screens/trainer_detail_page.dart';
+import 'package:fio_fut/core/providers/auth_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -116,10 +118,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
 
                       // Trainer banner
-                      const SliverToBoxAdapter(
+                      SliverToBoxAdapter(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
-                          child: TrainerBanner(),
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: TrainerBanner(
+                            onTap: () {
+                              final trainerProfile =
+                                  ref.read(userProfileProvider).valueOrNull;
+                              if (trainerProfile != null) {
+                                GoRouter.of(context).push(
+                                  TrainerDetailPage.path,
+                                  extra: trainerProfile,
+                                );
+                              }
+                            },
+                          ),
                         ),
                       ),
                     ],
