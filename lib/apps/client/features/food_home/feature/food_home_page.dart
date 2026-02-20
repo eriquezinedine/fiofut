@@ -38,7 +38,9 @@ class FoodHomePage extends ConsumerWidget {
       itemBuilder: (context, index) {
         final item = items[index];
         return switch (item) {
-          FoodHomeLoading() => const FoodLoadingCard(),
+          FoodHomeLoading(:final imageFile) => FoodLoadingCard(
+              imageFile: imageFile,
+            ),
           FoodHomeLoaded(
             :final mealItem,
             :final foodId,

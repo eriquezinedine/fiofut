@@ -265,7 +265,7 @@ class FoodHomeNotifier extends Notifier<Map<String, List<FoodHomeItem>>> {
         protein: result.totalProtein.round(),
         carbs: result.totalCarbohydrates.round(),
         fat: result.totalFat.round(),
-        isCompleted: false,
+        isCompleted: true,
       );
 
       // 5. Resolve loading -> loaded.

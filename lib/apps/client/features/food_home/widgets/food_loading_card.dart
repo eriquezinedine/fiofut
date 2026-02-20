@@ -1,71 +1,118 @@
+import 'dart:io';
+
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 
-/// Shimmer card matching MealItemCard dimensions while food is being processed.
-class FoodLoadingCard extends StatelessWidget {
-  const FoodLoadingCard({super.key});
+/// Card that shows a progress bar while the AI is generating the meal.
+/// Uses [AutomaticKeepAliveClientMixin] to preserve animation state on scroll.
+class FoodLoadingCard extends StatefulWidget {
+  const FoodLoadingCard({super.key, required this.imageFile});
+
+  final File imageFile;
+
+  @override
+  State<FoodLoadingCard> createState() => _FoodLoadingCardState();
+}
+
+class _FoodLoadingCardState extends State<FoodLoadingCard>
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+  late AnimationController _controller;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this);
+    _controller.animateTo(
+      0.95,
+      duration: const Duration(seconds: 15),
+      curve: Curves.decelerate,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return AppShimmer(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            // Image placeholder
-            AppShimmerBox(
+    super.build(context);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          // Image thumbnail
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.file(
+              widget.imageFile,
               width: 80,
               height: 80,
-              borderRadius: BorderRadius.circular(12),
+              fit: BoxFit.cover,
             ),
-            const SizedBox(width: 12),
-            // Content placeholders
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppShimmerBox(
-                    width: 140,
-                    height: 16,
-                    borderRadius: BorderRadius.circular(4),
+          ),
+          const SizedBox(width: 12),
+          // Progress content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Generando tu comida...',
+                  style: AppTextStyles.titleSmall.copyWith(
+                    color: AppColors.white,
                   ),
-                  const SizedBox(height: 10),
-                  AppShimmerBox(
-                    width: 100,
-                    height: 14,
-                    borderRadius: BorderRadius.circular(4),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Analizando con IA',
+                  style: AppTextStyles.small.copyWith(
+                    color: AppColors.textSecondary,
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      AppShimmerBox(
-                        width: 40,
-                        height: 12,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      const SizedBox(width: 12),
-                      AppShimmerBox(
-                        width: 40,
-                        height: 12,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      const SizedBox(width: 12),
-                      AppShimmerBox(
-                        width: 40,
-                        height: 12,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 12),
+                // Progress bar
+                AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: _controller.value,
+                            minHeight: 6,
+                            backgroundColor: AppColors.background,
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              AppColors.primary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${(_controller.value * 100).toInt()}%',
+                          style: AppTextStyles.small.copyWith(
+                            color: AppColors.textMuted,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
