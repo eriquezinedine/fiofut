@@ -9,7 +9,6 @@ import 'package:lottie/lottie.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../domain/providers/providers.dart';
-import '../widgets/widgets.dart';
 
 /// Pantalla 12: Pantalla de carga completada
 class LoadingPage extends ConsumerStatefulWidget {
@@ -22,8 +21,8 @@ class LoadingPage extends ConsumerStatefulWidget {
 class _LoadingPageState extends ConsumerState<LoadingPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _progressAnimation;
   bool _isComplete = false;
+  bool _hasError = false;
 
   final List<_ChecklistItem> _checklistItems = [
     _ChecklistItem(
@@ -64,27 +63,55 @@ class _LoadingPageState extends ConsumerState<LoadingPage>
     ),
   ];
 
+  double get _progress => _controller.value * 100;
+
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(seconds: 3),
-      vsync: this,
+    _controller = AnimationController(vsync: this);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _saveAndNavigate());
+  }
+
+  Future<void> _saveAndNavigate() async {
+    // Fase 1: animacion lenta hasta 90% mientras guarda en Supabase
+    final saveFuture =
+        ref.read(onboardingProvider.notifier).completeOnboarding();
+
+    _controller.animateTo(
+      0.9,
+      duration: const Duration(seconds: 8),
+      curve: Curves.decelerate,
     );
 
-    _progressAnimation = Tween<double>(begin: 0, end: 100).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    final success = await saveFuture;
+
+    if (!mounted) return;
+
+    if (!success) {
+      _controller.stop();
+      setState(() => _hasError = true);
+      return;
+    }
+
+    // Fase 2: save exitoso → acelera al 100%
+    await _controller.animateTo(
+      1.0,
+      duration: const Duration(milliseconds: 1200),
+      curve: Curves.easeOut,
     );
 
-    _controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        setState(() {
-          _isComplete = true;
-        });
-      }
-    });
+    if (!mounted) return;
 
-    _controller.forward();
+    setState(() => _isComplete = true);
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (mounted) context.go(AppContentPage.path);
+  }
+
+  void _retry() {
+    setState(() => _hasError = false);
+    _controller.reset();
+    _saveAndNavigate();
   }
 
   @override
@@ -95,8 +122,6 @@ class _LoadingPageState extends ConsumerState<LoadingPage>
 
   @override
   Widget build(BuildContext context) {
-    final notifier = ref.read(onboardingProvider.notifier);
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
@@ -108,19 +133,19 @@ class _LoadingPageState extends ConsumerState<LoadingPage>
                 children: [
                   // Progress circle
                   AnimatedBuilder(
-                    animation: _progressAnimation,
+                    animation: _controller,
                     builder: (context, child) {
                       return SizedBox(
                         width: 180,
                         height: 180,
                         child: CustomPaint(
                           painter: _ProgressCirclePainter(
-                            
-                            progress: _progressAnimation.value / 100,
+                            progress: _controller.value,
+                            color: _hasError ? AppColors.error : AppColors.green,
                           ),
                           child: Center(
                             child: Text(
-                              '${_progressAnimation.value.toInt()}%',
+                              '${_progress.toInt()}%',
                               style: AppTextStyles.h1,
                             ),
                           ),
@@ -131,16 +156,22 @@ class _LoadingPageState extends ConsumerState<LoadingPage>
                   const SizedBox(height: 32),
                   // Title
                   Text(
-                    '¡Todo listo!',
+                    _hasError
+                        ? 'Error al guardar'
+                        : '¡Todo listo!',
                     textAlign: TextAlign.center,
                     style: AppTextStyles.h2,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tu plan personalizado está preparado',
+                    _hasError
+                        ? 'No se pudo guardar tu información. Intenta de nuevo.'
+                        : 'Tu plan personalizado está preparado',
                     textAlign: TextAlign.center,
                     style: AppTextStyles.body.copyWith(
-                      color: AppColors.textSecondary,
+                      color: _hasError
+                          ? AppColors.error
+                          : AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -158,28 +189,35 @@ class _LoadingPageState extends ConsumerState<LoadingPage>
                         itemBuilder: (context, index) {
                           final item = _checklistItems[index];
                           final isChecked = _isComplete ||
-                              (_progressAnimation.value / 100) >
+                              _controller.value >
                                   ((index + 1) / _checklistItems.length);
                           return _ChecklistRow(item: item, isChecked: isChecked);
                         },
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  // Start button
-                  OnboardingContinueButton(
-                    onPressed: _isComplete
-                        ? () async {
-                            final success =
-                                await notifier.completeOnboarding();
-                            if (success && context.mounted) {
-                              context.go(AppContentPage.path);
-                            }
-                          }
-                        : null,
-                    text: 'Comenzar',
-                    isEnabled: _isComplete,
-                  ),
+                  if (_hasError) ...[
+                    const SizedBox(height: 24),
+                    GestureDetector(
+                      onTap: _retry,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Reintentar',
+                            style: AppTextStyles.button.copyWith(
+                              color: AppColors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -267,8 +305,9 @@ class _ChecklistRow extends StatelessWidget {
 
 class _ProgressCirclePainter extends CustomPainter {
   final double progress;
+  final Color color;
 
-  _ProgressCirclePainter({required this.progress});
+  _ProgressCirclePainter({required this.progress, this.color = AppColors.green});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -286,7 +325,7 @@ class _ProgressCirclePainter extends CustomPainter {
 
     // Progress arc
     final progressPaint = Paint()
-      ..color = AppColors.green
+      ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -303,6 +342,6 @@ class _ProgressCirclePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ProgressCirclePainter oldDelegate) {
-    return oldDelegate.progress != progress;
+    return oldDelegate.progress != progress || oldDelegate.color != color;
   }
 }

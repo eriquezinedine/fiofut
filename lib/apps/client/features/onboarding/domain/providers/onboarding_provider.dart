@@ -1,5 +1,6 @@
 import 'package:fio_fut/apps/client/features/onboarding/domain/models/models.dart';
 import 'package:fio_fut/core/providers/auth_providers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -219,10 +220,23 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
   Future<bool> completeOnboarding() async {
     return switch (state) {
       OnboardingInProgress(:final data) => () async {
-          if (!data.isComplete) return false;
+          if (!data.isComplete) {
+            debugPrint('[Onboarding] Data incompleta:');
+            debugPrint('  weightGoal: ${data.weightGoal}');
+            debugPrint('  height: ${data.height}');
+            debugPrint('  currentWeight: ${data.currentWeight}');
+            debugPrint('  desiredWeight: ${data.desiredWeight}');
+            debugPrint('  gender: ${data.gender}');
+            debugPrint('  birthDate: ${data.birthDate}');
+            debugPrint('  workoutLocations: ${data.workoutLocations}');
+            return false;
+          }
 
           final userId = Supabase.instance.client.auth.currentUser?.id;
-          if (userId == null) return false;
+          if (userId == null) {
+            debugPrint('[Onboarding] userId es null');
+            return false;
+          }
 
           try {
             await ref.read(authRepositoryProvider).saveOnboardingData(
@@ -240,13 +254,17 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
                   excludedFoods: data.excludedFoods,
                   useKgUnit: data.useKgUnit,
                 );
-            state = OnboardingCompleted(data: data);
             return true;
-          } catch (_) {
+          } catch (e, st) {
+            debugPrint('[Onboarding] Error al guardar: $e');
+            debugPrint('[Onboarding] StackTrace: $st');
             return false;
           }
         }(),
-      _ => Future.value(false),
+      _ => () {
+          debugPrint('[Onboarding] Estado no es InProgress: $state');
+          return Future.value(false);
+        }(),
     };
   }
 
