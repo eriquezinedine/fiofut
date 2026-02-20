@@ -79,7 +79,6 @@ class AuthRepository {
         .from('profiles')
         .update({
           'whatsapp_number': whatsappNumber,
-          'is_profile_complete': true,
         })
         .eq('id', userId)
         .select()
@@ -108,6 +107,48 @@ class AuthRepository {
         .single();
 
     return UserProfile.fromJson(data);
+  }
+
+  /// Save all onboarding data and mark profile as complete
+  Future<void> saveOnboardingData({
+    required String userId,
+    required String weightGoal,
+    required double heightCm,
+    required double currentWeight,
+    required double desiredWeight,
+    required String gender,
+    required DateTime birthDate,
+    required List<String> workoutLocations,
+    String? referralCode,
+    String? injuries,
+    List<String> excludedFoods = const [],
+    bool useKgUnit = true,
+  }) async {
+    await _client.from('profiles').update({
+      'weight_goal': weightGoal,
+      'height_cm': heightCm,
+      'current_weight': currentWeight,
+      'desired_weight': desiredWeight,
+      'gender': gender,
+      'birth_date': birthDate.toIso8601String().split('T').first,
+      'workout_locations': workoutLocations,
+      'referral_code': referralCode,
+      'injuries': injuries,
+      'excluded_foods': excludedFoods,
+      'use_kg_unit': useKgUnit,
+      'is_profile_complete': true,
+    }).eq('id', userId);
+  }
+
+  /// Update onboarding step
+  Future<void> updateOnboardingStep({
+    required String userId,
+    required int step,
+  }) async {
+    await _client
+        .from('profiles')
+        .update({'onboarding_step': step})
+        .eq('id', userId);
   }
 
   /// Sign out

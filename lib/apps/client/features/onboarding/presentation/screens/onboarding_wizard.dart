@@ -1,5 +1,8 @@
+import 'package:fio_fut/apps/client/features/login_google/login_google.dart';
+import 'package:fio_fut/apps/client/features/profile/domain/providers/logout_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../domain/models/models.dart';
 import '../../domain/providers/providers.dart';
@@ -10,7 +13,9 @@ class OnboardingWizard extends ConsumerStatefulWidget {
   static const String name = 'onboarding';
   static const String path = '/onboarding';
 
-  const OnboardingWizard({super.key});
+  const OnboardingWizard({super.key, this.initialStep});
+
+  final int? initialStep;
 
   @override
   ConsumerState<OnboardingWizard> createState() => _OnboardingWizardState();
@@ -20,9 +25,13 @@ class _OnboardingWizardState extends ConsumerState<OnboardingWizard> {
   @override
   void initState() {
     super.initState();
-    // Iniciar el onboarding cuando se carga el widget
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(onboardingProvider.notifier).startOnboarding();
+      final notifier = ref.read(onboardingProvider.notifier);
+      if (widget.initialStep != null) {
+        notifier.startFromStep(widget.initialStep!);
+      } else {
+        notifier.startOnboarding();
+      }
     });
   }
 
@@ -30,13 +39,29 @@ class _OnboardingWizardState extends ConsumerState<OnboardingWizard> {
   Widget build(BuildContext context) {
     final state = ref.watch(onboardingProvider);
 
-    return switch (state) {
-      OnboardingInitial() => const _LoadingScreen(),
-      OnboardingInProgress(:final currentStep, :final data) =>
-        _buildStepScreen(currentStep, data),
-      OnboardingCompleted(:final data) => _OnboardingCompleteScreen(data: data),
-      OnboardingError(:final message) => _ErrorScreen(message: message),
-    };
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (state is OnboardingInProgress) {
+          if (state.currentStep == OnboardingStep.weightGoal) {
+            final success = await ref.read(logoutProvider.notifier).signOut();
+            if (success && context.mounted) {
+              context.go(LoginGoogleScreen.path);
+            }
+          } else {
+            ref.read(onboardingProvider.notifier).previousStep();
+          }
+        }
+      },
+      child: switch (state) {
+        OnboardingInitial() => const _LoadingScreen(),
+        OnboardingInProgress(:final currentStep, :final data) =>
+          _buildStepScreen(currentStep, data),
+        OnboardingCompleted(:final data) => _OnboardingCompleteScreen(data: data),
+        OnboardingError(:final message) => _ErrorScreen(message: message),
+      },
+    );
   }
 
   Widget _buildStepScreen(OnboardingStep step, OnboardingData data) {
@@ -77,20 +102,22 @@ class _OnboardingCompleteScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.check_circle, size: 80, color: Colors.green),
-            const SizedBox(height: 24),
-            const Text(
-              'Onboarding Completado!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Text('IMC: ${data.bmi?.toStringAsFixed(1) ?? "N/A"}'),
-          ],
+    return PopScope(
+      child: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.check_circle, size: 80, color: Colors.green),
+              const SizedBox(height: 24),
+              const Text(
+                'Onboarding Completado!',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Text('IMC: ${data.bmi?.toStringAsFixed(1) ?? "N/A"}'),
+            ],
+          ),
         ),
       ),
     );

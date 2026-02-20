@@ -11,6 +11,7 @@ class UserProfile {
     this.whatsappNumber,
     this.userType = UserType.student,
     this.isProfileComplete = false,
+    this.onboardingStep,
     this.createdAt,
     this.updatedAt,
   });
@@ -21,6 +22,7 @@ class UserProfile {
   final String? whatsappNumber;
   final UserType userType;
   final bool isProfileComplete;
+  final int? onboardingStep;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -32,6 +34,7 @@ class UserProfile {
       whatsappNumber: json['whatsapp_number'] as String?,
       userType: _parseUserType(json['role'] as String?),
       isProfileComplete: json['is_profile_complete'] as bool? ?? false,
+      onboardingStep: json['onboarding_step'] as int?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -49,6 +52,7 @@ class UserProfile {
       'whatsapp_number': whatsappNumber,
       'role': userType.name,
       'is_profile_complete': isProfileComplete,
+      'onboarding_step': onboardingStep,
     };
   }
 
@@ -59,6 +63,7 @@ class UserProfile {
     String? whatsappNumber,
     UserType? userType,
     bool? isProfileComplete,
+    int? onboardingStep,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -69,6 +74,7 @@ class UserProfile {
       whatsappNumber: whatsappNumber ?? this.whatsappNumber,
       userType: userType ?? this.userType,
       isProfileComplete: isProfileComplete ?? this.isProfileComplete,
+      onboardingStep: onboardingStep ?? this.onboardingStep,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -93,7 +99,8 @@ class UserProfile {
           avatarUrl == other.avatarUrl &&
           whatsappNumber == other.whatsappNumber &&
           userType == other.userType &&
-          isProfileComplete == other.isProfileComplete;
+          isProfileComplete == other.isProfileComplete &&
+          onboardingStep == other.onboardingStep;
 
   @override
   int get hashCode => Object.hash(
@@ -103,5 +110,6 @@ class UserProfile {
         whatsappNumber,
         userType,
         isProfileComplete,
+        onboardingStep,
       );
 }

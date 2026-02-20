@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fio_fut/apps/client/features/app_content/presentation/pages/app_content_page.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -168,9 +169,12 @@ class _LoadingPageState extends ConsumerState<LoadingPage>
                   // Start button
                   OnboardingContinueButton(
                     onPressed: _isComplete
-                        ? () {
-                            notifier.completeOnboarding();
-                            context.go('/');
+                        ? () async {
+                            final success =
+                                await notifier.completeOnboarding();
+                            if (success && context.mounted) {
+                              context.go(AppContentPage.path);
+                            }
                           }
                         : null,
                     text: 'Comenzar',

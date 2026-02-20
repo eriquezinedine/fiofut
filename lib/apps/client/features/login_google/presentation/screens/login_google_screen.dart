@@ -1,14 +1,10 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:authentication/authentication.dart';
+import 'package:fio_fut/apps/client/features/login_google/presentation/widgets/goolgle_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart' as router;
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../domain/providers/providers.dart';
-import '../../../complete_profile/presentation/screens/complete_profile_screen.dart';
-import '../../../../../../apps/admin/features/admin_content/presentation/screens/admin_content_page.dart';
 
 class LoginGoogleScreen extends ConsumerWidget {
   static const String name = 'login-google';
@@ -146,10 +142,7 @@ class LoginGoogleScreen extends ConsumerWidget {
                           ),
 
                         // Google Button
-                        _GoogleButton(
-                          isLoading: state.isLoading,
-                          onPressed: () => _handleGoogleSignIn(context, ref),
-                        ),
+                        GoogleButton(),
 
                         AppSpacing.verticalXl,
 
@@ -169,91 +162,7 @@ class LoginGoogleScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _handleGoogleSignIn(BuildContext context, WidgetRef ref) async {
-    final profile =
-        await ref.read(loginGoogleProvider.notifier).signInWithGoogle();
-    if (profile != null && context.mounted) {
-      if (!profile.isProfileComplete) {
-        router.GoRouter.of(context).go(CompleteProfileScreen.path);
-        return;
-      }
-      final route = switch (profile.userType) {
-        UserType.admin => AdminContentPage.path,
-        UserType.trainer => '/trainer',
-        UserType.student => '/',
-      };
-      router.GoRouter.of(context).go(route);
-    }
-  }
-}
-
-class _GoogleButton extends StatelessWidget {
-  const _GoogleButton({
-    required this.isLoading,
-    required this.onPressed,
-  });
-
-  final bool isLoading;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: isLoading ? null : onPressed,
-      child: Container(
-        height: 64,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(32),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x25000000),
-              blurRadius: 20,
-              offset: Offset(0, 6),
-            ),
-            BoxShadow(
-              color: Color(0x10000000),
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: isLoading
-            ? const Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      AppColors.black,
-                    ),
-                  ),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Google Logo SVG
-                  SvgPicture.asset(
-                    'assets/svg/google.svg',
-                    width: 24,
-                    height: 24,
-                  ),
-                  AppSpacing.horizontalMd,
-                  // Button text - titleMedium con color negro
-                  Text(
-                    'Continuar con Google',
-                    style: AppTextStyles.titleMedium.copyWith(
-                      color: AppColors.black,
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
+  
 }
 
 class _TermsSection extends StatelessWidget {

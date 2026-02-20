@@ -1,5 +1,7 @@
 import 'package:fio_fut/apps/client/features/onboarding/domain/models/models.dart';
+import 'package:fio_fut/core/providers/auth_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'onboarding_state.dart';
 
@@ -22,6 +24,19 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       currentStep: OnboardingStep.birthDate,
       data: const OnboardingData.empty(),
     );
+    _saveStep(OnboardingStep.birthDate);
+  }
+
+  /// Starts the onboarding from a specific step (for resume).
+  void startFromStep(int stepNumber) {
+    final step = OnboardingStep.values.firstWhere(
+      (s) => s.stepNumber == stepNumber,
+      orElse: () => OnboardingStep.birthDate,
+    );
+    state = OnboardingInProgress(
+      currentStep: step,
+      data: const OnboardingData.empty(),
+    );
   }
 
   /// Advances to the next step in the wizard.
@@ -30,12 +45,13 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
   bool nextStep() {
     return switch (state) {
       OnboardingInProgress(:final currentStep, :final data) => () {
-          final nextStep = currentStep.next;
-          if (nextStep != null) {
+          final next = currentStep.next;
+          if (next != null) {
             state = OnboardingInProgress(
-              currentStep: nextStep,
+              currentStep: next,
               data: data,
             );
+            _saveStep(next);
             return true;
           }
           return false;
@@ -50,12 +66,13 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
   bool previousStep() {
     return switch (state) {
       OnboardingInProgress(:final currentStep, :final data) => () {
-          final prevStep = currentStep.previous;
-          if (prevStep != null) {
+          final prev = currentStep.previous;
+          if (prev != null) {
             state = OnboardingInProgress(
-              currentStep: prevStep,
+              currentStep: prev,
               data: data,
             );
+            _saveStep(prev);
             return true;
           }
           return false;
@@ -80,6 +97,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       default:
         break;
     }
+    _saveStep(step);
   }
 
   /// Updates the weight goal selection.
@@ -194,20 +212,41 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     _updateData((data) => data.copyWith(desiredWeight: desiredWeight));
   }
 
-  /// Completes the onboarding process.
+  /// Completes the onboarding process and saves data to Supabase.
   ///
   /// Returns true if onboarding was completed successfully,
   /// false if data is incomplete.
-  bool completeOnboarding() {
+  Future<bool> completeOnboarding() async {
     return switch (state) {
-      OnboardingInProgress(:final data) => () {
-          if (data.isComplete) {
+      OnboardingInProgress(:final data) => () async {
+          if (!data.isComplete) return false;
+
+          final userId = Supabase.instance.client.auth.currentUser?.id;
+          if (userId == null) return false;
+
+          try {
+            await ref.read(authRepositoryProvider).saveOnboardingData(
+                  userId: userId,
+                  weightGoal: data.weightGoal!.name,
+                  heightCm: data.height!,
+                  currentWeight: data.currentWeight!,
+                  desiredWeight: data.desiredWeight!,
+                  gender: data.gender!.name,
+                  birthDate: data.birthDate!,
+                  workoutLocations:
+                      data.workoutLocations.map((e) => e.name).toList(),
+                  referralCode: data.referralCode,
+                  injuries: data.injuries,
+                  excludedFoods: data.excludedFoods,
+                  useKgUnit: data.useKgUnit,
+                );
             state = OnboardingCompleted(data: data);
             return true;
+          } catch (_) {
+            return false;
           }
-          return false;
         }(),
-      _ => false,
+      _ => Future.value(false),
     };
   }
 
@@ -232,5 +271,14 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       default:
         break;
     }
+  }
+
+  /// Persists the current onboarding step to Supabase.
+  void _saveStep(OnboardingStep step) {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+    ref
+        .read(authRepositoryProvider)
+        .updateOnboardingStep(userId: userId, step: step.stepNumber);
   }
 }

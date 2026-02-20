@@ -1,4 +1,7 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/onboarding/presentation/screens/onboarding_wizard.dart';
+import 'package:fio_fut/apps/client/features/login_google/presentation/screens/login_google_screen.dart';
+import 'package:fio_fut/apps/client/features/profile/domain/providers/logout_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -47,84 +50,94 @@ class _CompleteProfileScreenState
     final state = ref.watch(completeProfileProvider);
     final notifier = ref.read(completeProfileProvider.notifier);
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: Column(
-            children: [
-              const Spacer(),
-
-              // Icon
-              const IconBox(
-                icon: LucideIcons.messageCircle,
-              ),
-
-              AppSpacing.verticalXl,
-
-              // Title
-              Text(
-                'Completa tu perfil',
-                style: AppTextStyles.h2,
-              ),
-
-              AppSpacing.verticalMd,
-
-              // Description
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: Text(
-                  'Para finalizar tu registro, necesitamos tu numero de WhatsApp.',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.body.copyWith(
-                    color: AppColors.textSecondary,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final success = await ref.read(logoutProvider.notifier).signOut();
+        if (success && context.mounted) {
+          context.go(LoginGoogleScreen.path);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Column(
+              children: [
+                const Spacer(),
+      
+                // Icon
+                const IconBox(
+                  icon: LucideIcons.messageCircle,
+                ),
+      
+                AppSpacing.verticalXl,
+      
+                // Title
+                Text(
+                  'Completa tu perfil',
+                  style: AppTextStyles.h2,
+                ),
+      
+                AppSpacing.verticalMd,
+      
+                // Description
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: Text(
+                    'Para finalizar tu registro, necesitamos tu numero de WhatsApp.',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ),
-              ),
-
-              AppSpacing.verticalXxl,
-
-              // Error message
-              if (state.errorMessage != null)
-                ErrorMessageBox(
-                  message: state.errorMessage!,
-                  onDismiss: notifier.clearError,
+      
+                AppSpacing.verticalXxl,
+      
+                // Error message
+                if (state.errorMessage != null)
+                  ErrorMessageBox(
+                    message: state.errorMessage!,
+                    onDismiss: notifier.clearError,
+                  ),
+      
+                // Label
+                const FieldLabel(
+                  text: 'Numero de WhatsApp',
                 ),
-
-              // Label
-              const FieldLabel(
-                text: 'Numero de WhatsApp',
-              ),
-
-              // Phone input with country picker
-              PhoneInputField(
-                controller: _controller,
-                selectedCountry: _selectedCountry,
-                onCountryChanged: _onCountryChanged,
-                onPhoneChanged: _onPhoneChanged,
-              ),
-
-              AppSpacing.verticalSm,
-
-              // Helper text
-              const InfoHintRow(
-                text: 'Selecciona tu pais y escribe tu numero',
-              ),
-
-              AppSpacing.verticalXl,
-
-              // Submit button
-              AppButton(
-                text: 'Continuar',
-                onPressed: () => _handleSubmit(context, ref),
-                isLoading: state.isLoading,
-                isDisabled: !state.isValid,
-                size: AppButtonSize.large,
-              ),
-
-              const Spacer(),
-            ],
+      
+                // Phone input with country picker
+                PhoneInputField(
+                  controller: _controller,
+                  selectedCountry: _selectedCountry,
+                  onCountryChanged: _onCountryChanged,
+                  onPhoneChanged: _onPhoneChanged,
+                ),
+      
+                AppSpacing.verticalSm,
+      
+                // Helper text
+                const InfoHintRow(
+                  text: 'Selecciona tu pais y escribe tu numero',
+                ),
+      
+                AppSpacing.verticalXl,
+      
+                // Submit button
+                AppButton(
+                  text: 'Continuar',
+                  onPressed: () => _handleSubmit(context, ref),
+                  isLoading: state.isLoading,
+                  isDisabled: !state.isValid,
+                  size: AppButtonSize.large,
+                ),
+      
+                const Spacer(),
+              ],
+            ),
           ),
         ),
       ),
@@ -132,10 +145,11 @@ class _CompleteProfileScreenState
   }
 
   Future<void> _handleSubmit(BuildContext context, WidgetRef ref) async {
+    FocusScope.of(context).unfocus();
     final success =
         await ref.read(completeProfileProvider.notifier).submitProfile();
     if (success && context.mounted) {
-      context.go('/');
+      context.go(OnboardingWizard.path);
     }
   }
 }
