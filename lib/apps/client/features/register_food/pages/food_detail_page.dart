@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/food_home/domain/providers/food_home_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -39,6 +40,12 @@ class FoodDetailPage extends ConsumerStatefulWidget {
 }
 
 class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
+  bool _hasChanges = false;
+
+  void _markChanged() {
+    if (!_hasChanges) setState(() => _hasChanges = true);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -74,17 +81,33 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
         title: Text('Detalle de comida', style: AppTextStyles.titleMedium),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: AppSpacing.screenPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildImageSection(uploadState),
-            const SizedBox(height: AppSpacing.lg),
-            _buildInfoSection(uploadState, detailState),
-            const SizedBox(height: AppSpacing.xl),
-          ],
-        ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screenPadding.left,
+              AppSpacing.screenPadding.top,
+              AppSpacing.screenPadding.right,
+              _hasChanges ? 100 : AppSpacing.xl,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildImageSection(uploadState),
+                const SizedBox(height: AppSpacing.lg),
+                _buildInfoSection(uploadState, detailState),
+                const SizedBox(height: AppSpacing.xl),
+              ],
+            ),
+          ),
+          if (_hasChanges)
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: MediaQuery.of(context).padding.bottom + 16,
+              child: _buildSaveButton(detailState),
+            ),
+        ],
       ),
     );
   }
@@ -362,7 +385,7 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
                   ),
                 );
                 if (added == true && mounted) {
-                  setState(() {});
+                  _markChanged();
                 }
               },
               child: Container(
@@ -533,6 +556,57 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
     );
   }
 
+  // ── Save Button ────────────────────────────────────────────────
+
+  Widget _buildSaveButton(FoodDetailState detailState) {
+    return GestureDetector(
+      onTap: () => _saveChanges(detailState),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Center(
+          child: Text(
+            'Guardar cambios',
+            style: AppTextStyles.button.copyWith(
+              color: AppColors.black,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _saveChanges(FoodDetailState detailState) {
+    if (detailState is! FoodDetailLoaded) return;
+
+    final result = detailState.result;
+    ref.read(foodHomeProvider.notifier).updateFoodItem(
+          result.id,
+          calories: result.totalCalories.round(),
+          protein: result.totalProtein.round(),
+          carbs: result.totalCarbohydrates.round(),
+          fat: result.totalFat.round(),
+          detail: result,
+        );
+
+    setState(() => _hasChanges = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Cambios guardados'),
+        backgroundColor: AppColors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppSpacing.borderRadiusMd,
+        ),
+      ),
+    );
+  }
+
   // ── Modal Flow ─────────────────────────────────────────────────
 
   void _showIngredientOptions(RecognizedIngredient ingredient) {
@@ -561,6 +635,8 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
         );
     if (error != null && mounted) {
       _showErrorSnackBar(error);
+    } else {
+      _markChanged();
     }
   }
 
@@ -576,6 +652,8 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
         .deleteIngredient(ingredient.idDetailFoodIngredient);
     if (error != null && mounted) {
       _showErrorSnackBar(error);
+    } else {
+      _markChanged();
     }
   }
 

@@ -339,6 +339,37 @@ class FoodHomeNotifier extends Notifier<Map<String, List<FoodHomeItem>>> {
     _updateDateItems(todayKey, updated);
   }
 
+  /// Updates an existing food item's nutrition data and detail in the state.
+  void updateFoodItem(
+    String foodId, {
+    required int calories,
+    required int protein,
+    required int carbs,
+    required int fat,
+    FoodRecognitionResult? detail,
+  }) {
+    final todayKey = _dateKey(DateTime.now());
+    final current = state[todayKey] ?? [];
+
+    final updated = current.map((item) {
+      if (item is FoodHomeLoaded && item.foodId == foodId) {
+        return FoodHomeLoaded(
+          mealItem: item.mealItem.copyWith(
+            calories: calories,
+            protein: protein,
+            carbs: carbs,
+            fat: fat,
+          ),
+          foodId: item.foodId,
+          detail: detail ?? item.detail,
+        );
+      }
+      return item;
+    }).toList();
+
+    _updateDateItems(todayKey, updated);
+  }
+
   void retryItem(String tempId) {
     final todayKey = _dateKey(DateTime.now());
     final current = state[todayKey] ?? [];
