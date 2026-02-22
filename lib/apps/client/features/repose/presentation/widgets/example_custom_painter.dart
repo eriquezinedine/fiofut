@@ -1,3 +1,4 @@
+import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/widgets/muscle_custom_painter/rps_custom_painter.dart';
 import 'package:flutter/material.dart';
 
@@ -11,10 +12,11 @@ class BodyCustomPaint extends StatefulWidget {
 }
 
 class _BodyCustomPaintState extends State<BodyCustomPaint> {
-  Color _chest1Color = const Color(0xffE53A36);
-  Color _chest2Color = const Color(0xffE53A36);
+  Color _chest1Color =  AppColors.muscleDefaultColor;
+  Color _chest2Color =  AppColors.muscleDefaultColor;
+  Color _absColor =  AppColors.muscleDefaultColor;
 
-  late final RPSCustomPainter _painter;
+  late RPSCustomPainter _painter;
 
   static const _colors = [
     Color(0xffE53A36),
@@ -45,6 +47,12 @@ class _BodyCustomPaintState extends State<BodyCustomPaint> {
         title: 'Chest 2 (derecha)',
         currentColor: _chest2Color,
         onColorSelected: (color) => setState(() => _chest2Color = color),
+      );
+    } else if (muscle == 'abs') {
+      _showColorPicker(
+        title: 'Abdominales',
+        currentColor: _absColor,
+        onColorSelected: (color) => setState(() => _absColor = color),
       );
     }
   }
@@ -120,6 +128,7 @@ class _BodyCustomPaintState extends State<BodyCustomPaint> {
     _painter = RPSCustomPainter(
       chest1Color: _chest1Color,
       chest2Color: _chest2Color,
+      absColor: _absColor,
     );
     return GestureDetector(
       onTapDown: _onTapDown,

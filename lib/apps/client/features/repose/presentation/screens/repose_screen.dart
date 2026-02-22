@@ -12,7 +12,7 @@ class ReposeScreen extends StatelessWidget {
     return const Scaffold(
       body: Center(
         child: Padding(
-          padding: EdgeInsetsGeometry.only(bottom: 250),
+          padding: EdgeInsetsGeometry.only(bottom: 0),
           child: BodyCustomPaint(width: 200)),
       ),
     );

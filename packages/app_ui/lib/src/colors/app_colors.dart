@@ -109,6 +109,8 @@ abstract final class AppColors {
 
   /// Admin
   static const Color roleAdmin = purple;
+  /// Admin
+  static const Color muscleDefaultColor = Color(0xff6C7180);
 
   // ============================================================
   // GREY SCALE
