@@ -85,6 +85,22 @@ const kFakeMuscles = [
     muscle: Muscle(id: '14', name: 'Oblicuos', isMain: false, muscleGroup: MuscleGroup.obliques),
     percentage: 60,
   ),
+  MuscleRepose(
+    muscle: Muscle(id: '15', name: 'Abductores', isMain: false, muscleGroup: MuscleGroup.abductors),
+    percentage: 85,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '16', name: 'Aductores', isMain: false, muscleGroup: MuscleGroup.adductors),
+    percentage: 90,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '17', name: 'Deltoides Posterior', isMain: false, muscleGroup: MuscleGroup.rearDeltoid),
+    percentage: 40,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '18', name: 'Trapecios', isMain: false, muscleGroup: MuscleGroup.traps),
+    percentage: 50,
+  ),
 ];
 
 // ---------------------------------------------------------------------------

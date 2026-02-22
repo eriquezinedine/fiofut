@@ -1,4 +1,5 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/repose/presentation/widgets/muscle_back_front_view.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/widgets/muscle_custom_painter/back_body_custom_paint.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/widgets/muscle_custom_painter/front_body_custom_paint.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/widgets/repose_list_sliders/repose_list_sliders.dart';
@@ -52,13 +53,7 @@ class ReposeScreen extends StatelessWidget {
                 final bodyWidth =( (constraints.maxWidth - 8) / 2) -24;
                 return Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      FrontBodyCustomPaint(width: bodyWidth),
-                      BackBodyCustomPaint(width: bodyWidth),
-                    ],
-                  ),
+                  child:MuscleBackFrontView(bodyWidth: bodyWidth),
                 );
               },
             )
