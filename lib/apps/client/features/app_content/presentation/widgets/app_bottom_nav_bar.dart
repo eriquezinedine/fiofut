@@ -49,7 +49,7 @@ class AppBottomNavBar extends StatelessWidget {
             // Rutina
             _NavItem(
               icon: LucideIcons.dumbbell,
-              label: 'Rutina',
+              label: 'Reposo',
               isSelected: currentIndex == 1,
               onTap: () => onTap(1),
             ),

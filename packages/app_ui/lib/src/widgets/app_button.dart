@@ -32,7 +32,6 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final buttonHeight = _getButtonHeight();
     final textStyle = _getTextStyle();
     final isEnabled = !isDisabled && !isLoading && onPressed != null;
 
@@ -70,7 +69,6 @@ class AppButton extends StatelessWidget {
       case AppButtonType.secondary:
         return SizedBox(
           width: fullWidth ? double.infinity : null,
-          height: buttonHeight,
           child: ElevatedButton(
             onPressed: isEnabled ? onPressed : null,
             style: ElevatedButton.styleFrom(
@@ -86,7 +84,6 @@ class AppButton extends StatelessWidget {
       case AppButtonType.outlined:
         return SizedBox(
           width: fullWidth ? double.infinity : null,
-          height: buttonHeight,
           child: OutlinedButton(
             onPressed: isEnabled ? onPressed : null,
             child: child,

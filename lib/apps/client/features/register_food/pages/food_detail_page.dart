@@ -12,6 +12,12 @@ import '../../../../../core/widgets/modal/edit_ingredient_modal.dart';
 import '../../../../../core/widgets/modal/ingredient_options_modal.dart';
 import '../domain/providers/food_provider.dart';
 import '../domain/providers/food_provider_detail.dart';
+import '../widgets/food_detail_shimmer.dart';
+import '../widgets/food_image_section.dart';
+import '../widgets/food_ingredient_item.dart';
+import '../widgets/food_nutrition_card.dart';
+import '../widgets/food_save_button.dart';
+import '../widgets/food_type_tag.dart';
 import 'select_ingredient_page.dart';
 
 class FoodDetailPage extends ConsumerStatefulWidget {
@@ -51,7 +57,6 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
     super.initState();
     Future.microtask(() {
       if (widget.initialResult != null) {
-        // Data already available — no fetch needed.
         ref.read(foodDetailProvider.notifier).setResult(widget.initialResult!);
       } else if (widget.isExistingFood) {
         ref
@@ -93,7 +98,11 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildImageSection(uploadState),
+                FoodImageSection(
+                  isExistingFood: widget.isExistingFood,
+                  imageUrl: widget.imageUrl,
+                  uploadState: uploadState,
+                ),
                 const SizedBox(height: AppSpacing.lg),
                 _buildInfoSection(uploadState, detailState),
                 const SizedBox(height: AppSpacing.xl),
@@ -105,77 +114,25 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
               left: 20,
               right: 20,
               bottom: MediaQuery.of(context).padding.bottom + 16,
-              child: _buildSaveButton(detailState),
+              child: FoodSaveButton(
+                onTap: () => _saveChanges(detailState),
+              ),
             ),
         ],
       ),
     );
   }
 
-  // ── Image Section ─────────────────────────────────────────────
-
-  Widget _buildImageSection(FoodImageUploadState uploadState) {
-    return ClipRRect(
-      borderRadius: AppSpacing.borderRadiusXl,
-      child: AspectRatio(
-        aspectRatio: 4 / 3,
-        child: widget.isExistingFood
-            ? Image.network(
-                widget.imageUrl ?? '',
-                fit: BoxFit.cover,
-                loadingBuilder: (_, child, progress) {
-                  if (progress == null) return child;
-                  return _buildImageShimmer();
-                },
-                errorBuilder: (_, __, ___) => _buildImageError(),
-              )
-            : switch (uploadState) {
-                FoodImageUploadInitial() ||
-                FoodImageUploading() =>
-                  _buildImageShimmer(),
-                FoodImageUploaded(:final imageUrl) => Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (_, child, progress) {
-                      if (progress == null) return child;
-                      return _buildImageShimmer();
-                    },
-                    errorBuilder: (_, __, ___) => _buildImageError(),
-                  ),
-                FoodImageUploadError() => _buildImageError(),
-              },
-      ),
-    );
-  }
-
-  Widget _buildImageShimmer() {
-    return AppShimmer(child: Container(color: AppColors.grey800));
-  }
-
-  Widget _buildImageError() {
-    return Container(
-      color: AppColors.card,
-      child: const Center(
-        child: Icon(
-          LucideIcons.imageOff,
-          color: AppColors.textMuted,
-          size: AppSpacing.iconXl,
-        ),
-      ),
-    );
-  }
-
-  // ── Info Section ──────────────────────────────────────────────
+  // ── Info Section Routing ────────────────────────────────────────
 
   Widget _buildInfoSection(
     FoodImageUploadState uploadState,
     FoodDetailState detailState,
   ) {
-    // Existing food: skip upload state checks entirely.
     if (widget.isExistingFood) {
       return switch (detailState) {
         FoodDetailInitial() || FoodDetailAnalyzing() =>
-          _buildContentShimmer(),
+          const FoodContentShimmer(),
         FoodDetailLoaded(:final result) => _buildFoodDetail(result),
         FoodDetailError(:final message) => _buildAnalysisError(message),
       };
@@ -183,7 +140,7 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
 
     if (uploadState is FoodImageUploadInitial ||
         uploadState is FoodImageUploading) {
-      return _buildContentShimmer();
+      return const FoodContentShimmer();
     }
 
     if (uploadState is FoodImageUploadError) {
@@ -199,164 +156,22 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
     }
 
     return switch (detailState) {
-      FoodDetailInitial() || FoodDetailAnalyzing() => _buildAnalyzingState(),
+      FoodDetailInitial() || FoodDetailAnalyzing() =>
+        const FoodAnalyzingState(),
       FoodDetailLoaded(:final result) => _buildFoodDetail(result),
       FoodDetailError(:final message) => _buildAnalysisError(message),
     };
   }
 
-  // ── Analyzing State ───────────────────────────────────────────
-
-  Widget _buildAnalyzingState() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Status indicator
-        Container(
-          width: double.infinity,
-          padding: AppSpacing.cardPadding,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.08),
-            borderRadius: AppSpacing.borderRadiusLg,
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.2),
-            ),
-          ),
-          child: Row(
-            children: [
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Analizando tu comida con IA...',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        // Content shimmer
-        _buildContentShimmer(),
-      ],
-    );
-  }
-
-  Widget _buildContentShimmer() {
-    return AppShimmer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const AppShimmerBox(width: 220, height: 24),
-          const SizedBox(height: AppSpacing.xs),
-          const AppShimmerBox(width: 80, height: 22),
-          const SizedBox(height: AppSpacing.sm),
-          const AppShimmerBox(width: double.infinity, height: 16),
-          const SizedBox(height: AppSpacing.xs),
-          const AppShimmerBox(width: 260, height: 16),
-          const SizedBox(height: AppSpacing.lg),
-          // Nutrition card shimmer
-          Container(
-            padding: AppSpacing.cardPadding,
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: AppSpacing.borderRadiusXl,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const AppShimmerBox(width: 160, height: 20),
-                const SizedBox(height: AppSpacing.md),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildNutrientShimmer(),
-                    _buildNutrientShimmer(),
-                    _buildNutrientShimmer(),
-                    _buildNutrientShimmer(),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          // Ingredients shimmer
-          const AppShimmerBox(width: 140, height: 20),
-          const SizedBox(height: AppSpacing.sm),
-          ...List.generate(3, (_) => _buildIngredientShimmer()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNutrientShimmer() {
-    return const Column(
-      children: [
-        AppShimmerBox(
-          width: 48,
-          height: 48,
-          borderRadius:
-              BorderRadius.all(Radius.circular(AppSpacing.radiusMd)),
-        ),
-        SizedBox(height: AppSpacing.xs),
-        AppShimmerBox(width: 40, height: 14),
-        SizedBox(height: AppSpacing.xxxs),
-        AppShimmerBox(width: 48, height: 12),
-      ],
-    );
-  }
-
-  Widget _buildIngredientShimmer() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.sm),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: AppSpacing.borderRadiusMd,
-        ),
-        child: const Row(
-          children: [
-            AppShimmerBox(
-              width: 36,
-              height: 36,
-              borderRadius:
-                  BorderRadius.all(Radius.circular(AppSpacing.radiusSm)),
-            ),
-            SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppShimmerBox(width: 140, height: 14),
-                  SizedBox(height: 6),
-                  AppShimmerBox(width: 200, height: 10),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Food Detail (Loaded) ──────────────────────────────────────
+  // ── Food Detail (Loaded) ───────────────────────────────────────
 
   Widget _buildFoodDetail(FoodRecognitionResult result) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Title + type tag
         Text(result.title, style: AppTextStyles.h3),
         const SizedBox(height: AppSpacing.xs),
-        _FoodTypeTag(typeFood: result.typeFood, label: result.typeFoodDisplay),
+        FoodTypeTag(typeFood: result.typeFood, label: result.typeFoodDisplay),
         if (result.description.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
           Text(
@@ -366,12 +181,8 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
           ),
         ],
         const SizedBox(height: AppSpacing.lg),
-
-        // Nutrition summary card
-        _buildNutritionCard(result),
+        FoodNutritionCard(result: result),
         const SizedBox(height: AppSpacing.lg),
-
-        // Ingredients section
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -407,178 +218,17 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        ...result.ingredients.map(_buildIngredientItem),
+        ...result.ingredients.map(
+          (i) => FoodIngredientItem(
+            ingredient: i,
+            onTap: () => _showIngredientOptions(i),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildNutritionCard(FoodRecognitionResult result) {
-    return Container(
-      width: double.infinity,
-      padding: AppSpacing.cardPadding,
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: AppSpacing.borderRadiusXl,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Resumen nutricional',
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              _NutrientBox(
-                icon: LucideIcons.flame,
-                value: result.totalCalories.toStringAsFixed(0),
-                label: 'kcal',
-                color: AppColors.orange,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              _NutrientBox(
-                icon: LucideIcons.beef,
-                value: '${result.totalProtein.toStringAsFixed(1)}g',
-                label: 'Proteina',
-                color: AppColors.primary,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              _NutrientBox(
-                icon: LucideIcons.wheat,
-                value: '${result.totalCarbohydrates.toStringAsFixed(1)}g',
-                label: 'Carbos',
-                color: AppColors.info,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              _NutrientBox(
-                icon: LucideIcons.droplet,
-                value: '${result.totalFat.toStringAsFixed(1)}g',
-                label: 'Grasas',
-                color: AppColors.warning,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIngredientItem(RecognizedIngredient ingredient) {
-    final color = _categoryColor(ingredient.category);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-      child: GestureDetector(
-        onTap: () => _showIngredientOptions(ingredient),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.sm),
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: AppSpacing.borderRadiusMd,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: AppSpacing.borderRadiusSm,
-                ),
-                child: Icon(
-                  _categoryIcon(ingredient.category),
-                  color: color,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            ingredient.name,
-                            style:
-                                AppTextStyles.bodyMedium.copyWith(fontSize: 14),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Text(
-                          '${ingredient.quantity.toStringAsFixed(0)} ${ingredient.unitAbbreviation}',
-                          style: AppTextStyles.small.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        _MiniChip(
-                          text:
-                              '${ingredient.totalCalories.toStringAsFixed(0)} kcal',
-                          color: AppColors.orange,
-                        ),
-                        const SizedBox(width: 6),
-                        _MiniChip(
-                          text:
-                              '${ingredient.totalProtein.toStringAsFixed(1)}g P',
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: 6),
-                        _MiniChip(
-                          text:
-                              '${ingredient.totalCarbohydrates.toStringAsFixed(1)}g C',
-                          color: AppColors.info,
-                        ),
-                        const SizedBox(width: 6),
-                        _MiniChip(
-                          text: '${ingredient.totalFat.toStringAsFixed(1)}g G',
-                          color: AppColors.warning,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ── Save Button ────────────────────────────────────────────────
-
-  Widget _buildSaveButton(FoodDetailState detailState) {
-    return GestureDetector(
-      onTap: () => _saveChanges(detailState),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(28),
-        ),
-        child: Center(
-          child: Text(
-            'Guardar cambios',
-            style: AppTextStyles.button.copyWith(
-              color: AppColors.black,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // ── Save ───────────────────────────────────────────────────────
 
   void _saveChanges(FoodDetailState detailState) {
     if (detailState is! FoodDetailLoaded) return;
@@ -607,7 +257,7 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
     );
   }
 
-  // ── Modal Flow ─────────────────────────────────────────────────
+  // ── Modal Flow ────────────────────────────────────────────────
 
   void _showIngredientOptions(RecognizedIngredient ingredient) {
     IngredientOptionsModal.show(
@@ -670,7 +320,7 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
     );
   }
 
-  // ── Analysis Error ────────────────────────────────────────────
+  // ── Analysis Error ─────────────────────────────────────────────
 
   Widget _buildAnalysisError(String message) {
     log('zineKey - $message');
@@ -693,147 +343,6 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
           }
         }
       },
-    );
-  }
-
-  // ── Helpers ───────────────────────────────────────────────────
-
-  static IconData _categoryIcon(String? category) => switch (category) {
-        'vegetables' => LucideIcons.leaf,
-        'meat' => LucideIcons.beef,
-        'fruits' => LucideIcons.apple,
-        'fish_seafood' => LucideIcons.fish,
-        'grains_cereals' => LucideIcons.wheat,
-        'oils_fats' => LucideIcons.droplet,
-        _ => LucideIcons.utensilsCrossed,
-      };
-
-  static Color _categoryColor(String? category) => switch (category) {
-        'vegetables' => AppColors.green,
-        'meat' => AppColors.red,
-        'dairy' => AppColors.blue,
-        'fruits' => AppColors.orange,
-        'fish_seafood' => AppColors.teal,
-        'grains_cereals' => AppColors.warning,
-        'legumes' => AppColors.green,
-        'nuts_seeds' => AppColors.orange,
-        'oils_fats' => AppColors.warning,
-        'spices_herbs' => AppColors.purple,
-        'eggs' => AppColors.orange,
-        'beverages' => AppColors.info,
-        'sauces_condiments' => AppColors.red,
-        'sweets_sugars' => AppColors.pink,
-        'processed' => AppColors.textMuted,
-        _ => AppColors.primary,
-      };
-}
-
-// ── Private Widgets ─────────────────────────────────────────────
-
-class _FoodTypeTag extends StatelessWidget {
-  const _FoodTypeTag({required this.typeFood, required this.label});
-
-  final String typeFood;
-  final String label;
-
-  Color get _color => switch (typeFood) {
-        'breakfast' => AppColors.orange,
-        'lunch' => AppColors.primary,
-        'dinner' => AppColors.purple,
-        'snack' => AppColors.info,
-        _ => AppColors.primary,
-      };
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: _color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontFamily: 'Inter',
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: _color,
-        ),
-      ),
-    );
-  }
-}
-
-class _NutrientBox extends StatelessWidget {
-  const _NutrientBox({
-    required this.icon,
-    required this.value,
-    required this.label,
-    required this.color,
-  });
-
-  final IconData icon;
-  final String value;
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: AppSpacing.borderRadiusMd,
-            ),
-            child: Icon(icon, color: color, size: 22),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            value,
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xxxs),
-          Text(
-            label,
-            style:
-                AppTextStyles.small.copyWith(color: AppColors.textSecondary),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MiniChip extends StatelessWidget {
-  const _MiniChip({required this.text, required this.color});
-
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontFamily: 'Inter',
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
     );
   }
 }
