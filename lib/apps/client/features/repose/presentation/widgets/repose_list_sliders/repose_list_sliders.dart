@@ -1,8 +1,8 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/repose/domain/models/muscle_group.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:model/model.dart';
 
 import 'muscle_repose_group_card.dart';
 import 'provider/muscle_repose_provider.dart';
@@ -17,43 +17,74 @@ export 'provider/muscle_repose_provider.dart';
 // ---------------------------------------------------------------------------
 
 const _largeMuscleGroups = {
-  MuscleGroup.chestLeft,
-  MuscleGroup.chestRight,
-  MuscleGroup.upperBack,
+  MuscleGroup.chest,
+  MuscleGroup.back,
   MuscleGroup.lowerBack,
-  MuscleGroup.quadLeft,
-  MuscleGroup.quadRight,
-  MuscleGroup.hamstringLeft,
-  MuscleGroup.hamstringRight,
-  MuscleGroup.gluteLeft,
-  MuscleGroup.gluteRight,
+  MuscleGroup.quadriceps,
+  MuscleGroup.hamstrings,
+  MuscleGroup.glutes,
 };
 
 /// Default list of muscles shown for development / preview.
 const kFakeMuscles = [
   // Large
-  MuscleGroup.chestLeft,
-  MuscleGroup.chestRight,
-  MuscleGroup.upperBack,
-  MuscleGroup.lowerBack,
-  MuscleGroup.quadLeft,
-  MuscleGroup.quadRight,
-  MuscleGroup.hamstringLeft,
-  MuscleGroup.hamstringRight,
-  MuscleGroup.gluteLeft,
-  MuscleGroup.gluteRight,
+  MuscleRepose(
+    muscle: Muscle(id: '1', name: 'Pecho', isMain: true, muscleGroup: MuscleGroup.chest),
+    percentage: 100,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '2', name: 'Espalda Alta', isMain: true, muscleGroup: MuscleGroup.back),
+    percentage: 80,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '3', name: 'Espalda Baja', isMain: true, muscleGroup: MuscleGroup.lowerBack),
+    percentage: 65,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '4', name: 'Cuadriceps', isMain: true, muscleGroup: MuscleGroup.quadriceps),
+    percentage: 45,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '5', name: 'Isquiotibiales', isMain: true, muscleGroup: MuscleGroup.hamstrings),
+    percentage: 20,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '6', name: 'Gluteos', isMain: true, muscleGroup: MuscleGroup.glutes),
+    percentage: 95,
+  ),
   // Small
-  MuscleGroup.shoulderLeft,
-  MuscleGroup.shoulderRight,
-  MuscleGroup.bicepLeft,
-  MuscleGroup.bicepRight,
-  MuscleGroup.tricepLeft,
-  MuscleGroup.tricepRight,
-  MuscleGroup.forearmLeft,
-  MuscleGroup.forearmRight,
-  MuscleGroup.abs,
-  MuscleGroup.calfLeft,
-  MuscleGroup.calfRight,
+  MuscleRepose(
+    muscle: Muscle(id: '7', name: 'Hombro Frontal', isMain: false, muscleGroup: MuscleGroup.frontDeltoid),
+    percentage: 100,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '8', name: 'Hombro Lateral', isMain: false, muscleGroup: MuscleGroup.lateralDeltoid),
+    percentage: 75,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '9', name: 'Biceps', isMain: false, muscleGroup: MuscleGroup.biceps),
+    percentage: 55,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '10', name: 'Triceps', isMain: false, muscleGroup: MuscleGroup.triceps),
+    percentage: 30,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '11', name: 'Antebrazos', isMain: false, muscleGroup: MuscleGroup.forearms),
+    percentage: 100,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '12', name: 'Abdominales', isMain: false, muscleGroup: MuscleGroup.abs),
+    percentage: 10,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '13', name: 'Gemelos', isMain: false, muscleGroup: MuscleGroup.calves),
+    percentage: 70,
+  ),
+  MuscleRepose(
+    muscle: Muscle(id: '14', name: 'Oblicuos', isMain: false, muscleGroup: MuscleGroup.obliques),
+    percentage: 60,
+  ),
 ];
 
 // ---------------------------------------------------------------------------
@@ -62,7 +93,7 @@ const kFakeMuscles = [
 
 /// Displays muscle groups organized by size with rest-progress sliders.
 ///
-/// Each [MuscleGroup] reads from its own [muscleReposeProvider] instance
+/// Each [MuscleRepose] reads from its own [muscleReposeProvider] instance
 /// (autoDispose family) so every card has independent state.
 class ReposeListSliders extends ConsumerWidget {
   const ReposeListSliders({
@@ -70,14 +101,16 @@ class ReposeListSliders extends ConsumerWidget {
     super.key,
   });
 
-  final List<MuscleGroup> muscles;
+  final List<MuscleRepose> muscles;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final large =
-        muscles.where((m) => _largeMuscleGroups.contains(m)).toList();
-    final small =
-        muscles.where((m) => !_largeMuscleGroups.contains(m)).toList();
+    final large = muscles
+        .where((m) => _largeMuscleGroups.contains(m.muscle.muscleGroup))
+        .toList();
+    final small = muscles
+        .where((m) => !_largeMuscleGroups.contains(m.muscle.muscleGroup))
+        .toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -160,14 +193,14 @@ class _SectionHeader extends StatelessWidget {
 class _MuscleGroupList extends StatelessWidget {
   const _MuscleGroupList({required this.muscles});
 
-  final List<MuscleGroup> muscles;
+  final List<MuscleRepose> muscles;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         for (int i = 0; i < muscles.length; i++) ...[
-          MuscleReposeGroupCard(muscle: muscles[i],sliderEnabled: true,),
+          MuscleReposeGroupCard(muscleRepose: muscles[i], sliderEnabled: true),
           if (i < muscles.length - 1) const SizedBox(height: AppSpacing.xs),
         ],
       ],

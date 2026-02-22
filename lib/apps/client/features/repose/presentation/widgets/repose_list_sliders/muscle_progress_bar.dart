@@ -97,7 +97,7 @@ class MuscleProgressBar extends StatelessWidget {
             onChanged!(v);
           },
           child: SizedBox(
-            height: 32,
+            height: 28,
             child: Center(child: bar),
           ),
         );

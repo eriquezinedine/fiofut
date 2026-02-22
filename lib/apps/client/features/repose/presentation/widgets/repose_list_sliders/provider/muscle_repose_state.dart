@@ -1,16 +1,16 @@
 part of 'muscle_repose_provider.dart';
 
-/// State for a single muscle group's repose progress.
+/// State for a single muscle's repose progress.
 @immutable
 class MuscleReposeState {
   const MuscleReposeState({
-    required this.muscle,
+    required this.muscleRepose,
     required this.progress,
     required this.totalMinutes,
     this.sliderEnabled = true,
   });
 
-  final MuscleGroup muscle;
+  final MuscleRepose muscleRepose;
 
   /// Progress from 0.0 to 1.0.
   final double progress;
@@ -54,13 +54,13 @@ class MuscleReposeState {
   String get progressText => '${(progress * 100).round()}%';
 
   MuscleReposeState copyWith({
-    MuscleGroup? muscle,
+    MuscleRepose? muscleRepose,
     double? progress,
     int? totalMinutes,
     bool? sliderEnabled,
   }) {
     return MuscleReposeState(
-      muscle: muscle ?? this.muscle,
+      muscleRepose: muscleRepose ?? this.muscleRepose,
       progress: progress ?? this.progress,
       totalMinutes: totalMinutes ?? this.totalMinutes,
       sliderEnabled: sliderEnabled ?? this.sliderEnabled,
@@ -71,7 +71,7 @@ class MuscleReposeState {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! MuscleReposeState) return false;
-    return other.muscle == muscle &&
+    return other.muscleRepose == muscleRepose &&
         other.progress == progress &&
         other.totalMinutes == totalMinutes &&
         other.sliderEnabled == sliderEnabled;
@@ -79,5 +79,5 @@ class MuscleReposeState {
 
   @override
   int get hashCode =>
-      Object.hash(muscle, progress, totalMinutes, sliderEnabled);
+      Object.hash(muscleRepose, progress, totalMinutes, sliderEnabled);
 }

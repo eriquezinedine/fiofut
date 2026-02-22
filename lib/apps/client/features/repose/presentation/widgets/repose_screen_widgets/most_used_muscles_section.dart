@@ -1,7 +1,7 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/repose/domain/models/muscle_group.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/widgets/repose_list_sliders/muscle_repose_group_card.dart';
 import 'package:flutter/material.dart';
+import 'package:model/model.dart';
 
 class MostUsedMusclesSection extends StatelessWidget {
   const MostUsedMusclesSection({
@@ -9,7 +9,7 @@ class MostUsedMusclesSection extends StatelessWidget {
     required this.muscles,
   });
 
-  final List<MuscleGroup> muscles;
+  final List<MuscleRepose> muscles;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class MostUsedMusclesSection extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Text(
-        //   'Músculos más utilizados',
+        //   'Musculos mas utilizados',
         //   style: AppTextStyles.bodyMedium.copyWith(
         //     fontWeight: FontWeight.w700,
         //   ),
@@ -27,14 +27,12 @@ class MostUsedMusclesSection extends StatelessWidget {
         IgnorePointer(
           child: Column(
             spacing: AppSpacing.xs,
-            children: muscles.map((e) => MuscleReposeGroupCard(muscle: e,sliderEnabled: false,),).toList(),
-            // children: [
-            //   for (int i = 0; i < .length; i++) ...[
-            //     MuscleReposeGroupCard(muscle: muscles[i]),
-            //     if (i < muscles.length - 1)
-            //       const SizedBox(height: AppSpacing.xs),
-            //   ],
-            // ],
+            children: muscles
+                .map((e) => MuscleReposeGroupCard(
+                      muscleRepose: e,
+                      sliderEnabled: false,
+                    ))
+                .toList(),
           ),
         ),
       ],

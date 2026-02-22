@@ -15,6 +15,7 @@ class MuscleItem extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        spacing: 6,
         children: [
           SizedBox.square(
             dimension: 56,
