@@ -1,22 +1,27 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/repose/presentation/widgets/muscle_custom_painter/rps_custom_painter.dart';
+import 'package:fio_fut/apps/client/features/repose/presentation/widgets/muscle_custom_painter/rps_back_custom_paint.dart';
 import 'package:flutter/material.dart';
 
-class BodyCustomPaint extends StatefulWidget {
-  const BodyCustomPaint({super.key, this.width = 200});
+class BackBodyCustomPaint extends StatefulWidget {
+  const BackBodyCustomPaint({super.key, this.width = 200});
 
   final double width;
 
   @override
-  State<BodyCustomPaint> createState() => _BodyCustomPaintState();
+  State<BackBodyCustomPaint> createState() => _BackBodyCustomPaintState();
 }
 
-class _BodyCustomPaintState extends State<BodyCustomPaint> {
-  Color _chest1Color =  AppColors.muscleDefaultColor;
-  Color _chest2Color =  AppColors.muscleDefaultColor;
-  Color _absColor =  AppColors.muscleDefaultColor;
+class _BackBodyCustomPaintState extends State<BackBodyCustomPaint> {
+  Color _back1Color = AppColors.muscleDefaultColor;
+  Color _trapsColor = AppColors.muscleDefaultColor;
+  Color _lowerBack1Color = AppColors.muscleDefaultColor;
+  Color _glutes1Color = AppColors.muscleDefaultColor;
+  Color _tricepsColor = AppColors.muscleDefaultColor;
+  Color _rearDeltoidColor = AppColors.muscleDefaultColor;
+  Color _hamstringsColor = AppColors.muscleDefaultColor;
+  Color _calvesColor = AppColors.muscleDefaultColor;
 
-  late RPSCustomPainter _painter;
+  late RPSBackCustomPainter _painter;
 
   static const _colors = [
     Color(0xffE53A36),
@@ -36,23 +41,53 @@ class _BodyCustomPaintState extends State<BodyCustomPaint> {
   void _onTapDown(TapDownDetails details) {
     final muscle = _painter.hitTestMuscle(details.localPosition);
 
-    if (muscle == 'chest1') {
+    if (muscle == 'back1') {
       _showColorPicker(
-        title: 'Chest 1 (izquierda)',
-        currentColor: _chest1Color,
-        onColorSelected: (color) => setState(() => _chest1Color = color),
+        title: 'Espalda (completa)',
+        currentColor: _back1Color,
+        onColorSelected: (color) => setState(() => _back1Color = color),
       );
-    } else if (muscle == 'chest2') {
+    } else if (muscle == 'traps') {
       _showColorPicker(
-        title: 'Chest 2 (derecha)',
-        currentColor: _chest2Color,
-        onColorSelected: (color) => setState(() => _chest2Color = color),
+        title: 'Trapecios',
+        currentColor: _trapsColor,
+        onColorSelected: (color) => setState(() => _trapsColor = color),
       );
-    } else if (muscle == 'abs') {
+    } else if (muscle == 'lowerBack1') {
       _showColorPicker(
-        title: 'Abdominales',
-        currentColor: _absColor,
-        onColorSelected: (color) => setState(() => _absColor = color),
+        title: 'Espalda baja',
+        currentColor: _lowerBack1Color,
+        onColorSelected: (color) => setState(() => _lowerBack1Color = color),
+      );
+    } else if (muscle == 'glutes1') {
+      _showColorPicker(
+        title: 'Glúteos',
+        currentColor: _glutes1Color,
+        onColorSelected: (color) => setState(() => _glutes1Color = color),
+      );
+    } else if (muscle == 'triceps') {
+      _showColorPicker(
+        title: 'Tríceps',
+        currentColor: _tricepsColor,
+        onColorSelected: (color) => setState(() => _tricepsColor = color),
+      );
+    } else if (muscle == 'rearDeltoid') {
+      _showColorPicker(
+        title: 'Deltoides posterior',
+        currentColor: _rearDeltoidColor,
+        onColorSelected: (color) => setState(() => _rearDeltoidColor = color),
+      );
+    } else if (muscle == 'hamstrings') {
+      _showColorPicker(
+        title: 'Isquiotibiales',
+        currentColor: _hamstringsColor,
+        onColorSelected: (color) => setState(() => _hamstringsColor = color),
+      );
+    } else if (muscle == 'calves') {
+      _showColorPicker(
+        title: 'Pantorrillas',
+        currentColor: _calvesColor,
+        onColorSelected: (color) => setState(() => _calvesColor = color),
       );
     }
   }
@@ -125,10 +160,15 @@ class _BodyCustomPaintState extends State<BodyCustomPaint> {
 
   @override
   Widget build(BuildContext context) {
-    _painter = RPSCustomPainter(
-      chest1Color: _chest1Color,
-      chest2Color: _chest2Color,
-      absColor: _absColor,
+    _painter = RPSBackCustomPainter(
+      back1Color: _back1Color,
+      trapsColor: _trapsColor,
+      lowerBack1Color: _lowerBack1Color,
+      glutes1Color: _glutes1Color,
+      tricepsColor: _tricepsColor,
+      rearDeltoidColor: _rearDeltoidColor,
+      hamstringsColor: _hamstringsColor,
+      calvesColor: _calvesColor,
     );
     return GestureDetector(
       onTapDown: _onTapDown,

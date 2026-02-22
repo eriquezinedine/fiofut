@@ -2,25 +2,89 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 
 
-class RPSCustomPainter extends CustomPainter {
+class RPSFrontCustomPainter extends CustomPainter {
   final Color chest1Color;
   final Color chest2Color;
   final Color absColor;
+  final Color bicep1Color;
+  final Color bicep2Color;
+  final Color obliques1Color;
+  final Color obliques2Color;
+  final Color forearms1Color;
+  final Color forearms2Color;
+  final Color quadriceps2Color;
+  final Color quadriceps1Color;
+  final Color adductors1Color;
+  final Color adductors2Color;
+  final Color abductors1Color;
+  final Color abductors2Color;
+  final Color lateralDeltoid1Color;
+  final Color lateralDeltoid2Color;
+  final Color frontDeltoid1Color;
+  final Color frontDeltoid2Color;
 
-  RPSCustomPainter({
+  RPSFrontCustomPainter({
     this.chest1Color =  AppColors.muscleDefaultColor,
     this.chest2Color =  AppColors.muscleDefaultColor,
     this.absColor = AppColors.muscleDefaultColor,
+    this.bicep1Color = AppColors.muscleDefaultColor,
+    this.bicep2Color = AppColors.muscleDefaultColor,
+    this.obliques1Color = AppColors.muscleDefaultColor,
+    this.obliques2Color = AppColors.muscleDefaultColor,
+    this.forearms1Color = AppColors.muscleDefaultColor,
+    this.forearms2Color = AppColors.muscleDefaultColor,
+    this.quadriceps2Color = AppColors.muscleDefaultColor,
+    this.quadriceps1Color = AppColors.muscleDefaultColor,
+    this.adductors1Color = AppColors.muscleDefaultColor,
+    this.adductors2Color = AppColors.muscleDefaultColor,
+    this.abductors1Color = AppColors.muscleDefaultColor,
+    this.abductors2Color = AppColors.muscleDefaultColor,
+    this.lateralDeltoid1Color = AppColors.muscleDefaultColor,
+    this.lateralDeltoid2Color = AppColors.muscleDefaultColor,
+    this.frontDeltoid1Color = AppColors.muscleDefaultColor,
+    this.frontDeltoid2Color = AppColors.muscleDefaultColor,
   });
 
   Path _chest1Path = Path();
   Path _chest2Path = Path();
   Path _absPath = Path();
+  Path _bicep1Path = Path();
+  Path _bicep2Path = Path();
+  Path _obliques1Path = Path();
+  Path _obliques2Path = Path();
+  Path _forearms1Path = Path();
+  Path _forearms2Path = Path();
+  Path _quadriceps2Path = Path();
+  Path _quadriceps1Path = Path();
+  Path _adductors1Path = Path();
+  Path _adductors2Path = Path();
+  Path _abductors1Path = Path();
+  Path _abductors2Path = Path();
+  Path _lateralDeltoid1Path = Path();
+  Path _lateralDeltoid2Path = Path();
+  Path _frontDeltoid1Path = Path();
+  Path _frontDeltoid2Path = Path();
 
   String? hitTestMuscle(Offset position) {
     if (_chest1Path.contains(position)) return 'chest1';
     if (_chest2Path.contains(position)) return 'chest2';
     if (_absPath.contains(position)) return 'abs';
+    if (_bicep1Path.contains(position)) return 'bicep1';
+    if (_bicep2Path.contains(position)) return 'bicep2';
+    if (_obliques1Path.contains(position)) return 'obliques1';
+    if (_obliques2Path.contains(position)) return 'obliques2';
+    if (_forearms1Path.contains(position)) return 'forearms1';
+    if (_forearms2Path.contains(position)) return 'forearms2';
+    if (_quadriceps2Path.contains(position)) return 'quadriceps2';
+    if (_quadriceps1Path.contains(position)) return 'quadriceps1';
+    if (_adductors1Path.contains(position)) return 'adductors1';
+    if (_adductors2Path.contains(position)) return 'adductors2';
+    if (_abductors1Path.contains(position)) return 'abductors1';
+    if (_abductors2Path.contains(position)) return 'abductors2';
+    if (_lateralDeltoid1Path.contains(position)) return 'lateralDeltoid1';
+    if (_lateralDeltoid2Path.contains(position)) return 'lateralDeltoid2';
+    if (_frontDeltoid1Path.contains(position)) return 'frontDeltoid1';
+    if (_frontDeltoid2Path.contains(position)) return 'frontDeltoid2';
     return null;
   }
 
@@ -565,7 +629,7 @@ Path path_21 = Path();
     path_21.close();
 
 Paint paint_21_fill = Paint()..style=PaintingStyle.fill;
-paint_21_fill.color = Colors.lime;
+paint_21_fill.color = AppColors.muscleDefaultColor;
 canvas.drawPath(path_21,paint_21_fill);
 
 Path path_22 = Path();
@@ -577,7 +641,7 @@ Path path_22 = Path();
     path_22.close();
 
 Paint paint_22_fill = Paint()..style=PaintingStyle.fill;
-paint_22_fill.color = Colors.purple.withOpacity(1.0);
+paint_22_fill.color = AppColors.muscleDefaultColor;
 canvas.drawPath(path_22,paint_22_fill);
 
 Path path_23 = Path();
@@ -592,7 +656,7 @@ Path path_23 = Path();
     path_23.close();
 
 Paint paint_23_fill = Paint()..style=PaintingStyle.fill;
-paint_23_fill.color = Colors.indigo;
+paint_23_fill.color = AppColors.muscleDefaultColor;
 canvas.drawPath(path_23,paint_23_fill);
 
 Path path_24 = Path();
@@ -607,29 +671,33 @@ Path path_24 = Path();
     path_24.close();
 
 Paint paint_24_fill = Paint()..style=PaintingStyle.fill;
-paint_24_fill.color = Colors.brown;
+paint_24_fill.color = AppColors.muscleDefaultColor;
 canvas.drawPath(path_24,paint_24_fill);
 
-Path path_25 = Path();
-    path_25.moveTo(size.width*0.1467200,size.height*0.1881483);
-    path_25.cubicTo(size.width*0.07814500,size.height*0.1963487,size.width*0.05768212,size.height*0.2184139,size.width*0.07499950,size.height*0.2594013);
-    path_25.cubicTo(size.width*0.1004661,size.height*0.2319996,size.width*0.1092536,size.height*0.2136529,size.width*0.1555975,size.height*0.1922807);
-    path_25.cubicTo(size.width*0.1601875,size.height*0.1901618,size.width*0.1540637,size.height*0.1872676,size.width*0.1467200,size.height*0.1881483);
-    path_25.close();
+Path lateralDeltoid1 = Path();
+    lateralDeltoid1.moveTo(size.width*0.1467200,size.height*0.1881483);
+    lateralDeltoid1.cubicTo(size.width*0.07814500,size.height*0.1963487,size.width*0.05768212,size.height*0.2184139,size.width*0.07499950,size.height*0.2594013);
+    lateralDeltoid1.cubicTo(size.width*0.1004661,size.height*0.2319996,size.width*0.1092536,size.height*0.2136529,size.width*0.1555975,size.height*0.1922807);
+    lateralDeltoid1.cubicTo(size.width*0.1601875,size.height*0.1901618,size.width*0.1540637,size.height*0.1872676,size.width*0.1467200,size.height*0.1881483);
+    lateralDeltoid1.close();
 
 Paint paint_25_fill = Paint()..style=PaintingStyle.fill;
-paint_25_fill.color = Colors.lightBlue;
-canvas.drawPath(path_25,paint_25_fill);
+paint_25_fill.color = lateralDeltoid1Color;
+canvas.drawPath(lateralDeltoid1,paint_25_fill);
 
-Path path_26 = Path();
-    path_26.moveTo(size.width*0.1036621,size.height*0.2533954);
-    path_26.cubicTo(size.width*0.1754162,size.height*0.2426735,size.width*0.1897675,size.height*0.2169429,size.width*0.2487713,size.height*0.1890672);
-    path_26.cubicTo(size.width*0.1530950,size.height*0.1762000,size.width*0.1212034,size.height*0.2174811,size.width*0.1036621,size.height*0.2533954);
-    path_26.close();
+_lateralDeltoid1Path = Path()..addPath(lateralDeltoid1, Offset.zero);
+
+Path frontDeltoid1 = Path();
+    frontDeltoid1.moveTo(size.width*0.1036621,size.height*0.2533954);
+    frontDeltoid1.cubicTo(size.width*0.1754162,size.height*0.2426735,size.width*0.1897675,size.height*0.2169429,size.width*0.2487713,size.height*0.1890672);
+    frontDeltoid1.cubicTo(size.width*0.1530950,size.height*0.1762000,size.width*0.1212034,size.height*0.2174811,size.width*0.1036621,size.height*0.2533954);
+    frontDeltoid1.close();
 
 Paint paint_26_fill = Paint()..style=PaintingStyle.fill;
-paint_26_fill.color = Colors.lightGreen;
-canvas.drawPath(path_26,paint_26_fill);
+paint_26_fill.color = frontDeltoid1Color;
+canvas.drawPath(frontDeltoid1,paint_26_fill);
+
+_frontDeltoid1Path = Path()..addPath(frontDeltoid1, Offset.zero);
 
 Path chest1a = Path();
     chest1a.moveTo(size.width*0.1664550,size.height*0.2489765);
@@ -671,26 +739,30 @@ _chest1Path = Path()
   ..addPath(chest1b, Offset.zero)
   ..addPath(chest1c, Offset.zero);
 
-Path path_30 = Path();
-    path_30.moveTo(size.width*0.8370725,size.height*0.1881483);
-    path_30.cubicTo(size.width*0.9056487,size.height*0.1963487,size.width*0.9261112,size.height*0.2184139,size.width*0.9087938,size.height*0.2594013);
-    path_30.cubicTo(size.width*0.8833275,size.height*0.2319996,size.width*0.8745400,size.height*0.2136529,size.width*0.8281963,size.height*0.1922807);
-    path_30.cubicTo(size.width*0.8236062,size.height*0.1901618,size.width*0.8297300,size.height*0.1872676,size.width*0.8370725,size.height*0.1881483);
-    path_30.close();
+Path lateralDeltoid2 = Path();
+    lateralDeltoid2.moveTo(size.width*0.8370725,size.height*0.1881483);
+    lateralDeltoid2.cubicTo(size.width*0.9056487,size.height*0.1963487,size.width*0.9261112,size.height*0.2184139,size.width*0.9087938,size.height*0.2594013);
+    lateralDeltoid2.cubicTo(size.width*0.8833275,size.height*0.2319996,size.width*0.8745400,size.height*0.2136529,size.width*0.8281963,size.height*0.1922807);
+    lateralDeltoid2.cubicTo(size.width*0.8236062,size.height*0.1901618,size.width*0.8297300,size.height*0.1872676,size.width*0.8370725,size.height*0.1881483);
+    lateralDeltoid2.close();
 
 Paint paint_30_fill = Paint()..style=PaintingStyle.fill;
-paint_30_fill.color = Colors.purple.withOpacity(1.0);
-canvas.drawPath(path_30,paint_30_fill);
+paint_30_fill.color = lateralDeltoid2Color;
+canvas.drawPath(lateralDeltoid2,paint_30_fill);
 
-Path path_31 = Path();
-    path_31.moveTo(size.width*0.8801438,size.height*0.2533954);
-    path_31.cubicTo(size.width*0.8083900,size.height*0.2426735,size.width*0.7940388,size.height*0.2169429,size.width*0.7350338,size.height*0.1890672);
-    path_31.cubicTo(size.width*0.8307100,size.height*0.1762000,size.width*0.8626025,size.height*0.2174811,size.width*0.8801438,size.height*0.2533954);
-    path_31.close();
+_lateralDeltoid2Path = Path()..addPath(lateralDeltoid2, Offset.zero);
+
+Path frontDeltoid2 = Path();
+    frontDeltoid2.moveTo(size.width*0.8801438,size.height*0.2533954);
+    frontDeltoid2.cubicTo(size.width*0.8083900,size.height*0.2426735,size.width*0.7940388,size.height*0.2169429,size.width*0.7350338,size.height*0.1890672);
+    frontDeltoid2.cubicTo(size.width*0.8307100,size.height*0.1762000,size.width*0.8626025,size.height*0.2174811,size.width*0.8801438,size.height*0.2533954);
+    frontDeltoid2.close();
 
 Paint paint_31_fill = Paint()..style=PaintingStyle.fill;
-paint_31_fill.color = Colors.deepOrange;
-canvas.drawPath(path_31,paint_31_fill);
+paint_31_fill.color = frontDeltoid2Color;
+canvas.drawPath(frontDeltoid2,paint_31_fill);
+
+_frontDeltoid2Path = Path()..addPath(frontDeltoid2, Offset.zero);
 
 Path chest2a = Path();
     chest2a.moveTo(size.width*0.8173037,size.height*0.2489765);
@@ -732,81 +804,91 @@ _chest2Path = Path()
   ..addPath(chest2b, Offset.zero)
   ..addPath(chest2c, Offset.zero);
 
-Path path_35 = Path();
-    path_35.moveTo(size.width*0.2423938,size.height*0.2823803);
-    path_35.cubicTo(size.width*0.2745212,size.height*0.2890790,size.width*0.2885700,size.height*0.2968164,size.width*0.3210325,size.height*0.2968164);
-    path_35.lineTo(size.width*0.3293950,size.height*0.3263143);
-    path_35.cubicTo(size.width*0.2799162,size.height*0.3217265,size.width*0.2449350,size.height*0.3099660,size.width*0.2423825,size.height*0.2823765);
-    path_35.lineTo(size.width*0.2423938,size.height*0.2823803);
-    path_35.close();
+Path obliques1a = Path();
+    obliques1a.moveTo(size.width*0.2423938,size.height*0.2823803);
+    obliques1a.cubicTo(size.width*0.2745212,size.height*0.2890790,size.width*0.2885700,size.height*0.2968164,size.width*0.3210325,size.height*0.2968164);
+    obliques1a.lineTo(size.width*0.3293950,size.height*0.3263143);
+    obliques1a.cubicTo(size.width*0.2799162,size.height*0.3217265,size.width*0.2449350,size.height*0.3099660,size.width*0.2423825,size.height*0.2823765);
+    obliques1a.lineTo(size.width*0.2423938,size.height*0.2823803);
+    obliques1a.close();
 
 Paint paint_35_fill = Paint()..style=PaintingStyle.fill;
-paint_35_fill.color = Colors.deepPurple;
-canvas.drawPath(path_35,paint_35_fill);
+paint_35_fill.color = obliques1Color;
+canvas.drawPath(obliques1a,paint_35_fill);
 
-Path path_36 = Path();
-    path_36.moveTo(size.width*0.2529050,size.height*0.3162626);
-    path_36.cubicTo(size.width*0.2803875,size.height*0.3266046,size.width*0.3067262,size.height*0.3330626,size.width*0.3313650,size.height*0.3336836);
-    path_36.lineTo(size.width*0.3417312,size.height*0.3784756);
-    path_36.cubicTo(size.width*0.2853350,size.height*0.3678441,size.width*0.2609650,size.height*0.3451357,size.width*0.2529050,size.height*0.3162664);
-    path_36.lineTo(size.width*0.2529050,size.height*0.3162626);
-    path_36.close();
+Path obliques1b = Path();
+    obliques1b.moveTo(size.width*0.2529050,size.height*0.3162626);
+    obliques1b.cubicTo(size.width*0.2803875,size.height*0.3266046,size.width*0.3067262,size.height*0.3330626,size.width*0.3313650,size.height*0.3336836);
+    obliques1b.lineTo(size.width*0.3417312,size.height*0.3784756);
+    obliques1b.cubicTo(size.width*0.2853350,size.height*0.3678441,size.width*0.2609650,size.height*0.3451357,size.width*0.2529050,size.height*0.3162664);
+    obliques1b.lineTo(size.width*0.2529050,size.height*0.3162626);
+    obliques1b.close();
 
 Paint paint_36_fill = Paint()..style=PaintingStyle.fill;
-paint_36_fill.color = Colors.blueGrey;
-canvas.drawPath(path_36,paint_36_fill);
+paint_36_fill.color = obliques1Color;
+canvas.drawPath(obliques1b,paint_36_fill);
 
-Path path_37 = Path();
-    path_37.moveTo(size.width*0.2876025,size.height*0.3746214);
-    path_37.lineTo(size.width*0.2808638,size.height*0.3968143);
-    path_37.cubicTo(size.width*0.2780875,size.height*0.4096664,size.width*0.2891700,size.height*0.4224244,size.width*0.3120837,size.height*0.4327563);
-    path_37.lineTo(size.width*0.3576213,size.height*0.4532857);
-    path_37.lineTo(size.width*0.3484087,size.height*0.3944433);
-    path_37.lineTo(size.width*0.2876138,size.height*0.3746252);
-    path_37.lineTo(size.width*0.2876025,size.height*0.3746214);
-    path_37.close();
+Path obliques1c = Path();
+    obliques1c.moveTo(size.width*0.2876025,size.height*0.3746214);
+    obliques1c.lineTo(size.width*0.2808638,size.height*0.3968143);
+    obliques1c.cubicTo(size.width*0.2780875,size.height*0.4096664,size.width*0.2891700,size.height*0.4224244,size.width*0.3120837,size.height*0.4327563);
+    obliques1c.lineTo(size.width*0.3576213,size.height*0.4532857);
+    obliques1c.lineTo(size.width*0.3484087,size.height*0.3944433);
+    obliques1c.lineTo(size.width*0.2876138,size.height*0.3746252);
+    obliques1c.lineTo(size.width*0.2876025,size.height*0.3746214);
+    obliques1c.close();
 
 Paint paint_37_fill = Paint()..style=PaintingStyle.fill;
-paint_37_fill.color = Colors.red; /// AQUI
-canvas.drawPath(path_37,paint_37_fill);
+paint_37_fill.color = obliques1Color;
+canvas.drawPath(obliques1c,paint_37_fill);
 
-Path path_38 = Path();
-    path_38.moveTo(size.width*0.7518938,size.height*0.2823803);
-    path_38.cubicTo(size.width*0.7197662,size.height*0.2890790,size.width*0.7057175,size.height*0.2968164,size.width*0.6732550,size.height*0.2968164);
-    path_38.lineTo(size.width*0.6648925,size.height*0.3263143);
-    path_38.cubicTo(size.width*0.7143713,size.height*0.3217265,size.width*0.7493525,size.height*0.3099660,size.width*0.7519050,size.height*0.2823765);
-    path_38.lineTo(size.width*0.7518938,size.height*0.2823803);
-    path_38.close();
+_obliques1Path = Path()
+  ..addPath(obliques1a, Offset.zero)
+  ..addPath(obliques1b, Offset.zero)
+  ..addPath(obliques1c, Offset.zero);
+
+Path obliques2a = Path();
+    obliques2a.moveTo(size.width*0.7518938,size.height*0.2823803);
+    obliques2a.cubicTo(size.width*0.7197662,size.height*0.2890790,size.width*0.7057175,size.height*0.2968164,size.width*0.6732550,size.height*0.2968164);
+    obliques2a.lineTo(size.width*0.6648925,size.height*0.3263143);
+    obliques2a.cubicTo(size.width*0.7143713,size.height*0.3217265,size.width*0.7493525,size.height*0.3099660,size.width*0.7519050,size.height*0.2823765);
+    obliques2a.lineTo(size.width*0.7518938,size.height*0.2823803);
+    obliques2a.close();
 
 Paint paint_38_fill = Paint()..style=PaintingStyle.fill;
-paint_38_fill.color = Colors.yellow;
-canvas.drawPath(path_38,paint_38_fill);
+paint_38_fill.color = obliques2Color;
+canvas.drawPath(obliques2a,paint_38_fill);
 
-Path path_39 = Path();
-    path_39.moveTo(size.width*0.7413650,size.height*0.3162626);
-    path_39.cubicTo(size.width*0.7138825,size.height*0.3266046,size.width*0.6875438,size.height*0.3330626,size.width*0.6629050,size.height*0.3336836);
-    path_39.lineTo(size.width*0.6525387,size.height*0.3784756);
-    path_39.cubicTo(size.width*0.7089350,size.height*0.3678441,size.width*0.7333050,size.height*0.3451357,size.width*0.7413650,size.height*0.3162664);
-    path_39.lineTo(size.width*0.7413650,size.height*0.3162626);
-    path_39.close();
+Path obliques2b = Path();
+    obliques2b.moveTo(size.width*0.7413650,size.height*0.3162626);
+    obliques2b.cubicTo(size.width*0.7138825,size.height*0.3266046,size.width*0.6875438,size.height*0.3330626,size.width*0.6629050,size.height*0.3336836);
+    obliques2b.lineTo(size.width*0.6525387,size.height*0.3784756);
+    obliques2b.cubicTo(size.width*0.7089350,size.height*0.3678441,size.width*0.7333050,size.height*0.3451357,size.width*0.7413650,size.height*0.3162664);
+    obliques2b.lineTo(size.width*0.7413650,size.height*0.3162626);
+    obliques2b.close();
 
 Paint paint_39_fill = Paint()..style=PaintingStyle.fill;
-paint_39_fill.color = Colors.greenAccent;
-canvas.drawPath(path_39,paint_39_fill);
+paint_39_fill.color = obliques2Color;
+canvas.drawPath(obliques2b,paint_39_fill);
 
-Path path_40 = Path();
-    path_40.moveTo(size.width*0.7066650,size.height*0.3746214);
-    path_40.lineTo(size.width*0.7134038,size.height*0.3968143);
-    path_40.cubicTo(size.width*0.7161800,size.height*0.4096664,size.width*0.7050975,size.height*0.4224244,size.width*0.6821837,size.height*0.4327563);
-    path_40.lineTo(size.width*0.6366450,size.height*0.4532857);
-    path_40.lineTo(size.width*0.6458588,size.height*0.3944433);
-    path_40.lineTo(size.width*0.7066537,size.height*0.3746252);
-    path_40.lineTo(size.width*0.7066650,size.height*0.3746214);
-    path_40.close();
+Path obliques2c = Path();
+    obliques2c.moveTo(size.width*0.7066650,size.height*0.3746214);
+    obliques2c.lineTo(size.width*0.7134038,size.height*0.3968143);
+    obliques2c.cubicTo(size.width*0.7161800,size.height*0.4096664,size.width*0.7050975,size.height*0.4224244,size.width*0.6821837,size.height*0.4327563);
+    obliques2c.lineTo(size.width*0.6366450,size.height*0.4532857);
+    obliques2c.lineTo(size.width*0.6458588,size.height*0.3944433);
+    obliques2c.lineTo(size.width*0.7066537,size.height*0.3746252);
+    obliques2c.lineTo(size.width*0.7066650,size.height*0.3746214);
+    obliques2c.close();
 
 Paint paint_40_fill = Paint()..style=PaintingStyle.fill;
-paint_40_fill.color = Colors.orangeAccent;
-canvas.drawPath(path_40,paint_40_fill);
+paint_40_fill.color = obliques2Color;
+canvas.drawPath(obliques2c,paint_40_fill);
+
+_obliques2Path = Path()
+  ..addPath(obliques2a, Offset.zero)
+  ..addPath(obliques2b, Offset.zero)
+  ..addPath(obliques2c, Offset.zero);
 
 Path path_41 = Path();
     path_41.moveTo(size.width*0.1010566,size.height*0.2844462);
@@ -815,18 +897,20 @@ Path path_41 = Path();
     path_41.close();
 
 Paint paint_41_fill = Paint()..style=PaintingStyle.fill;
-paint_41_fill.color = Colors.pinkAccent;
+paint_41_fill.color = AppColors.muscleDefaultColor;
 canvas.drawPath(path_41,paint_41_fill);
 
-Path path_42 = Path();
-    path_42.moveTo(size.width*0.1539250,size.height*0.2712454);
-    path_42.cubicTo(size.width*0.1971125,size.height*0.2930244,size.width*0.2079150,size.height*0.3402176,size.width*0.1350300,size.height*0.3656282);
-    path_42.cubicTo(size.width*0.1053316,size.height*0.3620000,size.width*0.08643587,size.height*0.2757840,size.width*0.1539250,size.height*0.2712454);
-    path_42.close();
+Path bicep1 = Path();
+    bicep1.moveTo(size.width*0.1539250,size.height*0.2712454);
+    bicep1.cubicTo(size.width*0.1971125,size.height*0.2930244,size.width*0.2079150,size.height*0.3402176,size.width*0.1350300,size.height*0.3656282);
+    bicep1.cubicTo(size.width*0.1053316,size.height*0.3620000,size.width*0.08643587,size.height*0.2757840,size.width*0.1539250,size.height*0.2712454);
+    bicep1.close();
 
 Paint paint_42_fill = Paint()..style=PaintingStyle.fill;
-paint_42_fill.color = Colors.cyanAccent;
-canvas.drawPath(path_42,paint_42_fill);
+paint_42_fill.color = bicep1Color;
+canvas.drawPath(bicep1,paint_42_fill);
+
+_bicep1Path = Path()..addPath(bicep1, Offset.zero);
 
 Path path_43 = Path();
     path_43.moveTo(size.width*0.8903825,size.height*0.2844462);
@@ -835,215 +919,245 @@ Path path_43 = Path();
     path_43.close();
 
 Paint paint_43_fill = Paint()..style=PaintingStyle.fill;
-paint_43_fill.color = Colors.purpleAccent;
+paint_43_fill.color = AppColors.muscleDefaultColor;
 canvas.drawPath(path_43,paint_43_fill);
 
-Path path_44 = Path();
-    path_44.moveTo(size.width*0.8375013,size.height*0.2712454);
-    path_44.cubicTo(size.width*0.7943150,size.height*0.2930244,size.width*0.7835125,size.height*0.3402176,size.width*0.8563975,size.height*0.3656282);
-    path_44.cubicTo(size.width*0.8860950,size.height*0.3620000,size.width*0.9049912,size.height*0.2757840,size.width*0.8375013,size.height*0.2712454);
-    path_44.close();
+Path bicep2 = Path();
+    bicep2.moveTo(size.width*0.8375013,size.height*0.2712454);
+    bicep2.cubicTo(size.width*0.7943150,size.height*0.2930244,size.width*0.7835125,size.height*0.3402176,size.width*0.8563975,size.height*0.3656282);
+    bicep2.cubicTo(size.width*0.8860950,size.height*0.3620000,size.width*0.9049912,size.height*0.2757840,size.width*0.8375013,size.height*0.2712454);
+    bicep2.close();
 
 Paint paint_44_fill = Paint()..style=PaintingStyle.fill;
-paint_44_fill.color = Colors.red;
-canvas.drawPath(path_44,paint_44_fill);
+paint_44_fill.color = bicep2Color;
+canvas.drawPath(bicep2,paint_44_fill);
 
-Path path_45 = Path();
-    path_45.moveTo(size.width*0.2556038,size.height*0.4590378);
-    path_45.lineTo(size.width*0.2753613,size.height*0.4663445);
-    path_45.cubicTo(size.width*0.2583575,size.height*0.4766723,size.width*0.2349725,size.height*0.5078361,size.width*0.2153387,size.height*0.5341092);
-    path_45.cubicTo(size.width*0.2145100,size.height*0.5105882,size.width*0.2303725,size.height*0.4834748,size.width*0.2556038,size.height*0.4590378);
-    path_45.close();
+_bicep2Path = Path()..addPath(bicep2, Offset.zero);
+
+Path abductors1 = Path();
+    abductors1.moveTo(size.width*0.2556038,size.height*0.4590378);
+    abductors1.lineTo(size.width*0.2753613,size.height*0.4663445);
+    abductors1.cubicTo(size.width*0.2583575,size.height*0.4766723,size.width*0.2349725,size.height*0.5078361,size.width*0.2153387,size.height*0.5341092);
+    abductors1.cubicTo(size.width*0.2145100,size.height*0.5105882,size.width*0.2303725,size.height*0.4834748,size.width*0.2556038,size.height*0.4590378);
+    abductors1.close();
 
 Paint paint_45_fill = Paint()..style=PaintingStyle.fill;
-paint_45_fill.color = Colors.amberAccent;
-canvas.drawPath(path_45,paint_45_fill);
+paint_45_fill.color = abductors1Color;
+canvas.drawPath(abductors1,paint_45_fill);
 
-Path path_46 = Path();
-    path_46.moveTo(size.width*0.2972988,size.height*0.4736555);
-    path_46.cubicTo(size.width*0.2769362,size.height*0.4634748,size.width*0.2373537,size.height*0.5526008,size.width*0.2373537,size.height*0.5750252);
-    path_46.cubicTo(size.width*0.2373537,size.height*0.5974538,size.width*0.2418087,size.height*0.6179916,size.width*0.2816038,size.height*0.6260126);
-    path_46.cubicTo(size.width*0.3152537,size.height*0.6327983,size.width*0.3298062,size.height*0.5988361,size.width*0.3369138,size.height*0.5730294);
-    path_46.cubicTo(size.width*0.3470450,size.height*0.5362017,size.width*0.3418738,size.height*0.4959370,size.width*0.2972988,size.height*0.4736555);
-    path_46.close();
+_abductors1Path = Path()..addPath(abductors1, Offset.zero);
+
+Path quadriceps1a = Path();
+    quadriceps1a.moveTo(size.width*0.2972988,size.height*0.4736555);
+    quadriceps1a.cubicTo(size.width*0.2769362,size.height*0.4634748,size.width*0.2373537,size.height*0.5526008,size.width*0.2373537,size.height*0.5750252);
+    quadriceps1a.cubicTo(size.width*0.2373537,size.height*0.5974538,size.width*0.2418087,size.height*0.6179916,size.width*0.2816038,size.height*0.6260126);
+    quadriceps1a.cubicTo(size.width*0.3152537,size.height*0.6327983,size.width*0.3298062,size.height*0.5988361,size.width*0.3369138,size.height*0.5730294);
+    quadriceps1a.cubicTo(size.width*0.3470450,size.height*0.5362017,size.width*0.3418738,size.height*0.4959370,size.width*0.2972988,size.height*0.4736555);
+    quadriceps1a.close();
 
 Paint paint_46_fill = Paint()..style=PaintingStyle.fill;
-paint_46_fill.color = Colors.limeAccent;
-canvas.drawPath(path_46,paint_46_fill);
+paint_46_fill.color = quadriceps1Color;
+canvas.drawPath(quadriceps1a,paint_46_fill);
 
-Path path_47 = Path();
-    path_47.moveTo(size.width*0.3432863,size.height*0.4891891);
-    path_47.lineTo(size.width*0.3890137,size.height*0.5168571);
-    path_47.cubicTo(size.width*0.4003650,size.height*0.5237269,size.width*0.4063650,size.height*0.5314496,size.width*0.4064438,size.height*0.5393151);
-    path_47.lineTo(size.width*0.4013725,size.height*0.5974244);
-    path_47.cubicTo(size.width*0.3541000,size.height*0.5570966,size.width*0.3663012,size.height*0.5091933,size.width*0.3432975,size.height*0.4891891);
-    path_47.lineTo(size.width*0.3432863,size.height*0.4891891);
-    path_47.close();
+Path adductors1 = Path();
+    adductors1.moveTo(size.width*0.3432863,size.height*0.4891891);
+    adductors1.lineTo(size.width*0.3890137,size.height*0.5168571);
+    adductors1.cubicTo(size.width*0.4003650,size.height*0.5237269,size.width*0.4063650,size.height*0.5314496,size.width*0.4064438,size.height*0.5393151);
+    adductors1.lineTo(size.width*0.4013725,size.height*0.5974244);
+    adductors1.cubicTo(size.width*0.3541000,size.height*0.5570966,size.width*0.3663012,size.height*0.5091933,size.width*0.3432975,size.height*0.4891891);
+    adductors1.lineTo(size.width*0.3432863,size.height*0.4891891);
+    adductors1.close();
 
 Paint paint_47_fill = Paint()..style=PaintingStyle.fill;
-paint_47_fill.color = Colors.indigoAccent;
-canvas.drawPath(path_47,paint_47_fill);
+paint_47_fill.color = adductors1Color;
+canvas.drawPath(adductors1,paint_47_fill);
 
-Path path_48 = Path();
-    path_48.moveTo(size.width*0.2153675,size.height*0.5440420);
-    path_48.cubicTo(size.width*0.1868225,size.height*0.5769538,size.width*0.1789875,size.height*0.6420672,size.width*0.2166000,size.height*0.6688361);
-    path_48.cubicTo(size.width*0.2245588,size.height*0.6745042,size.width*0.2488725,size.height*0.6741975,size.width*0.2557225,size.height*0.6683697);
-    path_48.lineTo(size.width*0.2650137,size.height*0.6511261);
-    path_48.cubicTo(size.width*0.2722562,size.height*0.6449580,size.width*0.2683838,size.height*0.6381303,size.width*0.2565850,size.height*0.6328193);
-    path_48.cubicTo(size.width*0.2176400,size.height*0.6153067,size.width*0.2099388,size.height*0.5754958,size.width*0.2153788,size.height*0.5440420);
-    path_48.lineTo(size.width*0.2153675,size.height*0.5440420);
-    path_48.close();
+_adductors1Path = Path()..addPath(adductors1, Offset.zero);
+
+Path quadriceps1b = Path();
+    quadriceps1b.moveTo(size.width*0.2153675,size.height*0.5440420);
+    quadriceps1b.cubicTo(size.width*0.1868225,size.height*0.5769538,size.width*0.1789875,size.height*0.6420672,size.width*0.2166000,size.height*0.6688361);
+    quadriceps1b.cubicTo(size.width*0.2245588,size.height*0.6745042,size.width*0.2488725,size.height*0.6741975,size.width*0.2557225,size.height*0.6683697);
+    quadriceps1b.lineTo(size.width*0.2650137,size.height*0.6511261);
+    quadriceps1b.cubicTo(size.width*0.2722562,size.height*0.6449580,size.width*0.2683838,size.height*0.6381303,size.width*0.2565850,size.height*0.6328193);
+    quadriceps1b.cubicTo(size.width*0.2176400,size.height*0.6153067,size.width*0.2099388,size.height*0.5754958,size.width*0.2153788,size.height*0.5440420);
+    quadriceps1b.lineTo(size.width*0.2153675,size.height*0.5440420);
+    quadriceps1b.close();
 
 Paint paint_48_fill = Paint()..style=PaintingStyle.fill;
-paint_48_fill.color = Colors.redAccent;
-canvas.drawPath(path_48,paint_48_fill);
+paint_48_fill.color = quadriceps1Color;
+canvas.drawPath(quadriceps1b,paint_48_fill);
 
-Path path_49 = Path();
-    path_49.moveTo(size.width*0.3546937,size.height*0.5804664);
-    path_49.cubicTo(size.width*0.3510888,size.height*0.6036681,size.width*0.3333238,size.height*0.6239412,size.width*0.3037037,size.height*0.6417773);
-    path_49.cubicTo(size.width*0.2992825,size.height*0.6444412,size.width*0.2964837,size.height*0.6473697,size.width*0.2959138,size.height*0.6504118);
-    path_49.lineTo(size.width*0.2951850,size.height*0.6543403);
-    path_49.cubicTo(size.width*0.2938537,size.height*0.6614832,size.width*0.3039500,size.height*0.6683277,size.width*0.3216600,size.height*0.6722983);
-    path_49.lineTo(size.width*0.3414850,size.height*0.6767395);
-    path_49.cubicTo(size.width*0.3535075,size.height*0.6794328,size.width*0.3699062,size.height*0.6773067,size.width*0.3733650,size.height*0.6725882);
-    path_49.cubicTo(size.width*0.3965937,size.height*0.6408782,size.width*0.4044738,size.height*0.6096891,size.width*0.3546937,size.height*0.5804622);
-    path_49.lineTo(size.width*0.3546937,size.height*0.5804664);
-    path_49.close();
+Path quadriceps1c = Path();
+    quadriceps1c.moveTo(size.width*0.3546937,size.height*0.5804664);
+    quadriceps1c.cubicTo(size.width*0.3510888,size.height*0.6036681,size.width*0.3333238,size.height*0.6239412,size.width*0.3037037,size.height*0.6417773);
+    quadriceps1c.cubicTo(size.width*0.2992825,size.height*0.6444412,size.width*0.2964837,size.height*0.6473697,size.width*0.2959138,size.height*0.6504118);
+    quadriceps1c.lineTo(size.width*0.2951850,size.height*0.6543403);
+    quadriceps1c.cubicTo(size.width*0.2938537,size.height*0.6614832,size.width*0.3039500,size.height*0.6683277,size.width*0.3216600,size.height*0.6722983);
+    quadriceps1c.lineTo(size.width*0.3414850,size.height*0.6767395);
+    quadriceps1c.cubicTo(size.width*0.3535075,size.height*0.6794328,size.width*0.3699062,size.height*0.6773067,size.width*0.3733650,size.height*0.6725882);
+    quadriceps1c.cubicTo(size.width*0.3965937,size.height*0.6408782,size.width*0.4044738,size.height*0.6096891,size.width*0.3546937,size.height*0.5804622);
+    quadriceps1c.lineTo(size.width*0.3546937,size.height*0.5804664);
+    quadriceps1c.close();
 
 Paint paint_49_fill = Paint()..style=PaintingStyle.fill;
-paint_49_fill.color = Colors.blueAccent;
-canvas.drawPath(path_49,paint_49_fill);
+paint_49_fill.color = quadriceps1Color;
+canvas.drawPath(quadriceps1c,paint_49_fill);
 
-Path path_50 = Path();
-    path_50.moveTo(size.width*0.7419237,size.height*0.4596765);
-    path_50.lineTo(size.width*0.7185063,size.height*0.4670840);
-    path_50.cubicTo(size.width*0.7355100,size.height*0.4774118,size.width*0.7588938,size.height*0.5085756,size.width*0.7785287,size.height*0.5348445);
-    path_50.cubicTo(size.width*0.7793575,size.height*0.5113277,size.width*0.7671550,size.height*0.4841134,size.width*0.7419350,size.height*0.4596765);
-    path_50.lineTo(size.width*0.7419237,size.height*0.4596765);
-    path_50.close();
+_quadriceps1Path = Path()
+  ..addPath(quadriceps1a, Offset.zero)
+  ..addPath(quadriceps1b, Offset.zero)
+  ..addPath(quadriceps1c, Offset.zero);
+
+Path abductors2 = Path();
+    abductors2.moveTo(size.width*0.7419237,size.height*0.4596765);
+    abductors2.lineTo(size.width*0.7185063,size.height*0.4670840);
+    abductors2.cubicTo(size.width*0.7355100,size.height*0.4774118,size.width*0.7588938,size.height*0.5085756,size.width*0.7785287,size.height*0.5348445);
+    abductors2.cubicTo(size.width*0.7793575,size.height*0.5113277,size.width*0.7671550,size.height*0.4841134,size.width*0.7419350,size.height*0.4596765);
+    abductors2.lineTo(size.width*0.7419237,size.height*0.4596765);
+    abductors2.close();
 
 Paint paint_50_fill = Paint()..style=PaintingStyle.fill;
-paint_50_fill.color = Colors.yellowAccent;
-canvas.drawPath(path_50,paint_50_fill);
+paint_50_fill.color = abductors2Color;
+canvas.drawPath(abductors2,paint_50_fill);
 
-Path path_51 = Path();
-    path_51.moveTo(size.width*0.6966138,size.height*0.4743950);
-    path_51.cubicTo(size.width*0.7169762,size.height*0.4642143,size.width*0.7565588,size.height*0.5533403,size.width*0.7565588,size.height*0.5757647);
-    path_51.cubicTo(size.width*0.7565588,size.height*0.5981891,size.width*0.7521025,size.height*0.6187269,size.width*0.7123075,size.height*0.6267521);
-    path_51.cubicTo(size.width*0.6786588,size.height*0.6335378,size.width*0.6641063,size.height*0.5995714,size.width*0.6569975,size.height*0.5737647);
-    path_51.cubicTo(size.width*0.6468675,size.height*0.5369412,size.width*0.6520388,size.height*0.4966723,size.width*0.6966138,size.height*0.4743950);
-    path_51.close();
+_abductors2Path = Path()..addPath(abductors2, Offset.zero);
+
+Path quadriceps2a = Path();
+    quadriceps2a.moveTo(size.width*0.6966138,size.height*0.4743950);
+    quadriceps2a.cubicTo(size.width*0.7169762,size.height*0.4642143,size.width*0.7565588,size.height*0.5533403,size.width*0.7565588,size.height*0.5757647);
+    quadriceps2a.cubicTo(size.width*0.7565588,size.height*0.5981891,size.width*0.7521025,size.height*0.6187269,size.width*0.7123075,size.height*0.6267521);
+    quadriceps2a.cubicTo(size.width*0.6786588,size.height*0.6335378,size.width*0.6641063,size.height*0.5995714,size.width*0.6569975,size.height*0.5737647);
+    quadriceps2a.cubicTo(size.width*0.6468675,size.height*0.5369412,size.width*0.6520388,size.height*0.4966723,size.width*0.6966138,size.height*0.4743950);
+    quadriceps2a.close();
 
 Paint paint_51_fill = Paint()..style=PaintingStyle.fill;
-paint_51_fill.color = Colors.deepOrangeAccent;
-canvas.drawPath(path_51,paint_51_fill);
+paint_51_fill.color = quadriceps2Color;
+canvas.drawPath(quadriceps2a,paint_51_fill);
 
-Path path_52 = Path();
-    path_52.moveTo(size.width*0.6505600,size.height*0.4899244);
-    path_52.lineTo(size.width*0.6048312,size.height*0.5175924);
-    path_52.cubicTo(size.width*0.5934812,size.height*0.5244664,size.width*0.5874812,size.height*0.5321891,size.width*0.5874025,size.height*0.5400504);
-    path_52.lineTo(size.width*0.5924738,size.height*0.5981597);
-    path_52.cubicTo(size.width*0.6397462,size.height*0.5578319,size.width*0.6275450,size.height*0.5099328,size.width*0.6505488,size.height*0.4899244);
-    path_52.lineTo(size.width*0.6505600,size.height*0.4899244);
-    path_52.close();
+Path adductors2 = Path();
+    adductors2.moveTo(size.width*0.6505600,size.height*0.4899244);
+    adductors2.lineTo(size.width*0.6048312,size.height*0.5175924);
+    adductors2.cubicTo(size.width*0.5934812,size.height*0.5244664,size.width*0.5874812,size.height*0.5321891,size.width*0.5874025,size.height*0.5400504);
+    adductors2.lineTo(size.width*0.5924738,size.height*0.5981597);
+    adductors2.cubicTo(size.width*0.6397462,size.height*0.5578319,size.width*0.6275450,size.height*0.5099328,size.width*0.6505488,size.height*0.4899244);
+    adductors2.lineTo(size.width*0.6505600,size.height*0.4899244);
+    adductors2.close();
 
 Paint paint_52_fill = Paint()..style=PaintingStyle.fill;
-paint_52_fill.color = Colors.deepPurpleAccent;
-canvas.drawPath(path_52,paint_52_fill);
+paint_52_fill.color = adductors2Color;
+canvas.drawPath(adductors2,paint_52_fill);
 
-Path path_53 = Path();
-    path_53.moveTo(size.width*0.7784750,size.height*0.5447815);
-    path_53.cubicTo(size.width*0.8070200,size.height*0.5776933,size.width*0.8148563,size.height*0.6428025,size.width*0.7772438,size.height*0.6695714);
-    path_53.cubicTo(size.width*0.7692850,size.height*0.6752395,size.width*0.7449713,size.height*0.6749328,size.width*0.7381200,size.height*0.6691050);
-    path_53.lineTo(size.width*0.7288288,size.height*0.6518613);
-    path_53.cubicTo(size.width*0.7215862,size.height*0.6456975,size.width*0.7254600,size.height*0.6388655,size.width*0.7372587,size.height*0.6335546);
-    path_53.cubicTo(size.width*0.7762025,size.height*0.6160462,size.width*0.7839038,size.height*0.5762311,size.width*0.7784638,size.height*0.5447815);
-    path_53.lineTo(size.width*0.7784750,size.height*0.5447815);
-    path_53.close();
+_adductors2Path = Path()..addPath(adductors2, Offset.zero);
+
+Path quadriceps2b = Path();
+    quadriceps2b.moveTo(size.width*0.7784750,size.height*0.5447815);
+    quadriceps2b.cubicTo(size.width*0.8070200,size.height*0.5776933,size.width*0.8148563,size.height*0.6428025,size.width*0.7772438,size.height*0.6695714);
+    quadriceps2b.cubicTo(size.width*0.7692850,size.height*0.6752395,size.width*0.7449713,size.height*0.6749328,size.width*0.7381200,size.height*0.6691050);
+    quadriceps2b.lineTo(size.width*0.7288288,size.height*0.6518613);
+    quadriceps2b.cubicTo(size.width*0.7215862,size.height*0.6456975,size.width*0.7254600,size.height*0.6388655,size.width*0.7372587,size.height*0.6335546);
+    quadriceps2b.cubicTo(size.width*0.7762025,size.height*0.6160462,size.width*0.7839038,size.height*0.5762311,size.width*0.7784638,size.height*0.5447815);
+    quadriceps2b.lineTo(size.width*0.7784750,size.height*0.5447815);
+    quadriceps2b.close();
 
 Paint paint_53_fill = Paint()..style=PaintingStyle.fill;
-paint_53_fill.color = Colors.lightBlueAccent;
-canvas.drawPath(path_53,paint_53_fill);
+paint_53_fill.color = quadriceps2Color;
+canvas.drawPath(quadriceps2b,paint_53_fill);
 
-Path path_54 = Path();
-    path_54.moveTo(size.width*0.6391850,size.height*0.5812017);
-    path_54.cubicTo(size.width*0.6427900,size.height*0.6044034,size.width*0.6605550,size.height*0.6246765,size.width*0.6901738,size.height*0.6425084);
-    path_54.cubicTo(size.width*0.6945963,size.height*0.6451723,size.width*0.6973950,size.height*0.6481008,size.width*0.6979650,size.height*0.6511471);
-    path_54.lineTo(size.width*0.6986925,size.height*0.6550756);
-    path_54.cubicTo(size.width*0.7000250,size.height*0.6622185,size.width*0.6899275,size.height*0.6690588,size.width*0.6722188,size.height*0.6730294);
-    path_54.lineTo(size.width*0.6523937,size.height*0.6774706);
-    path_54.cubicTo(size.width*0.6403713,size.height*0.6801681,size.width*0.6239725,size.height*0.6780420,size.width*0.6205137,size.height*0.6733235);
-    path_54.cubicTo(size.width*0.5972850,size.height*0.6416134,size.width*0.5894050,size.height*0.6104244,size.width*0.6391850,size.height*0.5811975);
-    path_54.lineTo(size.width*0.6391850,size.height*0.5812017);
-    path_54.close();
+Path quadriceps2c = Path();
+    quadriceps2c.moveTo(size.width*0.6391850,size.height*0.5812017);
+    quadriceps2c.cubicTo(size.width*0.6427900,size.height*0.6044034,size.width*0.6605550,size.height*0.6246765,size.width*0.6901738,size.height*0.6425084);
+    quadriceps2c.cubicTo(size.width*0.6945963,size.height*0.6451723,size.width*0.6973950,size.height*0.6481008,size.width*0.6979650,size.height*0.6511471);
+    quadriceps2c.lineTo(size.width*0.6986925,size.height*0.6550756);
+    quadriceps2c.cubicTo(size.width*0.7000250,size.height*0.6622185,size.width*0.6899275,size.height*0.6690588,size.width*0.6722188,size.height*0.6730294);
+    quadriceps2c.lineTo(size.width*0.6523937,size.height*0.6774706);
+    quadriceps2c.cubicTo(size.width*0.6403713,size.height*0.6801681,size.width*0.6239725,size.height*0.6780420,size.width*0.6205137,size.height*0.6733235);
+    quadriceps2c.cubicTo(size.width*0.5972850,size.height*0.6416134,size.width*0.5894050,size.height*0.6104244,size.width*0.6391850,size.height*0.5811975);
+    quadriceps2c.lineTo(size.width*0.6391850,size.height*0.5812017);
+    quadriceps2c.close();
 
 Paint paint_54_fill = Paint()..style=PaintingStyle.fill;
-paint_54_fill.color = Colors.lightGreenAccent;
-canvas.drawPath(path_54,paint_54_fill);
+paint_54_fill.color = quadriceps2Color;
+canvas.drawPath(quadriceps2c,paint_54_fill);
 
-Path path_55 = Path();
-    path_55.moveTo(size.width*0.03262050,size.height*0.3986588);
-    path_55.cubicTo(size.width*0.03689675,size.height*0.4209538,size.width*0.05200875,size.height*0.4522395,size.width*0.06831862,size.height*0.4899244);
-    path_55.cubicTo(size.width*0.06941575,size.height*0.4924664,size.width*0.06584475,size.height*0.4950042,size.width*0.05928500,size.height*0.4963109);
-    path_55.lineTo(size.width*0.05196400,size.height*0.4977689);
-    path_55.cubicTo(size.width*0.04388188,size.height*0.4993739,size.width*0.03388550,size.height*0.4971681,size.width*0.03511687,size.height*0.4940420);
-    path_55.cubicTo(size.width*0.04665800,size.height*0.4645672,size.width*0.009101650,size.height*0.3992345,size.width*0.02600475,size.height*0.3793525);
+_quadriceps2Path = Path()
+  ..addPath(quadriceps2a, Offset.zero)
+  ..addPath(quadriceps2b, Offset.zero)
+  ..addPath(quadriceps2c, Offset.zero);
+
+Path forearms1a = Path();
+    forearms1a.moveTo(size.width*0.03262050,size.height*0.3986588);
+    forearms1a.cubicTo(size.width*0.03689675,size.height*0.4209538,size.width*0.05200875,size.height*0.4522395,size.width*0.06831862,size.height*0.4899244);
+    forearms1a.cubicTo(size.width*0.06941575,size.height*0.4924664,size.width*0.06584475,size.height*0.4950042,size.width*0.05928500,size.height*0.4963109);
+    forearms1a.lineTo(size.width*0.05196400,size.height*0.4977689);
+    forearms1a.cubicTo(size.width*0.04388188,size.height*0.4993739,size.width*0.03388550,size.height*0.4971681,size.width*0.03511687,size.height*0.4940420);
+    forearms1a.cubicTo(size.width*0.04665800,size.height*0.4645672,size.width*0.009101650,size.height*0.3992345,size.width*0.02600475,size.height*0.3793525);
 
 Paint paint_55_fill = Paint()..style=PaintingStyle.fill;
-paint_55_fill.color = Colors.white;
-canvas.drawPath(path_55,paint_55_fill);
+paint_55_fill.color = forearms1Color;
+canvas.drawPath(forearms1a,paint_55_fill);
 
-Path path_56 = Path();
-    path_56.moveTo(size.width*0.04894288,size.height*0.3783067);
-    path_56.cubicTo(size.width*0.08043200,size.height*0.3909181,size.width*0.1265513,size.height*0.4321050,size.width*0.08059988,size.height*0.4832185);
-    path_56.cubicTo(size.width*0.04597637,size.height*0.4326261,size.width*0.03467037,size.height*0.3725903,size.width*0.04894288,size.height*0.3783067);
-    path_56.close();
+Path forearms1b = Path();
+    forearms1b.moveTo(size.width*0.04894288,size.height*0.3783067);
+    forearms1b.cubicTo(size.width*0.08043200,size.height*0.3909181,size.width*0.1265513,size.height*0.4321050,size.width*0.08059988,size.height*0.4832185);
+    forearms1b.cubicTo(size.width*0.04597637,size.height*0.4326261,size.width*0.03467037,size.height*0.3725903,size.width*0.04894288,size.height*0.3783067);
+    forearms1b.close();
 
 Paint paint_56_fill = Paint()..style=PaintingStyle.fill;
-paint_56_fill.color = Colors.black38;
-canvas.drawPath(path_56,paint_56_fill);
+paint_56_fill.color = forearms1Color;
+canvas.drawPath(forearms1b,paint_56_fill);
 
-Path path_57 = Path();
-    path_57.moveTo(size.width*0.1687562,size.height*0.3884340);
-    path_57.cubicTo(size.width*0.1858950,size.height*0.4060277,size.width*0.1652425,size.height*0.4273025,size.width*0.1211258,size.height*0.4500126);
-    path_57.cubicTo(size.width*0.1075025,size.height*0.4226303,size.width*0.1053532,size.height*0.4001567,size.width*0.1687562,size.height*0.3884340);
-    path_57.close();
+Path forearms1c = Path();
+    forearms1c.moveTo(size.width*0.1687562,size.height*0.3884340);
+    forearms1c.cubicTo(size.width*0.1858950,size.height*0.4060277,size.width*0.1652425,size.height*0.4273025,size.width*0.1211258,size.height*0.4500126);
+    forearms1c.cubicTo(size.width*0.1075025,size.height*0.4226303,size.width*0.1053532,size.height*0.4001567,size.width*0.1687562,size.height*0.3884340);
+    forearms1c.close();
 
 Paint paint_57_fill = Paint()..style=PaintingStyle.fill;
-paint_57_fill.color = Colors.black54;
-canvas.drawPath(path_57,paint_57_fill);
+paint_57_fill.color = forearms1Color;
+canvas.drawPath(forearms1c,paint_57_fill);
 
-Path path_58 = Path();
-    path_58.moveTo(size.width*0.9565238,size.height*0.3977542);
-    path_58.cubicTo(size.width*0.9522475,size.height*0.4200487,size.width*0.9371363,size.height*0.4513319,size.width*0.9208262,size.height*0.4890210);
-    path_58.cubicTo(size.width*0.9197287,size.height*0.4915630,size.width*0.9233000,size.height*0.4940966,size.width*0.9298600,size.height*0.4954076);
-    path_58.lineTo(size.width*0.9371813,size.height*0.4968655);
-    path_58.cubicTo(size.width*0.9452625,size.height*0.4984706,size.width*0.9552587,size.height*0.4962647,size.width*0.9540275,size.height*0.4931387);
-    path_58.cubicTo(size.width*0.9424862,size.height*0.4636639,size.width*0.9800425,size.height*0.3983298,size.width*0.9631400,size.height*0.3784479);
+_forearms1Path = Path()
+  ..addPath(forearms1a, Offset.zero)
+  ..addPath(forearms1b, Offset.zero)
+  ..addPath(forearms1c, Offset.zero);
+
+Path forearms2a = Path();
+    forearms2a.moveTo(size.width*0.9565238,size.height*0.3977542);
+    forearms2a.cubicTo(size.width*0.9522475,size.height*0.4200487,size.width*0.9371363,size.height*0.4513319,size.width*0.9208262,size.height*0.4890210);
+    forearms2a.cubicTo(size.width*0.9197287,size.height*0.4915630,size.width*0.9233000,size.height*0.4940966,size.width*0.9298600,size.height*0.4954076);
+    forearms2a.lineTo(size.width*0.9371813,size.height*0.4968655);
+    forearms2a.cubicTo(size.width*0.9452625,size.height*0.4984706,size.width*0.9552587,size.height*0.4962647,size.width*0.9540275,size.height*0.4931387);
+    forearms2a.cubicTo(size.width*0.9424862,size.height*0.4636639,size.width*0.9800425,size.height*0.3983298,size.width*0.9631400,size.height*0.3784479);
 
 Paint paint_58_fill = Paint()..style=PaintingStyle.fill;
-paint_58_fill.color = Colors.white70;
-canvas.drawPath(path_58,paint_58_fill);
+paint_58_fill.color = forearms2Color;
+canvas.drawPath(forearms2a,paint_58_fill);
 
-Path path_59 = Path();
-    path_59.moveTo(size.width*0.9401725,size.height*0.3774063);
-    path_59.cubicTo(size.width*0.9086838,size.height*0.3900172,size.width*0.8625637,size.height*0.4312059,size.width*0.9085150,size.height*0.4823193);
-    path_59.cubicTo(size.width*0.9431387,size.height*0.4317227,size.width*0.9544450,size.height*0.3716895,size.width*0.9401725,size.height*0.3774063);
-    path_59.close();
+Path forearms2b = Path();
+    forearms2b.moveTo(size.width*0.9401725,size.height*0.3774063);
+    forearms2b.cubicTo(size.width*0.9086838,size.height*0.3900172,size.width*0.8625637,size.height*0.4312059,size.width*0.9085150,size.height*0.4823193);
+    forearms2b.cubicTo(size.width*0.9431387,size.height*0.4317227,size.width*0.9544450,size.height*0.3716895,size.width*0.9401725,size.height*0.3774063);
+    forearms2b.close();
 
 Paint paint_59_fill = Paint()..style=PaintingStyle.fill;
-paint_59_fill.color = Colors.black87;
-canvas.drawPath(path_59,paint_59_fill);
+paint_59_fill.color = forearms2Color;
+canvas.drawPath(forearms2b,paint_59_fill);
 
-Path path_60 = Path();
-    path_60.moveTo(size.width*0.8203388,size.height*0.3875332);
-    path_60.cubicTo(size.width*0.8032013,size.height*0.4051273,size.width*0.8238537,size.height*0.4264034,size.width*0.8679700,size.height*0.4491092);
-    path_60.cubicTo(size.width*0.8815938,size.height*0.4217311,size.width*0.8837425,size.height*0.3992563,size.width*0.8203388,size.height*0.3875332);
-    path_60.close();
+Path forearms2c = Path();
+    forearms2c.moveTo(size.width*0.8203388,size.height*0.3875332);
+    forearms2c.cubicTo(size.width*0.8032013,size.height*0.4051273,size.width*0.8238537,size.height*0.4264034,size.width*0.8679700,size.height*0.4491092);
+    forearms2c.cubicTo(size.width*0.8815938,size.height*0.4217311,size.width*0.8837425,size.height*0.3992563,size.width*0.8203388,size.height*0.3875332);
+    forearms2c.close();
 
 Paint paint_60_fill = Paint()..style=PaintingStyle.fill;
-paint_60_fill.color = Colors.white54;
-canvas.drawPath(path_60,paint_60_fill);
+paint_60_fill.color = forearms2Color;
+canvas.drawPath(forearms2c,paint_60_fill);
+
+_forearms2Path = Path()
+  ..addPath(forearms2a, Offset.zero)
+  ..addPath(forearms2b, Offset.zero)
+  ..addPath(forearms2c, Offset.zero);
 
 Path path_61 = Path();
     path_61.moveTo(size.width*0.1886913,size.height*0.7548193);
@@ -1062,7 +1176,7 @@ paint_61_stroke.color=Color(0xff242424).withOpacity(1.0);
 canvas.drawPath(path_61,paint_61_stroke);
 
 Paint paint_61_fill = Paint()..style=PaintingStyle.fill;
-paint_61_fill.color = Colors.brown.shade300;
+paint_61_fill.color = AppColors.muscleDefaultColor;
 canvas.drawPath(path_61,paint_61_fill);
 
 Path path_62 = Path();
@@ -1080,7 +1194,7 @@ paint_62_stroke.color=Color(0xff242424).withOpacity(1.0);
 canvas.drawPath(path_62,paint_62_stroke);
 
 Paint paint_62_fill = Paint()..style=PaintingStyle.fill;
-paint_62_fill.color = Colors.green.shade800;
+paint_62_fill.color = AppColors.muscleDefaultColor;
 canvas.drawPath(path_62,paint_62_fill);
 
 Path path_63 = Path();
@@ -1100,7 +1214,7 @@ paint_63_stroke.color=Color(0xff242424).withOpacity(1.0);
 canvas.drawPath(path_63,paint_63_stroke);
 
 Paint paint_63_fill = Paint()..style=PaintingStyle.fill;
-paint_63_fill.color = Colors.blue.shade800;
+paint_63_fill.color = AppColors.muscleDefaultColor;
 canvas.drawPath(path_63,paint_63_fill);
 
 Path path_64 = Path();
@@ -1118,7 +1232,7 @@ paint_64_stroke.color=Color(0xff242424).withOpacity(1.0);
 canvas.drawPath(path_64,paint_64_stroke);
 
 Paint paint_64_fill = Paint()..style=PaintingStyle.fill;
-paint_64_fill.color = Colors.orange.shade800;
+paint_64_fill.color = AppColors.muscleDefaultColor;
 canvas.drawPath(path_64,paint_64_fill);
 
 }
