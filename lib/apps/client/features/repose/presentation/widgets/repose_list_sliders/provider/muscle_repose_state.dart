@@ -44,7 +44,9 @@ class MuscleReposeState {
 
     final remHours = remainingMinutes ~/ 60;
     final remMins = remainingMinutes % 60;
-    if (remHours > 0 && remMins > 0) return '${remHours}h ${remMins}m restantes';
+    if (remHours > 0 && remMins > 0) {
+      return '${remHours}h ${remMins}m restantes';
+    }
     if (remHours > 0) return '${remHours}h restantes';
     return '${remMins}m restantes';
   }
@@ -76,5 +78,6 @@ class MuscleReposeState {
   }
 
   @override
-  int get hashCode => Object.hash(muscle, progress, totalMinutes, sliderEnabled);
+  int get hashCode =>
+      Object.hash(muscle, progress, totalMinutes, sliderEnabled);
 }

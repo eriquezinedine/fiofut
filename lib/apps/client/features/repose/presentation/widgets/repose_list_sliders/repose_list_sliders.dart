@@ -1,8 +1,16 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/repose/domain/models/muscle_group.dart';
-import 'package:fio_fut/apps/client/features/repose/domain/providers/muscle_repose_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import 'muscle_repose_group_card.dart';
+import 'provider/muscle_repose_provider.dart';
+
+export 'muscle_repose_group_card.dart';
+export 'muscle_progress_bar.dart';
+export 'progress_badge.dart';
+export 'provider/muscle_repose_provider.dart';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -106,7 +114,7 @@ class ReposeListSliders extends ConsumerWidget {
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, size: AppSpacing.iconMd),
         color: AppColors.textPrimary,
-        onPressed: () => Navigator.of(context).maybePop(),
+        onPressed: () => context.pop(),
       ),
       actions: [
         TextButton(
@@ -129,7 +137,7 @@ class ReposeListSliders extends ConsumerWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Section header
+// Private helpers (small, only used here)
 // ---------------------------------------------------------------------------
 
 class _SectionHeader extends StatelessWidget {
@@ -149,10 +157,6 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Muscle group list (no scroll – embedded in parent ListView)
-// ---------------------------------------------------------------------------
-
 class _MuscleGroupList extends StatelessWidget {
   const _MuscleGroupList({required this.muscles});
 
@@ -163,279 +167,10 @@ class _MuscleGroupList extends StatelessWidget {
     return Column(
       children: [
         for (int i = 0; i < muscles.length; i++) ...[
-          MuscleGroupCard(muscle: muscles[i]),
+          MuscleReposeGroupCard(muscle: muscles[i],sliderEnabled: true,),
           if (i < muscles.length - 1) const SizedBox(height: AppSpacing.xs),
         ],
       ],
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// MuscleGroupCard – reads from its own provider instance
-// ---------------------------------------------------------------------------
-
-/// Card showing a muscle group's image, name, remaining time, progress bar
-/// and percentage badge. State comes from [muscleReposeProvider].
-class MuscleGroupCard extends ConsumerWidget {
-  const MuscleGroupCard({required this.muscle, super.key});
-
-  final MuscleGroup muscle;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(muscleReposeProvider(muscle));
-
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.card,
-        borderRadius: AppSpacing.borderRadiusXl,
-      ),
-      padding: const EdgeInsets.only(
-        left: AppSpacing.xs,
-        right: AppSpacing.md,
-        top: AppSpacing.sm,
-        bottom: AppSpacing.sm,
-      ),
-      child: Row(
-        children: [
-          _MuscleImage(muscle: muscle),
-          AppSpacing.horizontalMd,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            muscle.label,
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              letterSpacing: -0.32,
-                              color: AppColors.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: AppSpacing.xxs),
-                          Text(
-                            state.remainingText,
-                            style: AppTextStyles.caption.copyWith(
-                              letterSpacing: -0.28,
-                              color: AppColors.textDescription,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    ProgressBadge(
-                      text: state.progressText,
-                      color: state.progressColor,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                MuscleProgressBar(
-                  progress: state.progress,
-                  color: state.progressColor,
-                  showKnob: state.sliderEnabled,
-                  onChanged: state.sliderEnabled
-                      ? (value) {
-                          ref
-                              .read(muscleReposeProvider(muscle).notifier)
-                              .updateProgress(value);
-                        }
-                      : null,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Muscle image placeholder
-// ---------------------------------------------------------------------------
-
-class _MuscleImage extends StatelessWidget {
-  const _MuscleImage({required this.muscle});
-
-  final MuscleGroup muscle;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: AppSpacing.borderRadiusLg,
-      child: Container(
-        width: AppSpacing.xxxl,
-        height: AppSpacing.xxxl,
-        color: AppColors.surfaceAlt,
-        child: Center(
-          child: Icon(
-            Icons.fitness_center_rounded,
-            color: muscle.defaultColor,
-            size: AppSpacing.iconLg,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// ProgressBadge – pill-shaped percentage badge
-// ---------------------------------------------------------------------------
-
-class ProgressBadge extends StatelessWidget {
-  const ProgressBadge({
-    required this.text,
-    required this.color,
-    super.key,
-  });
-
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: AppSpacing.lg,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xs,
-        vertical: AppSpacing.xxs,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: AppSpacing.borderRadiusFull,
-      ),
-      child: Center(
-        widthFactor: 1,
-        child: Text(
-          text,
-          style: AppTextStyles.titleSmall.copyWith(
-            letterSpacing: -0.28,
-            color: color,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// MuscleProgressBar – interactive slider with circular knob
-// ---------------------------------------------------------------------------
-
-/// A thin horizontal progress bar with an optional draggable circular knob.
-///
-/// When [showKnob] is `false` the knob is hidden and gestures are disabled,
-/// turning the widget into a read-only progress indicator.
-class MuscleProgressBar extends StatelessWidget {
-  const MuscleProgressBar({
-    required this.progress,
-    required this.color,
-    this.showKnob = true,
-    this.onChanged,
-    super.key,
-  });
-
-  final double progress;
-  final Color color;
-
-  /// Whether to show the circular knob and allow interaction.
-  final bool showKnob;
-
-  /// Called when the user drags the knob to a new position.
-  final ValueChanged<double>? onChanged;
-
-  static const double _trackHeight = 4;
-  static const double _knobSize = 14;
-  static const double _knobBorder = 2;
-
-  @override
-  Widget build(BuildContext context) {
-    final clamped = progress.clamp(0.0, 1.0);
-    final interactive = showKnob && onChanged != null;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final trackWidth = constraints.maxWidth;
-        final progressWidth = trackWidth * clamped;
-        final knobLeft = (progressWidth - _knobSize / 2)
-            .clamp(0.0, trackWidth - _knobSize);
-
-        final bar = SizedBox(
-          height: showKnob ? _knobSize : _trackHeight,
-          child: Stack(
-            alignment: Alignment.centerLeft,
-            children: [
-              // Track background
-              Container(
-                height: _trackHeight,
-                decoration: const BoxDecoration(
-                  color: AppColors.surfaceAlt,
-                  borderRadius: AppSpacing.borderRadiusFull,
-                ),
-              ),
-              // Progress fill
-              Container(
-                height: _trackHeight,
-                width: progressWidth,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: AppSpacing.borderRadiusFull,
-                ),
-              ),
-              // Circular knob (only when enabled)
-              if (showKnob)
-                Positioned(
-                  left: knobLeft,
-                  child: Container(
-                    width: _knobSize,
-                    height: _knobSize,
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: color,
-                        width: _knobBorder,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-
-        if (!interactive) return bar;
-
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onHorizontalDragUpdate: (details) {
-            final v =
-                (details.localPosition.dx / trackWidth).clamp(0.0, 1.0);
-            onChanged!(v);
-          },
-          onTapDown: (details) {
-            final v =
-                (details.localPosition.dx / trackWidth).clamp(0.0, 1.0);
-            onChanged!(v);
-          },
-          child: SizedBox(
-            height: 32,
-            child: Center(child: bar),
-          ),
-        );
-      },
     );
   }
 }

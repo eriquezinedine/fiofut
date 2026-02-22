@@ -14,6 +14,7 @@ import 'package:fio_fut/apps/client/features/login/login.dart';
 import 'package:fio_fut/apps/client/features/login_google/login_google.dart';
 import 'package:fio_fut/apps/client/features/onboarding/presentation/screens/onboarding_wizard.dart';
 import 'package:fio_fut/apps/client/features/register/register.dart';
+import 'package:fio_fut/apps/client/features/repose/presentation/screens/repose_slider_screen.dart';
 import 'package:fio_fut/apps/client/features/splash/presentation/screens/splash_screen.dart';
 import 'package:fio_fut/apps/client/features/trainer_detail/presentation/screens/trainer_detail_page.dart';
 import 'package:flutter/material.dart';
@@ -88,6 +89,13 @@ List<RouteBase> buildRoutes() => [
           final exercise = state.extra as Exercise;
           return ExerciseDetailPage(exercise: exercise);
         },
+      ),
+
+      // Repose Slider
+      GoRoute(
+        path: ReposeSliderScreen.path,
+        name: ReposeSliderScreen.name,
+        builder: (context, state) => const ReposeSliderScreen(),
       ),
 
       // === ADMIN ROUTES ===

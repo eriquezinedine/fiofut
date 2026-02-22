@@ -1,8 +1,7 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/repose/domain/models/muscle_group.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../models/muscle_group.dart';
 
 part 'muscle_repose_state.dart';
 
