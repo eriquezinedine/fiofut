@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:model/model.dart';
 
 
 class RPSFrontCustomPainter extends CustomPainter {
@@ -65,26 +66,26 @@ class RPSFrontCustomPainter extends CustomPainter {
   Path _frontDeltoid1Path = Path();
   Path _frontDeltoid2Path = Path();
 
-  String? hitTestMuscle(Offset position) {
-    if (_chest1Path.contains(position)) return 'chest1';
-    if (_chest2Path.contains(position)) return 'chest2';
-    if (_absPath.contains(position)) return 'abs';
-    if (_bicep1Path.contains(position)) return 'bicep1';
-    if (_bicep2Path.contains(position)) return 'bicep2';
-    if (_obliques1Path.contains(position)) return 'obliques1';
-    if (_obliques2Path.contains(position)) return 'obliques2';
-    if (_forearms1Path.contains(position)) return 'forearms1';
-    if (_forearms2Path.contains(position)) return 'forearms2';
-    if (_quadriceps2Path.contains(position)) return 'quadriceps2';
-    if (_quadriceps1Path.contains(position)) return 'quadriceps1';
-    if (_adductors1Path.contains(position)) return 'adductors1';
-    if (_adductors2Path.contains(position)) return 'adductors2';
-    if (_abductors1Path.contains(position)) return 'abductors1';
-    if (_abductors2Path.contains(position)) return 'abductors2';
-    if (_lateralDeltoid1Path.contains(position)) return 'lateralDeltoid1';
-    if (_lateralDeltoid2Path.contains(position)) return 'lateralDeltoid2';
-    if (_frontDeltoid1Path.contains(position)) return 'frontDeltoid1';
-    if (_frontDeltoid2Path.contains(position)) return 'frontDeltoid2';
+  MuscleGroup? hitTestMuscle(Offset position) {
+    if (_chest1Path.contains(position)) return MuscleGroup.chest; // 'chest1';
+    if (_chest2Path.contains(position)) return MuscleGroup.chest; // 'chest2';
+    if (_absPath.contains(position)) return MuscleGroup.abs; // 'abs';
+    if (_bicep1Path.contains(position)) return MuscleGroup.biceps; // 'bicep1';
+    if (_bicep2Path.contains(position)) return MuscleGroup.biceps; // 'bicep2';
+    if (_obliques1Path.contains(position)) return MuscleGroup.obliques;// 'obliques1';
+    if (_obliques2Path.contains(position)) return MuscleGroup.obliques; //'obliques2';
+    if (_forearms1Path.contains(position)) return MuscleGroup.forearms; //'forearms1';
+    if (_forearms2Path.contains(position)) return MuscleGroup.forearms; //'forearms2';
+    if (_quadriceps2Path.contains(position)) return MuscleGroup.quadriceps; //'quadriceps2';
+    if (_quadriceps1Path.contains(position)) return MuscleGroup.quadriceps; //'quadriceps1';
+    if (_adductors1Path.contains(position)) return MuscleGroup.adductors; //'adductors1';
+    if (_adductors2Path.contains(position)) return MuscleGroup.adductors; //'adductors2';
+    if (_abductors1Path.contains(position)) return MuscleGroup.abductors; //'abductors1';
+    if (_abductors2Path.contains(position)) return MuscleGroup.abductors; //'abductors2';
+    if (_lateralDeltoid1Path.contains(position)) return MuscleGroup.lateralDeltoid; //'lateralDeltoid1';
+    if (_lateralDeltoid2Path.contains(position)) return MuscleGroup.lateralDeltoid; //'lateralDeltoid2';
+    if (_frontDeltoid1Path.contains(position)) return MuscleGroup.frontDeltoid; //'frontDeltoid1';
+    if (_frontDeltoid2Path.contains(position)) return MuscleGroup.frontDeltoid; //'frontDeltoid2';
     return null;
   }
 

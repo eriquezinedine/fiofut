@@ -1,21 +1,22 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:model/src/muscle_group.dart';
 
 class RPSBackCustomPainter extends CustomPainter {
-  final Color back1Color;
+  final Color backColor;
   final Color trapsColor;
-  final Color lowerBack1Color;
-  final Color glutes1Color;
+  final Color lowerBackColor;
+  final Color glutesColor;
   final Color tricepsColor;
   final Color rearDeltoidColor;
   final Color hamstringsColor;
   final Color calvesColor;
 
   RPSBackCustomPainter({
-    this.back1Color = AppColors.muscleDefaultColor,
+    this.backColor = AppColors.muscleDefaultColor,
     this.trapsColor = AppColors.muscleDefaultColor,
-    this.lowerBack1Color = AppColors.muscleDefaultColor,
-    this.glutes1Color = AppColors.muscleDefaultColor,
+    this.lowerBackColor = AppColors.muscleDefaultColor,
+    this.glutesColor = AppColors.muscleDefaultColor,
     this.tricepsColor = AppColors.muscleDefaultColor,
     this.rearDeltoidColor = AppColors.muscleDefaultColor,
     this.hamstringsColor = AppColors.muscleDefaultColor,
@@ -31,15 +32,15 @@ class RPSBackCustomPainter extends CustomPainter {
   final Path _hamstringsPath = Path();
   final Path _calvesPath = Path();
 
-  String? hitTestMuscle(Offset position) {
-    if (_back1Path.contains(position)) return 'back1';
-    if (_trapsPath.contains(position)) return 'traps';
-    if (_lowerBack1Path.contains(position)) return 'lowerBack1';
-    if (_glutes1Path.contains(position)) return 'glutes1';
-    if (_tricepsPath.contains(position)) return 'triceps';
-    if (_rearDeltoidPath.contains(position)) return 'rearDeltoid';
-    if (_hamstringsPath.contains(position)) return 'hamstrings';
-    if (_calvesPath.contains(position)) return 'calves';
+  MuscleGroup? hitTestMuscle(Offset position) {
+    if (_back1Path.contains(position)) return MuscleGroup.back;
+    if (_trapsPath.contains(position)) return MuscleGroup.traps;
+    if (_lowerBack1Path.contains(position)) return MuscleGroup.lowerBack;
+    if (_glutes1Path.contains(position)) return MuscleGroup.glutes;
+    if (_tricepsPath.contains(position)) return MuscleGroup.triceps;
+    if (_rearDeltoidPath.contains(position)) return MuscleGroup.rearDeltoid;
+    if (_hamstringsPath.contains(position)) return MuscleGroup.hamstrings;
+    if (_calvesPath.contains(position)) return MuscleGroup.calves;
     return null;
   }
 
@@ -395,7 +396,7 @@ Path back1a = Path();
     back1a.close();
 
 Paint paint_13_fill = Paint()..style=PaintingStyle.fill;
-paint_13_fill.color = back1Color;
+paint_13_fill.color = backColor;
 canvas.drawPath(back1a,paint_13_fill);
 _back1Path.addPath(back1a, Offset.zero);
 
@@ -414,7 +415,7 @@ Path back1b = Path();
     back1b.close();
 
 Paint paint_14_fill = Paint()..style=PaintingStyle.fill;
-paint_14_fill.color = back1Color;
+paint_14_fill.color = backColor;
 canvas.drawPath(back1b,paint_14_fill);
 _back1Path.addPath(back1b, Offset.zero);
 
@@ -446,7 +447,7 @@ Path back1c = Path();
     back1c.close();
 
 Paint paint_16_fill = Paint()..style=PaintingStyle.fill;
-paint_16_fill.color = back1Color;
+paint_16_fill.color = backColor;
 canvas.drawPath(back1c,paint_16_fill);
 _back1Path.addPath(back1c, Offset.zero);
 
@@ -465,7 +466,7 @@ Path back1d = Path();
     back1d.close();
 
 Paint paint_17_fill = Paint()..style=PaintingStyle.fill;
-paint_17_fill.color = back1Color;
+paint_17_fill.color = backColor;
 canvas.drawPath(back1d,paint_17_fill);
 _back1Path.addPath(back1d, Offset.zero);
 
@@ -481,7 +482,7 @@ Path lowerBack1a = Path();
     lowerBack1a.close();
 
 Paint paint_18_fill = Paint()..style=PaintingStyle.fill;
-paint_18_fill.color = lowerBack1Color;
+paint_18_fill.color = lowerBackColor;
 canvas.drawPath(lowerBack1a,paint_18_fill);
 _lowerBack1Path.addPath(lowerBack1a, Offset.zero);
 
@@ -497,7 +498,7 @@ Path lowerBack1b = Path();
     lowerBack1b.close();
 
 Paint paint_19_fill = Paint()..style=PaintingStyle.fill;
-paint_19_fill.color = lowerBack1Color;
+paint_19_fill.color = lowerBackColor;
 canvas.drawPath(lowerBack1b,paint_19_fill);
 _lowerBack1Path.addPath(lowerBack1b, Offset.zero);
 
@@ -563,7 +564,7 @@ Path glutes1a = Path();
     glutes1a.close();
 
 Paint paint_23_fill = Paint()..style=PaintingStyle.fill;
-paint_23_fill.color = glutes1Color;
+paint_23_fill.color = glutesColor;
 canvas.drawPath(glutes1a,paint_23_fill);
 _glutes1Path.addPath(glutes1a, Offset.zero);
 
@@ -595,7 +596,7 @@ Path glutes1b = Path();
     glutes1b.close();
 
 Paint paint_25_fill = Paint()..style=PaintingStyle.fill;
-paint_25_fill.color = glutes1Color;
+paint_25_fill.color = glutesColor;
 canvas.drawPath(glutes1b,paint_25_fill);
 _glutes1Path.addPath(glutes1b, Offset.zero);
 
