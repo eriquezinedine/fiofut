@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,12 +27,8 @@ class MuscleReposeNotifier
     MuscleGroup.glutes,
   };
 
-  Timer? _debounceTimer;
-
   @override
   MuscleReposeState build(MuscleRepose arg) {
-    ref.onDispose(() => _debounceTimer?.cancel());
-
     final isLarge = _largeMuscleGroups.contains(arg.muscle.muscleGroup);
     return MuscleReposeState(
       muscleRepose: arg,
@@ -44,22 +38,33 @@ class MuscleReposeNotifier
   }
 
   /// Update the slider / progress value.
-  /// Updates local state immediately, then syncs to global after 300ms debounce.
+  /// Syncs to global state immediately (cheap in-memory update).
   void updateProgress(double value) {
     state = state.copyWith(progress: value.clamp(0.0, 1.0));
 
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      ref.read(allMusclesReposeProvider.notifier).updateMuscleProgress(
-            arg.muscle.muscleGroup,
-            (state.progress * 100).round(),
-          );
-    });
+    // Sync to global provider immediately
+    ref.read(allMusclesReposeProvider.notifier).updateMuscleProgress(
+          arg.muscle.muscleGroup,
+          (state.progress * 100).round(),
+        );
+
+    // TODO: Add debounced sync to Supabase (300ms) when repository is ready
+    // _debounceTimer?.cancel();
+    // _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+    //   ref.read(reposeRepositoryProvider).updateMuscleProgress(
+    //     arg.muscle.muscleGroup, (state.progress * 100).round(),
+    //   );
+    // });
   }
 
   /// Reset — muscle is fully recovered.
   void reset() {
     state = state.copyWith(progress: 1.0);
+
+    ref.read(allMusclesReposeProvider.notifier).updateMuscleProgress(
+          arg.muscle.muscleGroup,
+          100,
+        );
   }
 
   /// Enable or disable the slider knob and interaction.

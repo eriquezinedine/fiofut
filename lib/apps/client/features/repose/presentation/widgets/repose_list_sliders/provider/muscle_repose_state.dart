@@ -23,9 +23,9 @@ class MuscleReposeState {
 
   /// Red (0-10%), Orange (11-99%), Green (100%).
   Color get progressColor {
-    if (progress <= 0.10) return AppColors.error;
-    if (progress >= 1.0) return AppColors.primary;
-    return AppColors.orange;
+    if (progress <= 0.10) return AppColors.reposeRed;
+    if (progress >= 1.0) return AppColors.reposeGreen;
+    return AppColors.reposeOrange;
   }
 
   int get remainingMinutes => ((1.0 - progress) * totalMinutes).round();

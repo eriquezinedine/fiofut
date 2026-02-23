@@ -16,8 +16,8 @@ class MuscleBackFrontView extends ConsumerWidget {
   static Color _colorForPercentage(int? percentage) {
     if (percentage == null) return AppColors.muscleDefaultColor;
     if (percentage >= 100) return AppColors.muscleDefaultColor;
-    if (percentage <= 10) return AppColors.error;
-    return AppColors.orange;
+    if (percentage <= 10) return AppColors.reposeRed;
+    return AppColors.reposeOrange;
   }
 
   @override

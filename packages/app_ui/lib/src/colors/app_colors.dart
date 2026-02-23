@@ -112,6 +112,16 @@ abstract final class AppColors {
   /// Admin
   static const Color muscleDefaultColor = Color(0xff6C7180);
 
+  // ---------- Repose / Recovery ----------
+  /// Recuperacion completa (verde)
+  static const Color reposeGreen = Color(0xFF22C55D);
+
+  /// Recuperacion en progreso (naranja)
+  static const Color reposeOrange = Color(0xFFF49D0D);
+
+  /// Recuperacion critica (rojo)
+  static const Color reposeRed = Color(0xFFE53A36);
+
   // ============================================================
   // GREY SCALE
   // ============================================================

@@ -20,7 +20,7 @@ class ProgressBadge extends StatelessWidget {
         vertical: AppSpacing.xxs,
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
+        color: color,
         borderRadius: AppSpacing.borderRadiusFull,
       ),
       child: Center(
@@ -29,7 +29,8 @@ class ProgressBadge extends StatelessWidget {
           text,
           style: AppTextStyles.titleSmall.copyWith(
             letterSpacing: -0.28,
-            color: color,
+            color: AppColors.white,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
