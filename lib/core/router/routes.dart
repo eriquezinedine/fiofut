@@ -17,6 +17,7 @@ import 'package:fio_fut/apps/client/features/register/register.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/screens/repose_slider_screen.dart';
 import 'package:fio_fut/apps/client/features/splash/presentation/screens/splash_screen.dart';
 import 'package:fio_fut/apps/client/features/trainer_detail/presentation/screens/trainer_detail_page.dart';
+import 'package:fio_fut/apps/trainer/trainer.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -144,12 +145,11 @@ List<RouteBase> buildRoutes() => [
         },
       ),
 
-      // Trainer (placeholder)
+      // Trainer
       GoRoute(
-        path: AppRoutes.trainer,
-        name: 'trainer',
-        builder: (context, state) =>
-            const PlaceholderScreen(title: 'Trainer'),
+        path: TrainerContentPage.path,
+        name: TrainerContentPage.name,
+        builder: (context, state) => const TrainerContentPage(),
       ),
 
       // Products
