@@ -41,7 +41,7 @@ class AdminHomeRepository {
 
     // Total exercises
     final exercisesResponse =
-        await _client.from('exercises').select('id').count(CountOption.exact);
+        await _client.from('exercise').select('id').count(CountOption.exact);
     final totalExercises = exercisesResponse.count;
 
     // Total meals
@@ -51,7 +51,7 @@ class AdminHomeRepository {
 
     // Exercises this week
     final exercisesWeekResponse = await _client
-        .from('exercises')
+        .from('exercise')
         .select('id')
         .gte('created_at', weekStart.toIso8601String())
         .count(CountOption.exact);

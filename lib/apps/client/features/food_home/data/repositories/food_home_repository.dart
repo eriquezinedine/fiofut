@@ -107,6 +107,7 @@ class FoodHomeRepository {
         ? '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}'
         : null;
 
+    final scheduleId = row['id'] as String;
     final foodId = food['id'] as String;
     final title = food['title'] as String? ?? '';
     final description = food['description'] as String? ?? '';
@@ -139,8 +140,14 @@ class FoodHomeRepository {
     return FoodHomeLoaded(
       mealItem: mealItem,
       foodId: foodId,
+      scheduleId: scheduleId,
       detail: detail,
     );
+  }
+
+  Future<void> deleteFoodSchedule(String scheduleId) async {
+    final supabase = Supabase.instance.client;
+    await supabase.from('food_schedule').delete().eq('id', scheduleId);
   }
 
   /// Converts FoodHomeLoaded items to CachedFood for Isar storage.
@@ -149,7 +156,7 @@ class FoodHomeRepository {
       return CachedFood()
         ..dateKey = dateKey
         ..foodId = item.foodId
-        ..scheduleId = item.mealItem.id
+        ..scheduleId = item.scheduleId ?? ''
         ..name = item.mealItem.name
         ..description = item.mealItem.description
         ..calories = item.mealItem.calories
@@ -179,7 +186,11 @@ class FoodHomeRepository {
         isCompleted: c.isCompleted,
         time: c.time,
       );
-      return FoodHomeLoaded(mealItem: mealItem, foodId: c.foodId);
+      return FoodHomeLoaded(
+        mealItem: mealItem,
+        foodId: c.foodId,
+        scheduleId: c.scheduleId.isNotEmpty ? c.scheduleId : null,
+      );
     }).toList();
   }
 }

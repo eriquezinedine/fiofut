@@ -15,7 +15,7 @@ class ExerciseFormState {
     this.imageUrl = '',
     this.primaryMuscleId,
     this.secondaryMuscleIds = const [],
-    this.exerciseType = ExerciseType.fuerza,
+    this.exerciseType = ExerciseType.strength,
     this.videoUrl = '',
     this.location = ExerciseLocation.both,
     this.isLoading = false,

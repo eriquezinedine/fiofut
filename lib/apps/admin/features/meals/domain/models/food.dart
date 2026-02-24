@@ -54,6 +54,8 @@ class Food {
     required this.typeFood,
     this.description,
     this.createdAt,
+    this.createdBy,
+    this.createdByRole,
     this.ingredients = const [],
   });
 
@@ -62,6 +64,8 @@ class Food {
   final FoodType typeFood;
   final String? description;
   final DateTime? createdAt;
+  final String? createdBy;
+  final String? createdByRole;
   final List<SelectedIngredient> ingredients;
 
   double get totalCalories =>
@@ -83,6 +87,8 @@ class Food {
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
+      createdBy: json['created_by'] as String?,
+      createdByRole: json['created_by_role'] as String?,
       ingredients: ingredients,
     );
   }
@@ -101,6 +107,8 @@ class Food {
     FoodType? typeFood,
     String? description,
     DateTime? createdAt,
+    String? createdBy,
+    String? createdByRole,
     List<SelectedIngredient>? ingredients,
   }) {
     return Food(
@@ -109,6 +117,8 @@ class Food {
       typeFood: typeFood ?? this.typeFood,
       description: description ?? this.description,
       createdAt: createdAt ?? this.createdAt,
+      createdBy: createdBy ?? this.createdBy,
+      createdByRole: createdByRole ?? this.createdByRole,
       ingredients: ingredients ?? this.ingredients,
     );
   }

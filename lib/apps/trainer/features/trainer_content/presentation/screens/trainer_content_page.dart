@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fio_fut/apps/client/features/profile/presentation/screens/profile_screen.dart';
+import 'package:fio_fut/apps/trainer/features/trainer_folders/presentation/screens/trainer_exercise_folders_screen.dart';
+import 'package:fio_fut/apps/trainer/features/trainer_folders/presentation/screens/trainer_food_folders_screen.dart';
 
-import '../../../trainer_food/presentation/screens/trainer_food_list_screen.dart';
 import '../../domain/providers/trainer_bottom_nav_provider.dart';
 import '../widgets/trainer_bottom_nav.dart';
 
@@ -50,7 +51,8 @@ class _TrainerContentPageState extends ConsumerState<TrainerContentPage> {
               controller: _pageController,
               physics: const NeverScrollableScrollPhysics(),
               children: const [
-                TrainerFoodListScreen(),
+                TrainerFoodFoldersScreen(),
+                TrainerExerciseFoldersScreen(),
                 _PlaceholderScreen(title: 'Clientes'),
                 ProfileScreen(),
               ],

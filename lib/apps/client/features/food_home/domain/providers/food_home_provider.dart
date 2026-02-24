@@ -206,6 +206,35 @@ class FoodHomeNotifier extends Notifier<Map<String, List<FoodHomeItem>>> {
     state = {...state, key: items};
   }
 
+  // ── Delete ─────────────────────────────────────────────────
+
+  Future<void> deleteItem(String scheduleId) async {
+    // Optimistic remove from state.
+    final newState = <String, List<FoodHomeItem>>{};
+    for (final entry in state.entries) {
+      newState[entry.key] = entry.value.where((item) {
+        if (item is FoodHomeLoaded) return item.scheduleId != scheduleId;
+        return true;
+      }).toList();
+    }
+    state = newState;
+
+    try {
+      await _repo.deleteFoodSchedule(scheduleId);
+    } catch (e) {
+      // Reload on error to restore state.
+      final weekState = ref.read(weekProvider);
+      if (weekState is WeekLoaded) {
+        final weekNotifier = ref.read(weekProvider.notifier);
+        final weekDays = weekNotifier.getWeekDays(weekState.currentWeekStart);
+        if (weekDays.isNotEmpty) {
+          _fetchedRanges.clear();
+          await loadFoodsForRange(weekDays.first.date, weekDays.last.date);
+        }
+      }
+    }
+  }
+
   // ── Photo flow ──────────────────────────────────────────────
 
   void addLoadingItem(File imageFile) {

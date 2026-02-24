@@ -27,7 +27,12 @@ class ExerciseDetailPage extends ConsumerStatefulWidget {
 }
 
 class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
-  static const _repiteType = RepiteType.byKg;
+  RepiteType get _repiteType => switch (widget.exercise.metricType) {
+        MetricType.weight => RepiteType.byKg,
+        MetricType.distance => RepiteType.byKm,
+        MetricType.time => RepiteType.byKm,
+        MetricType.reps => RepiteType.retryOnly,
+      };
 
   // ── Workout flow state ──────────────────────────────────────────
   bool _isStarted = false;

@@ -106,6 +106,72 @@ class FoodRepository {
     return foods;
   }
 
+  /// Foods created by admins only.
+  Future<List<Food>> getAdminFoods() async {
+    final data = await _client
+        .from('food')
+        .select()
+        .eq('created_by_role', 'admin')
+        .order('created_at', ascending: false);
+
+    final foods = <Food>[];
+    for (final json in data) {
+      final ingredients = await _getIngredientsForFood(json['id'] as String);
+      foods.add(Food.fromJson(json, ingredients: ingredients));
+    }
+    return foods;
+  }
+
+  /// Foods created by a specific user.
+  Future<List<Food>> getFoodsByCreator(String userId) async {
+    final data = await _client
+        .from('food')
+        .select()
+        .eq('created_by', userId)
+        .order('created_at', ascending: false);
+
+    final foods = <Food>[];
+    for (final json in data) {
+      final ingredients = await _getIngredientsForFood(json['id'] as String);
+      foods.add(Food.fromJson(json, ingredients: ingredients));
+    }
+    return foods;
+  }
+
+  /// Search foods filtered by role.
+  Future<List<Food>> searchAdminFoods(String query) async {
+    final data = await _client
+        .from('food')
+        .select()
+        .eq('created_by_role', 'admin')
+        .ilike('title', '%$query%')
+        .order('created_at', ascending: false);
+
+    final foods = <Food>[];
+    for (final json in data) {
+      final ingredients = await _getIngredientsForFood(json['id'] as String);
+      foods.add(Food.fromJson(json, ingredients: ingredients));
+    }
+    return foods;
+  }
+
+  /// Search foods filtered by creator.
+  Future<List<Food>> searchFoodsByCreator(String query, String userId) async {
+    final data = await _client
+        .from('food')
+        .select()
+        .eq('created_by', userId)
+        .ilike('title', '%$query%')
+        .order('created_at', ascending: false);
+
+    final foods = <Food>[];
+    for (final json in data) {
+      final ingredients = await _getIngredientsForFood(json['id'] as String);
+      foods.add(Food.fromJson(json, ingredients: ingredients));
+    }
+    return foods;
+  }
+
   Future<List<SelectedIngredient>> _getIngredientsForFood(
       String foodId) async {
     final data = await _client

@@ -8,13 +8,13 @@ class FoodCard extends StatelessWidget {
   const FoodCard({
     required this.food,
     required this.onTap,
-    required this.onDelete,
+    this.onDelete,
     super.key,
   });
 
   final Food food;
   final VoidCallback onTap;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -67,17 +67,18 @@ class FoodCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                GestureDetector(
-                  onTap: onDelete,
-                  child: const Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Icon(
-                      LucideIcons.trash2,
-                      color: AppColors.textMuted,
-                      size: 18,
+                if (onDelete != null)
+                  GestureDetector(
+                    onTap: onDelete,
+                    child: const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Icon(
+                        LucideIcons.trash2,
+                        color: AppColors.textMuted,
+                        size: 18,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             const SizedBox(height: 12),

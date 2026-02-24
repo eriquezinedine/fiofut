@@ -2,13 +2,13 @@ import 'package:flutter/foundation.dart';
 
 enum ExerciseType {
   cardio,
-  fuerza,
-  flexibilidad;
+  strength,
+  reps;
 
   String get displayName => switch (this) {
         cardio => 'Cardio',
-        fuerza => 'Fuerza',
-        flexibilidad => 'Flexibilidad',
+        strength => 'Fuerza',
+        reps => 'Repeticiones',
       };
 }
 
@@ -55,25 +55,23 @@ class Exercise {
   final DateTime? updatedAt;
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
+    // Support secondary muscles injected from junction table query
+    final secondaryIds = json['_secondary_muscle_ids'] as List<String>? ?? [];
+
     return Exercise(
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String?,
-      imageUrl: json['image_url'] as String?,
-      primaryMuscleId: json['primary_muscle_id'] as String?,
-      secondaryMuscleIds: (json['secondary_muscle_ids'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          [],
-      exerciseType: _parseExerciseType(json['exercise_type'] as String),
-      videoUrl: json['video_url'] as String?,
+      imageUrl: json['url_img_exercise'] as String?,
+      primaryMuscleId: json['id_muscle'] as String?,
+      secondaryMuscleIds: secondaryIds,
+      exerciseType:
+          _parseExerciseType(json['type_exercise'] as String? ?? 'strength'),
+      videoUrl: json['url_video_exercise'] as String? ??
+          json['video_example'] as String?,
       location: _parseLocation(json['location'] as String?),
-      createdBy: json['created_by'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
-          : null,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'] as String)
           : null,
     );
   }
@@ -82,11 +80,10 @@ class Exercise {
     return {
       'name': name,
       'description': description,
-      'image_url': imageUrl,
-      'primary_muscle_id': primaryMuscleId,
-      'secondary_muscle_ids': secondaryMuscleIds,
-      'exercise_type': exerciseType.name,
-      'video_url': videoUrl,
+      'url_img_exercise': imageUrl,
+      'id_muscle': primaryMuscleId,
+      'type_exercise': exerciseType.name,
+      'url_video_exercise': videoUrl,
       'location': location.name,
     };
   }
@@ -124,7 +121,7 @@ class Exercise {
   static ExerciseType _parseExerciseType(String value) {
     return ExerciseType.values.firstWhere(
       (e) => e.name == value,
-      orElse: () => ExerciseType.fuerza,
+      orElse: () => ExerciseType.strength,
     );
   }
 

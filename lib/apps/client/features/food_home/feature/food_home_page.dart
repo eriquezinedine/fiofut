@@ -1,8 +1,11 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../home/domain/models/meal_item.dart';
 import '../../home/presentation/widgets/meal_item_card.dart';
+import '../../register_food/domain/providers/food_provider_detail.dart';
 import '../../register_food/pages/food_detail_page.dart';
 import '../domain/models/food_home_item.dart';
 import '../domain/providers/food_home_provider.dart';
@@ -44,23 +47,10 @@ class FoodHomePage extends ConsumerWidget {
           FoodHomeLoaded(
             :final mealItem,
             :final foodId,
+            :final scheduleId,
             :final detail,
           ) =>
-            MealItemCard(
-              mealItem: mealItem,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => FoodDetailPage(
-                      foodId: foodId,
-                      imageUrl: mealItem.imageUrl,
-                      initialResult: detail,
-                    ),
-                  ),
-                );
-              },
-            ),
+            _buildLoadedCard(context, ref, mealItem, foodId, scheduleId, detail),
           FoodHomeError(:final tempId, :final message) => FoodErrorCard(
               message: message,
               onRetry: () =>
@@ -68,6 +58,90 @@ class FoodHomePage extends ConsumerWidget {
             ),
         };
       },
+    );
+  }
+
+  Widget _buildLoadedCard(
+    BuildContext context,
+    WidgetRef ref,
+    MealItem mealItem,
+    String foodId,
+    String? scheduleId,
+    FoodRecognitionResult? detail,
+  ) {
+    final card = MealItemCard(
+      mealItem: mealItem,
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => FoodDetailPage(
+              foodId: foodId,
+              imageUrl: mealItem.imageUrl,
+              initialResult: detail,
+            ),
+          ),
+        );
+      },
+    );
+
+    if (scheduleId == null) return card;
+
+    return Dismissible(
+      key: ValueKey(scheduleId),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) async {
+        return await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: AppColors.card,
+            title: Text(
+              'Eliminar comida',
+              style: AppTextStyles.bodyLarge.copyWith(color: AppColors.white),
+            ),
+            content: Text(
+              'Se eliminará "${mealItem.name}" de tu plan.',
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: AppColors.textSecondary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(
+                  'Cancelar',
+                  style: AppTextStyles.caption
+                      .copyWith(color: AppColors.textMuted),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(
+                  'Eliminar',
+                  style:
+                      AppTextStyles.caption.copyWith(color: AppColors.error),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      onDismissed: (_) {
+        ref.read(foodHomeProvider.notifier).deleteItem(scheduleId);
+      },
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(
+          color: AppColors.error.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Icon(
+          LucideIcons.trash2,
+          color: AppColors.error,
+          size: 24,
+        ),
+      ),
+      child: card,
     );
   }
 }

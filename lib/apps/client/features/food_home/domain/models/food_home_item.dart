@@ -21,11 +21,15 @@ class FoodHomeLoaded extends FoodHomeItem {
   const FoodHomeLoaded({
     required this.mealItem,
     required this.foodId,
+    this.scheduleId,
     this.detail,
   });
 
   final MealItem mealItem;
   final String foodId;
+
+  /// The food_schedule row id. Needed for delete/update operations.
+  final String? scheduleId;
 
   /// Full detail for FoodDetailPage. Available when loaded from network.
   /// Null when loaded from Isar cache (will fetch on tap).
