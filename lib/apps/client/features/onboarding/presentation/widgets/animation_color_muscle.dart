@@ -13,10 +13,12 @@ class AnimationColorMuscle extends StatefulWidget {
     super.key,
     this.selectedMuscles = const {},
     this.onMuscleTap,
+    this.onSelectionChanged,
   });
 
   final Set<MuscleGroup> selectedMuscles;
   final void Function(MuscleGroup muscle)? onMuscleTap;
+  final ValueChanged<Set<MuscleGroup>>? onSelectionChanged;
 
   @override
   State<AnimationColorMuscle> createState() => _AnimationColorMuscleState();
@@ -26,6 +28,7 @@ class _AnimationColorMuscleState extends State<AnimationColorMuscle>
     with TickerProviderStateMixin {
   late final AnimationController _shimmerController;
   late final Animation<double> _shimmer;
+  late final TabController _tabController;
   late final Set<MuscleGroup> _selected;
 
   // Color transition controllers per muscle
@@ -37,6 +40,7 @@ class _AnimationColorMuscleState extends State<AnimationColorMuscle>
   void initState() {
     super.initState();
     _selected = {...widget.selectedMuscles};
+    _tabController = TabController(length: 2, vsync: this);
     _shimmerController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -53,6 +57,7 @@ class _AnimationColorMuscleState extends State<AnimationColorMuscle>
 
   @override
   void dispose() {
+    _tabController.dispose();
     _shimmerController.dispose();
     for (final c in _colorControllers.values) {
       c.dispose();
@@ -136,6 +141,7 @@ class _AnimationColorMuscleState extends State<AnimationColorMuscle>
     });
     _showToast(muscle, selected: !wasSelected);
     widget.onMuscleTap?.call(muscle);
+    widget.onSelectionChanged?.call(Set.unmodifiable(_selected));
   }
 
   void _showToast(MuscleGroup muscle, {required bool selected}) {
@@ -190,56 +196,92 @@ class _AnimationColorMuscleState extends State<AnimationColorMuscle>
         ..._colorControllers.values,
       ]),
       builder: (context, _) {
-        return PageView(
+        return Column(
           children: [
-            _Item(
-              child: FrontBodyCustomPaint(
-                colors: FrontMuscleColors(
-                  chest: _color(MuscleGroup.chest),
-                  abs: _color(MuscleGroup.abs),
-                  biceps: _color(MuscleGroup.biceps),
-                  obliques: _color(MuscleGroup.obliques),
-                  forearms: _color(MuscleGroup.forearms),
-                  quadriceps: _color(MuscleGroup.quadriceps),
-                  adductors: _color(MuscleGroup.adductors),
-                  abductors: _color(MuscleGroup.abductors),
-                  lateralDeltoid: _color(MuscleGroup.lateralDeltoid),
-                  frontDeltoid: _color(MuscleGroup.frontDeltoid),
+            // Tab bar pill style
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(4),
+              child: TabBar(
+                controller: _tabController,
+                indicator: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                width: 200,
-                onChestTap: () => _onTap(MuscleGroup.chest),
-                onAbsTap: () => _onTap(MuscleGroup.abs),
-                onBicepsTap: () => _onTap(MuscleGroup.biceps),
-                onObliquesTap: () => _onTap(MuscleGroup.obliques),
-                onForearmsTap: () => _onTap(MuscleGroup.forearms),
-                onQuadricepsTap: () => _onTap(MuscleGroup.quadriceps),
-                onAdductorsTap: () => _onTap(MuscleGroup.adductors),
-                onAbductorsTap: () => _onTap(MuscleGroup.abductors),
-                onLateralDeltoidTap: () => _onTap(MuscleGroup.lateralDeltoid),
-                onFrontDeltoidTap: () => _onTap(MuscleGroup.frontDeltoid),
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerColor: Colors.transparent,
+                labelColor: AppColors.white,
+                unselectedLabelColor: AppColors.textSecondary,
+                labelStyle: AppTextStyles.bodySmall.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                unselectedLabelStyle: AppTextStyles.bodySmall,
+                tabs: const [
+                  Tab(text: 'Frontal', height: 36),
+                  Tab(text: 'Espalda', height: 36),
+                ],
               ),
             ),
-            _Item(
-              child: BackBodyCustomPaint(
-                colors: BackMuscleColors(
-                  back: _color(MuscleGroup.back),
-                  traps: _color(MuscleGroup.traps),
-                  lowerBack: _color(MuscleGroup.lowerBack),
-                  glutes: _color(MuscleGroup.glutes),
-                  triceps: _color(MuscleGroup.triceps),
-                  rearDeltoid: _color(MuscleGroup.rearDeltoid),
-                  hamstrings: _color(MuscleGroup.hamstrings),
-                  calves: _color(MuscleGroup.calves),
-                ),
-                width: 200,
-                onBackTap: () => _onTap(MuscleGroup.back),
-                onTrapsTap: () => _onTap(MuscleGroup.traps),
-                onLowerBackTap: () => _onTap(MuscleGroup.lowerBack),
-                onGlutesTap: () => _onTap(MuscleGroup.glutes),
-                onTricepsTap: () => _onTap(MuscleGroup.triceps),
-                onRearDeltoidTap: () => _onTap(MuscleGroup.rearDeltoid),
-                onHamstringsTap: () => _onTap(MuscleGroup.hamstrings),
-                onCalvesTap: () => _onTap(MuscleGroup.calves),
+            const SizedBox(height: 16),
+            // Body views
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _Item(
+                    child: FrontBodyCustomPaint(
+                      colors: FrontMuscleColors(
+                        chest: _color(MuscleGroup.chest),
+                        abs: _color(MuscleGroup.abs),
+                        biceps: _color(MuscleGroup.biceps),
+                        obliques: _color(MuscleGroup.obliques),
+                        forearms: _color(MuscleGroup.forearms),
+                        quadriceps: _color(MuscleGroup.quadriceps),
+                        adductors: _color(MuscleGroup.adductors),
+                        abductors: _color(MuscleGroup.abductors),
+                        lateralDeltoid: _color(MuscleGroup.lateralDeltoid),
+                        frontDeltoid: _color(MuscleGroup.frontDeltoid),
+                      ),
+                      width: 170,
+                      onChestTap: () => _onTap(MuscleGroup.chest),
+                      onAbsTap: () => _onTap(MuscleGroup.abs),
+                      onBicepsTap: () => _onTap(MuscleGroup.biceps),
+                      onObliquesTap: () => _onTap(MuscleGroup.obliques),
+                      onForearmsTap: () => _onTap(MuscleGroup.forearms),
+                      onQuadricepsTap: () => _onTap(MuscleGroup.quadriceps),
+                      onAdductorsTap: () => _onTap(MuscleGroup.adductors),
+                      onAbductorsTap: () => _onTap(MuscleGroup.abductors),
+                      onLateralDeltoidTap: () => _onTap(MuscleGroup.lateralDeltoid),
+                      onFrontDeltoidTap: () => _onTap(MuscleGroup.frontDeltoid),
+                    ),
+                  ),
+                  _Item(
+                    child: BackBodyCustomPaint(
+                      colors: BackMuscleColors(
+                        back: _color(MuscleGroup.back),
+                        traps: _color(MuscleGroup.traps),
+                        lowerBack: _color(MuscleGroup.lowerBack),
+                        glutes: _color(MuscleGroup.glutes),
+                        triceps: _color(MuscleGroup.triceps),
+                        rearDeltoid: _color(MuscleGroup.rearDeltoid),
+                        hamstrings: _color(MuscleGroup.hamstrings),
+                        calves: _color(MuscleGroup.calves),
+                      ),
+                      width: 170,
+                      onBackTap: () => _onTap(MuscleGroup.back),
+                      onTrapsTap: () => _onTap(MuscleGroup.traps),
+                      onLowerBackTap: () => _onTap(MuscleGroup.lowerBack),
+                      onGlutesTap: () => _onTap(MuscleGroup.glutes),
+                      onTricepsTap: () => _onTap(MuscleGroup.triceps),
+                      onRearDeltoidTap: () => _onTap(MuscleGroup.rearDeltoid),
+                      onHamstringsTap: () => _onTap(MuscleGroup.hamstrings),
+                      onCalvesTap: () => _onTap(MuscleGroup.calves),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -256,10 +298,13 @@ class _Item extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        width: 200,
-        child: child,
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8),
+      child: Center(
+        child: SizedBox(
+          width: 200,
+          child: child,
+        ),
       ),
     );
   }
