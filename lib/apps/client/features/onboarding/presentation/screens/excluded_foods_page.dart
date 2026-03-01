@@ -24,8 +24,7 @@ class ExcludedFoodsPage extends ConsumerWidget {
         onPressed: () => notifier.nextStep(),
         text: 'Continuar',
       ),
-      child: Expanded(
-        child: IngredientSearchBody(
+      child: IngredientSearchBody(
           onIngredientTap: (item) {
             if (excludedFoods.contains(item.name)) {
               notifier.removeExcludedFood(item.name);
@@ -38,7 +37,6 @@ class ExcludedFoodsPage extends ConsumerWidget {
             notifier.addExcludedFood(name);
           },
         ),
-      ),
     );
   }
 }

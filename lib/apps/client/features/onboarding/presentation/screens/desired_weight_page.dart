@@ -60,46 +60,52 @@ class _DesiredWeightPageState extends ConsumerState<DesiredWeightPage> {
         },
         text: 'Continuar',
       ),
-      child: Column(
+      child: AppAnimatedColumn(
         children: [
           const SizedBox(height: 20),
           // Goal label
-          Text(
-            _goalLabel,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
+          AppAnimatedEntry(
+            child: Text(
+              _goalLabel,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
           const SizedBox(height: 16),
           // Weight display
-          Column(
-            children: [
-              Text(
-                displayWeight.toStringAsFixed(1),
-                style: AppTextStyles.displayXL,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                isKg ? 'kilogramos' : 'libras',
-                style: AppTextStyles.titleMedium.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
+          AppAnimatedEntry(
+            child: Column(
+              children: [
+                Text(
+                  displayWeight.toStringAsFixed(1),
+                  style: AppTextStyles.displayXL,
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                Text(
+                  isKg ? 'kilogramos' : 'libras',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
           // Slider
-          SliderWeight(
-            value: displayWeight,
-            min: minWeight,
-            max: maxWeight,
-            isKg: isKg,
-            onChanged: (value) {
-              setState(() {
-                _weight = isKg ? value : value / 2.20462;
-              });
-            },
+          AppAnimatedEntry(
+            child: SliderWeight(
+              value: displayWeight,
+              min: minWeight,
+              max: maxWeight,
+              isKg: isKg,
+              onChanged: (value) {
+                setState(() {
+                  _weight = isKg ? value : value / 2.20462;
+                });
+              },
+            ),
           ),
         ],
       ),

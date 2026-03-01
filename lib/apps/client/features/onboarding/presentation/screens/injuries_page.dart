@@ -1,4 +1,8 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/onboarding/presentation/widgets/animation_color_muscle.dart';
+import 'package:fio_fut/apps/client/features/repose/presentation/widgets/muscle_back_front_view.dart';
+import 'package:fio_fut/apps/client/features/repose/presentation/widgets/muscle_custom_painter/back_body_custom_paint.dart';
+import 'package:fio_fut/apps/client/features/repose/presentation/widgets/muscle_custom_painter/front_body_custom_paint.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -36,7 +40,8 @@ class _InjuriesPageState extends ConsumerState<InjuriesPage> {
 
     return OnboardingScaffold(
       progress: state.progress,
-      title: '¿Tienes alguna lesión o\nlimitación física que\ndebamos considerar?',
+      title: 'entrenar?',
+      scrollable: false,
       onBack: () => notifier.previousStep(),
       bottomSection: OnboardingContinueButton(
         onPressed: () {
@@ -46,13 +51,8 @@ class _InjuriesPageState extends ConsumerState<InjuriesPage> {
           notifier.nextStep();
         },
       ),
-      child: Column(
-        children: [
-          AppTextArea(
-            controller: _controller,
-          ),
-        ],
-      ),
+      child: AnimationColorMuscle()
     );
   }
 }
+

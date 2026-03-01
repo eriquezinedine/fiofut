@@ -102,22 +102,30 @@ class _IngredientSearchBodyState extends ConsumerState<IngredientSearchBody>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AppTextField(
-              controller: _searchController,
-              hint: 'Buscar...',
-              prefixIcon: LucideIcons.search,
+            AppAnimatedEntry(
+              child: AppTextField(
+                controller: _searchController,
+                hint: 'Buscar...',
+                prefixIcon: LucideIcons.search,
+              ),
             ),
             const SizedBox(height: 20),
-            IngredientCategoryTabBar(tabController: _tabController),
+            AppAnimatedEntry(child: IngredientCategoryTabBar(tabController: _tabController)),
             const SizedBox(height: 20),
             _buildContent(listState),
             if (_showAddButton(listState)) ...[
               const SizedBox(height: 16),
-              AppButton(
-                text: 'Agregar ingrediente',
-                icon: LucideIcons.plus,
-                onPressed: () => widget.onAddNew?.call(_searchController.text),
-                size: AppButtonSize.large,
+              Center(
+                child: SizedBox(
+                  width: 220,
+                  child: AppButton(
+                    text: 'Agregar ingrediente',
+                    // type: AppButtonType.,
+                    icon: LucideIcons.plus,
+                    onPressed: () => widget.onAddNew?.call(_searchController.text),
+                    size: AppButtonSize.small,
+                  ),
+                ),
               ),
             ],
           ],
@@ -160,7 +168,7 @@ class _IngredientSearchBodyState extends ConsumerState<IngredientSearchBody>
       );
     }
 
-    return Column(
+    return AppAnimatedColumn(
       children: [
         ...listState.ingredients.map((ingredient) {
           final isSelected = widget.selectedNames.contains(ingredient.name);

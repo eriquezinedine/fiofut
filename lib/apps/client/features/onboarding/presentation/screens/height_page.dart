@@ -59,57 +59,69 @@ class _HeightPageState extends ConsumerState<HeightPage> {
       ),
       child: Column(
         children: [
- Row(
+          AppAnimatedColumn(
+            
             children: [
-              Expanded(
-                child: _UnitToggle(
-                  text: 'Centímetros',
-                  isSelected: _isCm,
-                  onTap: () => setState(() => _isCm = true),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _UnitToggle(
-                  text: 'Pies & Pulgadas',
-                  isSelected: !_isCm,
-                  onTap: () => setState(() => _isCm = false),
-                ),
-              ),
-            ],
-          ),
+               AppAnimatedEntry(
+              child: Row(
+                          children: [
+                            Expanded(
+                              child: _UnitToggle(
+                                text: 'Centímetros',
+                                isSelected: _isCm,
+                                onTap: () => setState(() => _isCm = true),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _UnitToggle(
+                                text: 'Pies & Pulgadas',
+                                isSelected: !_isCm,
+                                onTap: () => setState(() => _isCm = false),
+                              ),
+                            ),
+                          ],
+                        ),
+            ),
           const SizedBox(height: 20),
 
           // Display de altura
-          Column(
-            children: [
-              Text(
-                _isCm ? _height.toInt().toString() : _displayHeightText,
-                style: AppTextStyles.displayXL,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _isCm ? 'centímetros' : 'pies & pulgadas',
-                style: AppTextStyles.titleMedium.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
+          AppAnimatedEntry(
+            child: Column(
+              children: [
+                Text(
+                  _isCm ? _height.toInt().toString() : _displayHeightText,
+                  style: AppTextStyles.displayXL,
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                Text(
+                  _isCm ? 'centímetros' : 'pies & pulgadas',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
+            ],
+          ),
+           
           // Slider
           Expanded(
-            child: SliderHeight(
-              value: _displayHeight,
-              min: _minHeight,
-              max: _maxHeight,
-              isCm: _isCm,
-              onChanged: (value) {
-                setState(() {
-                  _height = _isCm ? value : value * 30.48;
-                });
-              },
+            child: AppAnimatedEntry(
+              child: SliderHeight(
+                value: _displayHeight,
+                min: _minHeight,
+                max: _maxHeight,
+                isCm: _isCm,
+                onChanged: (value) {
+                  setState(() {
+                    _height = _isCm ? value : value * 30.48;
+                  });
+                },
+              ),
             ),
           ),
         ],

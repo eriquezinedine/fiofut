@@ -118,22 +118,31 @@ class OnboardingScaffold extends StatelessWidget {
           const SizedBox(width: 16),
           if (progress != null)
             Expanded(
-              child: Container(
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-                child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
-                  widthFactor: progress!.clamp(0.0, 1.0),
-                  child: Container(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Container(
+                    height: 4,
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: AppColors.surface,
                       borderRadius: BorderRadius.circular(2),
                     ),
-                  ),
-                ),
+                    alignment: Alignment.centerLeft,
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(end: progress!.clamp(0.0, 1.0)),
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      builder: (context, value, child) {
+                        return Container(
+                          width: constraints.maxWidth * value,
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
             )
           else

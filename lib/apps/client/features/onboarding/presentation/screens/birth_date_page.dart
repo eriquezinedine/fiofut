@@ -131,16 +131,18 @@ class _BirthDatePageState extends ConsumerState<BirthDatePage> {
             ),
             // Year column
             Expanded(
-              child: _buildPickerColumn(
-                controller: _yearController,
-                itemCount: _maxYear - _minYear + 1,
-                selectedIndex: _selectedYear - _minYear,
-                itemBuilder: (index) => '${_minYear + index}',
-                onSelectedItemChanged: (index) {
-                  setState(() {
-                    _selectedYear = _minYear + index;
-                  });
-                },
+              child: AppAnimatedEntry(
+                child: _buildPickerColumn(
+                  controller: _yearController,
+                  itemCount: _maxYear - _minYear + 1,
+                  selectedIndex: _selectedYear - _minYear,
+                  itemBuilder: (index) => '${_minYear + index}',
+                  onSelectedItemChanged: (index) {
+                    setState(() {
+                      _selectedYear = _minYear + index;
+                    });
+                  },
+                ),
               ),
             ),
           ],

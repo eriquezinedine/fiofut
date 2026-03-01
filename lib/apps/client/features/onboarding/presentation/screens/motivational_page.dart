@@ -31,42 +31,50 @@ class MotivationalPage extends ConsumerWidget {
         children: [
           const SizedBox(height: 40),
           // Main motivational text
-          Column(
+          AppAnimatedColumn(
             children: [
-              Text(
-                'Perdiendo',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.h2,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '$weightDiff kg',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.h1.copyWith(
-                  color: AppColors.orange,
-                  fontWeight: FontWeight.w800,
+              AppAnimatedEntry(
+                child: Text(
+                  'Perdiendo',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.h2,
                 ),
               ),
               const SizedBox(height: 8),
-              SizedBox(
-                width: 320,
+              AppAnimatedEntry(
                 child: Text(
-                  'es un objetivo realista.\n¡No es difícil en absoluto!',
+                  '$weightDiff kg',
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.h2.copyWith(
-                    height: 1.3,
+                  style: AppTextStyles.h1.copyWith(
+                    color: AppColors.orange,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              AppAnimatedEntry(
+                child: SizedBox(
+                  width: 320,
+                  child: Text(
+                    'es un objetivo realista.\n¡No es difícil en absoluto!',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.h2.copyWith(
+                      height: 1.3,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              SizedBox(
-                width: 320,
-                child: Text(
-                  'El 90% de los usuarios dice que el\ncambio es obvio después de usar Cal AI y\nno es fácil recaer',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.textSecondary,
-                    height: 1.5,
+              AppAnimatedEntry(
+                child: SizedBox(
+                  width: 320,
+                  child: Text(
+                    'El 90% de los usuarios dice que el\ncambio es obvio después de usar Cal AI y\nno es fácil recaer',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                      height: 1.5,
+                    ),
                   ),
                 ),
               ),

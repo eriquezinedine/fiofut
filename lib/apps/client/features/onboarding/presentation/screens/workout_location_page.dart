@@ -78,7 +78,7 @@ class _LocationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomGestureDetector(
+    return AppAnimatedEntry(
       onTap: onTap,
       child: Container(
         height: 180,

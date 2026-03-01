@@ -51,7 +51,7 @@ class _ReferralCodePageState extends ConsumerState<ReferralCodePage> {
       child: Column(
         children: [
           const SizedBox(height: 20),
-          AppInputWithAction(
+          AppInput(
             controller: _controller,
             hint: 'Código de referencia',
             actionText: 'Enviar',

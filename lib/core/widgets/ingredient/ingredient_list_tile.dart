@@ -16,7 +16,7 @@ class IngredientListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomGestureDetector(
+    return AppAnimatedEntry(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),

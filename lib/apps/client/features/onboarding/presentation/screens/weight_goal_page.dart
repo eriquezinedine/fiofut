@@ -28,7 +28,7 @@ class WeightGoalPage extends ConsumerWidget {
         isEnabled: selectedGoal != null,
         backgroundColor: selectedGoal?.getColor(),
       ),
-      child: Column(
+      child: AppAnimatedColumn(
         children: [
           _GoalOptionCard(
             icon: LucideIcons.trendingDown,
@@ -91,7 +91,7 @@ class _GoalOptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomGestureDetector(
+    return AppAnimatedEntry(
       onTap: onTap,
       child: Container(
         width: double.infinity,

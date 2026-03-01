@@ -26,7 +26,7 @@ class GenderPage extends ConsumerWidget {
         isEnabled: selectedGender != null,
         backgroundColor: selectedGender?.getColor(),
       ),
-      child: Column(
+      child: AppAnimatedColumn(
         children: [
           const SizedBox(height: 8),
           _GenderCard(
@@ -71,7 +71,6 @@ class _GenderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // return CustomGestureDetector(
     return TapScaleAnimation(
       onTap: onTap,
       child: Container(
