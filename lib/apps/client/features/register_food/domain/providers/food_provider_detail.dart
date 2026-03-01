@@ -92,6 +92,9 @@ class FoodRecognitionResult {
     required this.typeFood,
     required this.imageUrl,
     required this.ingredients,
+    this.linkYoutube,
+    this.linkTiktok,
+    this.linkInstagram,
   });
 
   final String id;
@@ -100,6 +103,9 @@ class FoodRecognitionResult {
   final String typeFood;
   final String imageUrl;
   final List<RecognizedIngredient> ingredients;
+  final String? linkYoutube;
+  final String? linkTiktok;
+  final String? linkInstagram;
 
   double get totalCalories =>
       ingredients.fold(0, (sum, i) => sum + i.totalCalories);
@@ -109,7 +115,12 @@ class FoodRecognitionResult {
       ingredients.fold(0, (sum, i) => sum + i.totalCarbohydrates);
   double get totalFat => ingredients.fold(0, (sum, i) => sum + i.totalFat);
 
-  FoodRecognitionResult copyWith({List<RecognizedIngredient>? ingredients}) {
+  FoodRecognitionResult copyWith({
+    List<RecognizedIngredient>? ingredients,
+    String? linkYoutube,
+    String? linkTiktok,
+    String? linkInstagram,
+  }) {
     return FoodRecognitionResult(
       id: id,
       title: title,
@@ -117,6 +128,9 @@ class FoodRecognitionResult {
       typeFood: typeFood,
       imageUrl: imageUrl,
       ingredients: ingredients ?? this.ingredients,
+      linkYoutube: linkYoutube ?? this.linkYoutube,
+      linkTiktok: linkTiktok ?? this.linkTiktok,
+      linkInstagram: linkInstagram ?? this.linkInstagram,
     );
   }
 
@@ -141,6 +155,9 @@ class FoodRecognitionResult {
       ingredients: ingredientsJson
           .map((e) => RecognizedIngredient.fromJson(e as Map<String, dynamic>))
           .toList(),
+      linkYoutube: foodJson['link_youtube'] as String?,
+      linkTiktok: foodJson['link_tiktok'] as String?,
+      linkInstagram: foodJson['link_instagram'] as String?,
     );
   }
 }
@@ -394,6 +411,7 @@ class FoodDetailNotifier extends AutoDisposeNotifier<FoodDetailState> {
           .from('food')
           .select('''
             id, title, description, type_food, image_url,
+            link_youtube, link_tiktok, link_instagram,
             detail_food_ingredient (
               id, quantity,
               ingredient:id_ingredient (
@@ -434,6 +452,9 @@ class FoodDetailNotifier extends AutoDisposeNotifier<FoodDetailState> {
           typeFood: food['type_food'] as String? ?? 'snack',
           imageUrl: food['image_url'] as String? ?? '',
           ingredients: ingredients,
+          linkYoutube: food['link_youtube'] as String?,
+          linkTiktok: food['link_tiktok'] as String?,
+          linkInstagram: food['link_instagram'] as String?,
         ),
       );
     } catch (e) {

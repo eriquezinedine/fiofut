@@ -1,13 +1,20 @@
+import 'dart:io';
+
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import 'package:fio_fut/apps/admin/features/meals/domain/models/food.dart';
+import 'package:fio_fut/apps/admin/features/meals/presentation/screens/food_form_screen.dart';
 import 'package:fio_fut/apps/admin/features/meals/presentation/widgets/food_card.dart';
 import 'package:fio_fut/apps/client/features/register_food/pages/food_detail_page.dart';
 
+import '../../domain/providers/trainer_food_creation_provider.dart';
 import '../../domain/providers/trainer_food_provider.dart';
+import '../widgets/food_creation_options_sheet.dart';
+import 'youtube_food_screen.dart';
 
 class TrainerFoodListScreen extends ConsumerStatefulWidget {
   const TrainerFoodListScreen({super.key});
@@ -20,6 +27,7 @@ class TrainerFoodListScreen extends ConsumerStatefulWidget {
 class _TrainerFoodListScreenState extends ConsumerState<TrainerFoodListScreen>
     with SingleTickerProviderStateMixin {
   final _searchController = TextEditingController();
+  final _picker = ImagePicker();
   late TabController _tabController;
   TrainerFoodTab _currentTab = TrainerFoodTab.app;
 
@@ -54,8 +62,39 @@ class _TrainerFoodListScreenState extends ConsumerState<TrainerFoodListScreen>
   Widget build(BuildContext context) {
     final foodState = ref.watch(trainerFoodProvider);
 
+    ref.listen(trainerFoodCreationProvider, (prev, next) {
+      if (next is TrainerFoodCreationSuccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${next.foodTitle} registrada'),
+            backgroundColor: AppColors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      } else if (next is TrainerFoodCreationError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.message),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primary,
+        onPressed: _showCreationOptions,
+        child: const Icon(LucideIcons.plus, color: AppColors.black),
+      ),
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -178,6 +217,60 @@ class _TrainerFoodListScreenState extends ConsumerState<TrainerFoodListScreen>
         ),
       ),
     );
+  }
+
+  void _showCreationOptions() {
+    showModalBottomSheet<FoodCreationOption>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const FoodCreationOptionsSheet(),
+    ).then((option) {
+      if (option == null || !mounted) return;
+      switch (option) {
+        case FoodCreationOption.photo:
+          _createFromPhoto();
+        case FoodCreationOption.youtube:
+          _createFromYouTube();
+        case FoodCreationOption.manual:
+          _createManual();
+      }
+    });
+  }
+
+  Future<void> _createFromPhoto() async {
+    final xFile = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 60,
+      maxWidth: 1024,
+    );
+    if (xFile == null || !mounted) return;
+    ref
+        .read(trainerFoodCreationProvider.notifier)
+        .createFromPhoto(File(xFile.path));
+  }
+
+  void _createFromYouTube() {
+    Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const YouTubeFoodScreen()),
+    ).then((created) {
+      if (created == true && mounted) {
+        ref.read(trainerFoodProvider.notifier).loadAll();
+      }
+    });
+  }
+
+  void _createManual() {
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const FoodFormScreen(creatorRole: 'trainer'),
+      ),
+    ).then((_) {
+      if (mounted) {
+        ref.read(trainerFoodProvider.notifier).loadAll();
+      }
+    });
   }
 
   void _openFoodDetail(Food food) {

@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../ingredients/data/repositories/ingredients_repository.dart';
 import '../../../ingredients/domain/models/ingredient.dart';
@@ -19,6 +22,9 @@ class FoodFormState {
     this.isLoading = false,
     this.errorMessage,
     this.editingId,
+    this.imageUrl,
+    this.imageFile,
+    this.isUploadingImage = false,
   });
 
   final String title;
@@ -28,10 +34,14 @@ class FoodFormState {
   final bool isLoading;
   final String? errorMessage;
   final String? editingId;
+  final String? imageUrl;
+  final File? imageFile;
+  final bool isUploadingImage;
 
   bool get isValid =>
       title.trim().isNotEmpty && selectedIngredients.isNotEmpty;
   bool get isEditing => editingId != null;
+  bool get hasImage => imageUrl != null || imageFile != null;
 
   double get totalCalories =>
       selectedIngredients.fold(0, (sum, i) => sum + i.calories);
@@ -50,6 +60,11 @@ class FoodFormState {
     bool? isLoading,
     String? errorMessage,
     String? editingId,
+    String? imageUrl,
+    File? imageFile,
+    bool? isUploadingImage,
+    bool clearImageUrl = false,
+    bool clearImageFile = false,
   }) {
     return FoodFormState(
       title: title ?? this.title,
@@ -59,6 +74,9 @@ class FoodFormState {
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
       editingId: editingId ?? this.editingId,
+      imageUrl: clearImageUrl ? null : (imageUrl ?? this.imageUrl),
+      imageFile: clearImageFile ? null : (imageFile ?? this.imageFile),
+      isUploadingImage: isUploadingImage ?? this.isUploadingImage,
     );
   }
 }
@@ -80,6 +98,7 @@ class FoodFormNotifier extends Notifier<FoodFormState> {
       typeFood: food.typeFood,
       selectedIngredients: food.ingredients,
       editingId: food.id,
+      imageUrl: food.imageUrl,
     );
   }
 
@@ -91,6 +110,24 @@ class FoodFormNotifier extends Notifier<FoodFormState> {
 
   void updateFoodType(FoodType value) =>
       state = state.copyWith(typeFood: value);
+
+  void setImageUrl(String url) {
+    state = state.copyWith(
+      imageUrl: url.trim().isEmpty ? null : url.trim(),
+      clearImageFile: true,
+    );
+  }
+
+  void setImageFile(File file) {
+    state = state.copyWith(
+      imageFile: file,
+      clearImageUrl: true,
+    );
+  }
+
+  void removeImage() {
+    state = state.copyWith(clearImageUrl: true, clearImageFile: true);
+  }
 
   void addIngredient(Ingredient ingredient, double quantity) {
     final exists = state.selectedIngredients
@@ -152,7 +189,7 @@ class FoodFormNotifier extends Notifier<FoodFormState> {
     }
   }
 
-  Future<bool> save() async {
+  Future<bool> save({String? creatorRole}) async {
     if (state.title.trim().isEmpty) {
       state = state.copyWith(errorMessage: 'El titulo es requerido');
       return false;
@@ -167,6 +204,24 @@ class FoodFormNotifier extends Notifier<FoodFormState> {
     state = state.copyWith(isLoading: true);
 
     try {
+      final supabase = Supabase.instance.client;
+      final userId = supabase.auth.currentUser?.id;
+
+      // Upload image file if needed
+      String? finalImageUrl = state.imageUrl;
+      if (state.imageFile != null) {
+        state = state.copyWith(isUploadingImage: true);
+        final ext = state.imageFile!.path.split('.').last;
+        final fileName =
+            '${DateTime.now().millisecondsSinceEpoch}.$ext';
+        final path = '$userId/$fileName';
+        await supabase.storage
+            .from('food-images')
+            .upload(path, state.imageFile!);
+        finalImageUrl =
+            supabase.storage.from('food-images').getPublicUrl(path);
+      }
+
       final repo = ref.read(foodRepositoryProvider);
       final food = Food(
         id: state.editingId ?? '',
@@ -175,6 +230,9 @@ class FoodFormNotifier extends Notifier<FoodFormState> {
         description: state.description.trim().isEmpty
             ? null
             : state.description.trim(),
+        imageUrl: finalImageUrl,
+        createdBy: state.isEditing ? null : userId,
+        createdByRole: state.isEditing ? null : creatorRole,
       );
 
       if (state.isEditing) {
@@ -184,11 +242,12 @@ class FoodFormNotifier extends Notifier<FoodFormState> {
         await repo.createFood(food, state.selectedIngredients);
       }
 
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isLoading: false, isUploadingImage: false);
       return true;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
+        isUploadingImage: false,
         errorMessage: e.toString(),
       );
       return false;

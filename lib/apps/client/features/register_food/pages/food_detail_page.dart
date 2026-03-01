@@ -6,6 +6,7 @@ import 'package:fio_fut/apps/client/features/food_home/domain/providers/food_hom
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/widgets/modal/delete_ingredient_modal.dart';
 import '../../../../../core/widgets/modal/edit_ingredient_modal.dart';
@@ -182,6 +183,7 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
         ],
         const SizedBox(height: AppSpacing.lg),
         FoodNutritionCard(result: result),
+        _buildSourceChips(result),
         const SizedBox(height: AppSpacing.lg),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -226,6 +228,55 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
         ),
       ],
     );
+  }
+
+  // ── Source Chips ──────────────────────────────────────────────
+
+  Widget _buildSourceChips(FoodRecognitionResult result) {
+    final hasYoutube = result.linkYoutube != null;
+    final hasTiktok = result.linkTiktok != null;
+    final hasInstagram = result.linkInstagram != null;
+
+    if (!hasYoutube && !hasTiktok && !hasInstagram) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.md),
+      child: Wrap(
+        spacing: AppSpacing.sm,
+        children: [
+          if (hasYoutube)
+            _SourceChip(
+              label: 'YouTube',
+              icon: LucideIcons.youtube,
+              color: const Color(0xFFFF0000),
+              onTap: () => _openUrl(result.linkYoutube!),
+            ),
+          if (hasTiktok)
+            _SourceChip(
+              label: 'TikTok',
+              icon: LucideIcons.music2,
+              color: AppColors.white,
+              onTap: () => _openUrl(result.linkTiktok!),
+            ),
+          if (hasInstagram)
+            _SourceChip(
+              label: 'Instagram',
+              icon: LucideIcons.instagram,
+              color: const Color(0xFFE1306C),
+              onTap: () => _openUrl(result.linkInstagram!),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   // ── Save ───────────────────────────────────────────────────────
@@ -343,6 +394,48 @@ class _FoodDetailPageState extends ConsumerState<FoodDetailPage> {
           }
         }
       },
+    );
+  }
+}
+
+class _SourceChip extends StatelessWidget {
+  const _SourceChip({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 16),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: AppTextStyles.small.copyWith(
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

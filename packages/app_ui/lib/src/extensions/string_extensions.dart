@@ -24,6 +24,20 @@ extension StringExtensions on String {
     return double.tryParse(this) != null;
   }
 
+  bool get isYouTubeUrl {
+    final regex = RegExp(
+      r'^https?://(www\.)?(youtube\.com|youtu\.be)/',
+    );
+    return regex.hasMatch(trim());
+  }
+
+  bool get isYouTubeShort {
+    final regex = RegExp(
+      r'^https?://(www\.)?youtube\.com/shorts/[a-zA-Z0-9_-]+',
+    );
+    return regex.hasMatch(trim());
+  }
+
   // ============== Transformation ==============
   String get capitalize {
     if (isEmpty) return this;

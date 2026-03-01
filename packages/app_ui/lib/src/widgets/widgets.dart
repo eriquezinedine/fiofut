@@ -7,3 +7,4 @@ export 'app_error_widget.dart';
 export 'app_cached_image.dart';
 export 'custom_gesture_detector.dart';
 export 'custom_ruler_widget/widget.dart';
+export 'animations/animations.dart';

@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../ingredients/domain/models/ingredient.dart';
@@ -17,9 +20,10 @@ class FoodFormScreen extends ConsumerStatefulWidget {
   static const String pathNew = '/admin/food/new';
   static const String pathEdit = '/admin/food/:id';
 
-  const FoodFormScreen({this.foodId, super.key});
+  const FoodFormScreen({this.foodId, this.creatorRole, super.key});
 
   final String? foodId;
+  final String? creatorRole;
 
   @override
   ConsumerState<FoodFormScreen> createState() => _FoodFormScreenState();
@@ -28,12 +32,16 @@ class FoodFormScreen extends ConsumerStatefulWidget {
 class _FoodFormScreenState extends ConsumerState<FoodFormScreen> {
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
+  late final TextEditingController _imageUrlController;
+  final _picker = ImagePicker();
+  bool _showUrlField = false;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController();
     _descriptionController = TextEditingController();
+    _imageUrlController = TextEditingController();
 
     Future.microtask(() async {
       final notifier = ref.read(foodFormProvider.notifier);
@@ -45,6 +53,9 @@ class _FoodFormScreenState extends ConsumerState<FoodFormScreen> {
         notifier.loadFood(food);
         _titleController.text = food.title;
         _descriptionController.text = food.description ?? '';
+        if (food.imageUrl != null) {
+          _imageUrlController.text = food.imageUrl!;
+        }
       }
     });
   }
@@ -53,6 +64,7 @@ class _FoodFormScreenState extends ConsumerState<FoodFormScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _imageUrlController.dispose();
     super.dispose();
   }
 
@@ -78,6 +90,10 @@ class _FoodFormScreenState extends ConsumerState<FoodFormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Image section
+            _buildImageSection(formState),
+            const SizedBox(height: 20),
+
             // Title
             AppTextField(
               controller: _titleController,
@@ -355,6 +371,262 @@ class _FoodFormScreenState extends ConsumerState<FoodFormScreen> {
     );
   }
 
+  // ── Image Section ─────────────────────────────────────────────
+
+  Widget _buildImageSection(FoodFormState formState) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Imagen (opcional)',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Preview
+        ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: AspectRatio(
+            aspectRatio: 4 / 3,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (formState.imageFile != null)
+                  Image.file(formState.imageFile!, fit: BoxFit.cover)
+                else if (formState.imageUrl != null &&
+                    formState.imageUrl!.isNotEmpty)
+                  Image.network(
+                    formState.imageUrl!,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (_, child, progress) {
+                      if (progress == null) return child;
+                      return Container(
+                        color: AppColors.card,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primary,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (_, __, ___) => Container(
+                      color: AppColors.card,
+                      child: const Center(
+                        child: Icon(LucideIcons.imageOff,
+                            color: AppColors.textMuted, size: 32),
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    color: AppColors.card,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(LucideIcons.image,
+                            color: AppColors.textMuted, size: 40),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Agregar imagen',
+                          style: AppTextStyles.caption
+                              .copyWith(color: AppColors.textMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Remove button
+                if (formState.hasImage)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: () {
+                        ref.read(foodFormProvider.notifier).removeImage();
+                        _imageUrlController.clear();
+                        setState(() => _showUrlField = false);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.black.withValues(alpha: 0.6),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(LucideIcons.x,
+                            color: AppColors.white, size: 16),
+                      ),
+                    ),
+                  ),
+
+                // Upload indicator
+                if (formState.isUploadingImage)
+                  Container(
+                    color: AppColors.black.withValues(alpha: 0.5),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Action buttons
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: _showImagePickerOptions,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.surface),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(LucideIcons.camera,
+                          color: AppColors.textSecondary, size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Foto',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _showUrlField = !_showUrlField),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: _showUrlField
+                        ? AppColors.primary.withValues(alpha: 0.15)
+                        : AppColors.card,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _showUrlField
+                          ? AppColors.primary
+                          : AppColors.surface,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(LucideIcons.link,
+                          color: _showUrlField
+                              ? AppColors.primary
+                              : AppColors.textSecondary,
+                          size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Pegar URL',
+                        style: AppTextStyles.caption.copyWith(
+                          color: _showUrlField
+                              ? AppColors.primary
+                              : AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // URL field
+        if (_showUrlField) ...[
+          const SizedBox(height: 10),
+          AppTextField(
+            controller: _imageUrlController,
+            label: '',
+            hint: 'https://ejemplo.com/imagen.jpg',
+            onChanged: ref.read(foodFormProvider.notifier).setImageUrl,
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              _ImagePickerOption(
+                icon: LucideIcons.camera,
+                label: 'Camara',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              const SizedBox(height: 8),
+              _ImagePickerOption(
+                icon: LucideIcons.image,
+                label: 'Galeria',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final xFile = await _picker.pickImage(
+      source: source,
+      imageQuality: 60,
+      maxWidth: 1024,
+    );
+    if (xFile == null || !mounted) return;
+    ref.read(foodFormProvider.notifier).setImageFile(File(xFile.path));
+    _imageUrlController.clear();
+    setState(() => _showUrlField = false);
+  }
+
+  // ── Ingredients ─────────────────────────────────────────────
+
   void _showIngredientSelector(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -614,7 +886,9 @@ class _FoodFormScreenState extends ConsumerState<FoodFormScreen> {
   }
 
   Future<void> _save() async {
-    final success = await ref.read(foodFormProvider.notifier).save();
+    final success = await ref
+        .read(foodFormProvider.notifier)
+        .save(creatorRole: widget.creatorRole);
     if (success && mounted) {
       ref.read(foodProvider.notifier).loadFoods();
       Navigator.of(context).pop();
@@ -842,6 +1116,46 @@ class _ConfirmRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ImagePickerOption extends StatelessWidget {
+  const _ImagePickerOption({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.textSecondary, size: 22),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.white,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

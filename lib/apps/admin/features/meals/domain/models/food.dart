@@ -53,6 +53,7 @@ class Food {
     required this.title,
     required this.typeFood,
     this.description,
+    this.imageUrl,
     this.createdAt,
     this.createdBy,
     this.createdByRole,
@@ -63,6 +64,7 @@ class Food {
   final String title;
   final FoodType typeFood;
   final String? description;
+  final String? imageUrl;
   final DateTime? createdAt;
   final String? createdBy;
   final String? createdByRole;
@@ -84,6 +86,7 @@ class Food {
       title: json['title'] as String,
       typeFood: _parseFoodType(json['type_food'] as String),
       description: json['description'] as String?,
+      imageUrl: json['image_url'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -98,6 +101,9 @@ class Food {
       'title': title,
       'type_food': typeFood.name,
       'description': description,
+      if (imageUrl != null) 'image_url': imageUrl,
+      if (createdBy != null) 'created_by': createdBy,
+      if (createdByRole != null) 'created_by_role': createdByRole,
     };
   }
 
@@ -106,6 +112,7 @@ class Food {
     String? title,
     FoodType? typeFood,
     String? description,
+    String? imageUrl,
     DateTime? createdAt,
     String? createdBy,
     String? createdByRole,
@@ -116,6 +123,7 @@ class Food {
       title: title ?? this.title,
       typeFood: typeFood ?? this.typeFood,
       description: description ?? this.description,
+      imageUrl: imageUrl ?? this.imageUrl,
       createdAt: createdAt ?? this.createdAt,
       createdBy: createdBy ?? this.createdBy,
       createdByRole: createdByRole ?? this.createdByRole,

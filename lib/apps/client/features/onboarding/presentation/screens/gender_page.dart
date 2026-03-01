@@ -71,7 +71,8 @@ class _GenderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomGestureDetector(
+    // return CustomGestureDetector(
+    return TapScaleAnimation(
       onTap: onTap,
       child: Container(
         width: double.infinity,
