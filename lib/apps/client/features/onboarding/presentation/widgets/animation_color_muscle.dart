@@ -1,8 +1,12 @@
+import 'dart:ui';
+
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/widgets/muscle_custom_painter/back_body_custom_paint.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/widgets/muscle_custom_painter/front_body_custom_paint.dart';
+import 'package:fio_fut/core/extension/muscle_group_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:model/model.dart';
+import 'package:zentoast/zentoast.dart';
 
 class AnimationColorMuscle extends StatefulWidget {
   const AnimationColorMuscle({
@@ -19,34 +23,99 @@ class AnimationColorMuscle extends StatefulWidget {
 }
 
 class _AnimationColorMuscleState extends State<AnimationColorMuscle>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+    with TickerProviderStateMixin {
+  late final AnimationController _shimmerController;
   late final Animation<double> _shimmer;
   late final Set<MuscleGroup> _selected;
+
+  // Color transition controllers per muscle
+  final Map<MuscleGroup, AnimationController> _colorControllers = {};
+  final Map<MuscleGroup, Animation<Color?>> _colorAnimations = {};
+
 
   @override
   void initState() {
     super.initState();
     _selected = {...widget.selectedMuscles};
-    _controller = AnimationController(
+    _shimmerController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
     _shimmer = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _shimmerController, curve: Curves.easeInOut),
     );
+
+    // Init color controllers for already selected muscles
+    for (final muscle in _selected) {
+      _createColorController(muscle, selected: true, animate: false);
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _shimmerController.dispose();
+    for (final c in _colorControllers.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 
-  Color _color(MuscleGroup muscle) {
-    if (_selected.contains(muscle)) {
-      return AppColors.primary;
+  void _createColorController(
+    MuscleGroup muscle, {
+    required bool selected,
+    bool animate = true,
+  }) {
+    _colorControllers[muscle]?.dispose();
+
+    final controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+    _colorControllers[muscle] = controller;
+
+    final shimmerColor = Color.lerp(
+      AppColors.muscleDefaultColor.withValues(alpha: 0.45),
+      AppColors.white.withValues(alpha: 0.8),
+      _shimmer.value,
+    )!;
+
+    if (selected) {
+      _colorAnimations[muscle] = ColorTween(
+        begin: shimmerColor,
+        end: AppColors.primary,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
+    } else {
+      _colorAnimations[muscle] = ColorTween(
+        begin: AppColors.primary,
+        end: shimmerColor,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
+      controller.addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _colorControllers[muscle]?.dispose();
+          _colorControllers.remove(muscle);
+          _colorAnimations.remove(muscle);
+        }
+      });
     }
+
+    if (animate) {
+      controller.forward();
+    } else {
+      controller.value = 1;
+    }
+  }
+
+  Color _color(MuscleGroup muscle) {
+    final anim = _colorAnimations[muscle];
+    if (anim != null) {
+      final controller = _colorControllers[muscle];
+      if (controller != null && controller.isAnimating) {
+        return anim.value ?? AppColors.muscleDefaultColor;
+      }
+      if (_selected.contains(muscle)) return AppColors.primary;
+    }
+    if (_selected.contains(muscle)) return AppColors.primary;
+
     return Color.lerp(
       AppColors.muscleDefaultColor.withValues(alpha: 0.45),
       AppColors.white.withValues(alpha: 0.8),
@@ -55,20 +124,71 @@ class _AnimationColorMuscleState extends State<AnimationColorMuscle>
   }
 
   void _onTap(MuscleGroup muscle) {
+    final wasSelected = _selected.contains(muscle);
     setState(() {
-      if (_selected.contains(muscle)) {
+      if (wasSelected) {
         _selected.remove(muscle);
+        _createColorController(muscle, selected: false);
       } else {
         _selected.add(muscle);
+        _createColorController(muscle, selected: true);
       }
     });
+    _showToast(muscle, selected: !wasSelected);
     widget.onMuscleTap?.call(muscle);
+  }
+
+  void _showToast(MuscleGroup muscle, {required bool selected}) {
+    final color = selected ? AppColors.primary : AppColors.error;
+    final icon = selected
+        ? Icons.check_circle_rounded
+        : Icons.remove_circle_rounded;
+
+    Toast(
+      height: 40,
+      category: selected ? ToastCategory.success : ToastCategory.error,
+      builder: (toast) => Material(
+        color: Colors.transparent,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: color.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: color, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    muscle.getLabel,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ).show(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _shimmer,
+      animation: Listenable.merge([
+        _shimmer,
+        ..._colorControllers.values,
+      ]),
       builder: (context, _) {
         return PageView(
           children: [

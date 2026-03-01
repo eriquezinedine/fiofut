@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:zentoast/zentoast.dart';
 
 import 'core/core.dart';
 
@@ -50,11 +51,44 @@ class FioFutApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
 
-    return MaterialApp.router(
-      title: 'FioFut',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
-      routerConfig: router,
+    return ToastProvider.create(
+      child: MaterialApp.router(
+        title: 'FioFut',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.dark,
+        routerConfig: router,
+        builder: (context, child) {
+          return Stack(
+            children: [
+              Positioned.fill(child: child ?? const SizedBox()),
+              // Top: success/general toasts
+              SafeArea(
+                child: ToastViewer(
+                  alignment: Alignment.topCenter,
+                  delay: const Duration(seconds: 2),
+                  visibleCount: 1,
+                  // categories: const [
+                  //   ToastCategory.success,
+                  //   ToastCategory.general,
+                  // ],
+                ),
+              ),
+              // Bottom: error/warning toasts
+              // SafeArea(
+              //   child: ToastViewer(
+              //     alignment: Alignment.bottomCenter,
+              //     delay: const Duration(seconds: 3),
+              //     visibleCount: 3,
+              //     categories: const [
+              //       ToastCategory.error,
+              //       ToastCategory.warning,
+              //     ],
+              //   ),
+              // ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
