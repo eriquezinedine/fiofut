@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +9,7 @@ import '../../home/domain/models/meal_item.dart';
 import '../../home/presentation/widgets/meal_item_card.dart';
 import '../../register_food/domain/providers/food_provider_detail.dart';
 import '../../register_food/pages/food_detail_page.dart';
+import '../../search_food/pages/search_food_page.dart';
 import '../domain/models/food_home_item.dart';
 import '../domain/providers/food_home_provider.dart';
 import '../widgets/food_error_card.dart';
@@ -22,13 +25,42 @@ class FoodHomePage extends ConsumerWidget {
     final items = ref.watch(currentDateFoodItemsProvider);
 
     if (items.isEmpty) {
-      return Center(
-        child: Text(
-          'No hay elementos para mostrar',
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 14,
-            color: AppColors.textMuted,
+      return Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SearchFoodPage()),
+            ),
+            child: CustomPaint(
+              painter: _DashedBorderPainter(
+                color: AppColors.textMuted,
+                borderRadius: 16,
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      LucideIcons.plus,
+                      color: AppColors.textMuted,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Buscar alimento',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       );
@@ -144,4 +176,43 @@ class FoodHomePage extends ConsumerWidget {
       child: card,
     );
   }
+}
+
+class _DashedBorderPainter extends CustomPainter {
+  _DashedBorderPainter({
+    required this.color,
+    required this.borderRadius,
+  });
+
+  final Color color;
+  final double borderRadius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Radius.circular(borderRadius),
+    );
+
+    final path = Path()..addRRect(rrect);
+    final metrics = path.computeMetrics();
+
+    for (final metric in metrics) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final end = math.min(distance + 6, metric.length);
+        canvas.drawPath(metric.extractPath(distance, end), paint);
+        distance += 12;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedBorderPainter old) =>
+      color != old.color || borderRadius != old.borderRadius;
 }

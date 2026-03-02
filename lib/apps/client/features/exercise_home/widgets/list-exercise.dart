@@ -1,17 +1,18 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/excercise_card/excercise_card.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class ListExercise extends StatelessWidget {
   const ListExercise({
     super.key,
     required this.exercises,
-    this.onExerciseTap,
+    this.onDelete,
   });
 
-  final List<Exercise> exercises;
-  final void Function(Exercise exercise)? onExerciseTap;
+  final List<ExerciseScheduleItem> exercises;
+  final void Function(String scheduleId)? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -38,12 +39,65 @@ class ListExercise extends StatelessWidget {
       itemCount: exercises.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final exercise = exercises[index];
-        return ExerciseCard(
-          exercise: exercise,
-          // onTap: onExerciseTap != null
-          //     ? () => onExerciseTap!(exercise)
-          //     : null,
+        final item = exercises[index];
+        final card = ExerciseCard(item: item);
+
+        if (onDelete == null) return card;
+
+        return Dismissible(
+          key: ValueKey(item.scheduleId),
+          direction: DismissDirection.endToStart,
+          confirmDismiss: (_) async {
+            return await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                backgroundColor: AppColors.card,
+                title: Text(
+                  'Eliminar ejercicio',
+                  style: AppTextStyles.bodyLarge
+                      .copyWith(color: AppColors.white),
+                ),
+                content: Text(
+                  'Se eliminará "${item.exerciseName}" de tu plan.',
+                  style: AppTextStyles.bodyMedium
+                      .copyWith(color: AppColors.textSecondary),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: Text(
+                      'Cancelar',
+                      style: AppTextStyles.caption
+                          .copyWith(color: AppColors.textMuted),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: Text(
+                      'Eliminar',
+                      style: AppTextStyles.caption
+                          .copyWith(color: AppColors.error),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+          onDismissed: (_) => onDelete!(item.scheduleId),
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 20),
+            decoration: BoxDecoration(
+              color: AppColors.error.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              LucideIcons.trash2,
+              color: AppColors.error,
+              size: 24,
+            ),
+          ),
+          child: card,
         );
       },
     );

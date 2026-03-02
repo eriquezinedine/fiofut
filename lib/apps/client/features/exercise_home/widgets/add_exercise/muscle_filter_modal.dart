@@ -40,27 +40,19 @@ final _individualMuscles = MuscleGroup.values
     .toList();
 
 class MuscleFilterModal extends StatefulWidget {
-  const MuscleFilterModal._({
-    required this.selected,
-    required this.onConfirm,
-  });
+  const MuscleFilterModal._({required this.selected});
 
   final Set<MuscleGroup> selected;
-  final void Function(Set<MuscleGroup> selected) onConfirm;
 
-  static Future<void> show(
+  static Future<Set<MuscleGroup>?> show(
     BuildContext context, {
     required Set<MuscleGroup> selected,
-    required void Function(Set<MuscleGroup> selected) onConfirm,
   }) {
-    return showModalBottomSheet<void>(
+    return showModalBottomSheet<Set<MuscleGroup>>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => MuscleFilterModal._(
-        selected: Set.from(selected),
-        onConfirm: onConfirm,
-      ),
+      builder: (_) => MuscleFilterModal._(selected: Set.from(selected)),
     );
   }
 
@@ -83,6 +75,8 @@ class _MuscleFilterModalState extends State<MuscleFilterModal> {
       }
     }
   }
+
+  void _close() => Navigator.pop(context, Set<MuscleGroup>.from(_selected));
 
   bool get _isAllSelected => _selected.isEmpty;
 
@@ -112,30 +106,37 @@ class _MuscleFilterModalState extends State<MuscleFilterModal> {
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.of(context).size.height * 0.85;
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppSpacing.xl),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _close();
+      },
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(AppSpacing.xl),
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildDragHandle(),
-            _buildHeader(context),
-            Flexible(
-              child: ListView(
-                padding: EdgeInsets.all(0),
-                children: _buildAllItems(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDragHandle(),
+              _buildHeader(context),
+              Flexible(
+                child: ListView(
+                  padding: EdgeInsets.all(0),
+                  children: _buildAllItems(),
+                ),
               ),
-            ),
-            SizedBox(
-              height: MediaQuery.of(context).viewPadding.bottom + AppSpacing.xs,
-            ),
-          ],
+              SizedBox(
+                height:
+                    MediaQuery.of(context).viewPadding.bottom + AppSpacing.xs,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -214,7 +215,7 @@ class _MuscleFilterModalState extends State<MuscleFilterModal> {
             child: Text('Seleccionar Músculos', style: AppTextStyles.h2),
           ),
           CustomGestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: _close,
             child: const Icon(
               LucideIcons.x,
               color: AppColors.textPrimary,

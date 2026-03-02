@@ -53,8 +53,7 @@ class HomeRepositoryImpl implements HomeRepository {
 
   @override
   Future<void> updateHydration(HydrationData hydrationData) async {
-    // TODO: Implement actual API call
-    await Future.delayed(const Duration(milliseconds: 500));
+    // No longer used — hydration is now per-record via addWaterIntake/deleteWaterIntake.
   }
 
   @override
@@ -155,6 +154,59 @@ class HomeRepositoryImpl implements HomeRepository {
     return list
         .map((e) => DailyMealItem.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  @override
+  Future<DailyWaterSummary> getDailyWater(String userId, DateTime date) async {
+    final client = Supabase.instance.client;
+    final dateStr = date.toIso8601String().split('T').first;
+
+    final rows = await client
+        .from('water_intake')
+        .select()
+        .eq('id_user_profile', userId)
+        .eq('intake_date', dateStr)
+        .order('created_at', ascending: false);
+
+    final records =
+        rows.map((r) => WaterIntakeRecord.fromJson(r)).toList();
+    final totalMl = records.fold<int>(0, (sum, r) => sum + r.amountMl);
+
+    return DailyWaterSummary(totalMl: totalMl, records: records);
+  }
+
+  @override
+  Future<WaterIntakeRecord> addWaterIntake({
+    required String userId,
+    required int amountMl,
+    required DateTime date,
+  }) async {
+    final client = Supabase.instance.client;
+    final now = DateTime.now();
+    final dateStr = date.toIso8601String().split('T').first;
+    final timeStr =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+
+    final data = await client
+        .from('water_intake')
+        .insert({
+          'id_user_profile': userId,
+          'amount_ml': amountMl,
+          'intake_date': dateStr,
+          'intake_time': timeStr,
+        })
+        .select()
+        .single();
+
+    return WaterIntakeRecord.fromJson(data);
+  }
+
+  @override
+  Future<void> deleteWaterIntake(String recordId) async {
+    await Supabase.instance.client
+        .from('water_intake')
+        .delete()
+        .eq('id', recordId);
   }
 
   List<MealItem> _getMockMealItems() {

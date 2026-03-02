@@ -38,15 +38,8 @@ class _HydrationScreenState extends ConsumerState<HydrationScreen> {
     super.dispose();
   }
 
-  /// Exit without saving - just reset and go back.
-  void _cancelAndGoBack() {
-    ref.read(hydrationProvider.notifier).reset();
-    Navigator.of(context).pop();
-  }
-
-  /// Save to home and exit.
-  void _saveAndGoBack() {
-    ref.read(hydrationProvider.notifier).saveToHome();
+  /// Go back — all changes are already persisted.
+  void _goBack() {
     ref.read(hydrationProvider.notifier).reset();
     Navigator.of(context).pop();
   }
@@ -59,7 +52,7 @@ class _HydrationScreenState extends ConsumerState<HydrationScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          _cancelAndGoBack();
+          _goBack();
         }
       },
       child: Scaffold(
@@ -82,51 +75,62 @@ class _HydrationScreenState extends ConsumerState<HydrationScreen> {
             :final progressPercent,
             :final records,
           ) =>
-            Column(
-              children: [
-                // Header
-                _buildHeader(context),
+            Builder(builder: (context) {
+              final weekState = ref.watch(weekProvider);
+              final selectedDate = weekState is WeekLoaded
+                  ? weekState.selectedDate
+                  : DateTime.now();
+              final now = DateTime.now();
+              final isToday = selectedDate.year == now.year &&
+                  selectedDate.month == now.month &&
+                  selectedDate.day == now.day;
 
-                // Content
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Circle section
-                        _buildCircleSection(
-                          consumed: consumed,
-                          goal: goal,
-                          progress: progress,
-                          progressPercent: progressPercent,
-                        ),
+              return Column(
+                children: [
+                  // Header
+                  _buildHeader(context),
 
-                        const SizedBox(height: 24),
+                  // Content
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Circle section
+                          _buildCircleSection(
+                            consumed: consumed,
+                            goal: goal,
+                            progress: progress,
+                            progressPercent: progressPercent,
+                          ),
 
-                        // Glass section
-                        _buildGlassSection(),
+                          const SizedBox(height: 24),
 
-                        const SizedBox(height: 24),
+                          // Glass section
+                          _buildGlassSection(enabled: isToday),
 
-                        // Custom amount section
-                        _buildCustomSection(),
+                          const SizedBox(height: 24),
 
-                        const SizedBox(height: 24),
+                          // Custom amount section
+                          _buildCustomSection(enabled: isToday),
 
-                        // History section
-                        _buildHistorySection(records),
+                          const SizedBox(height: 24),
 
-                        const SizedBox(height: 24),
+                          // History section
+                          _buildHistorySection(records, enabled: isToday),
 
-                        // Save button
-                        _buildSaveButton(),
-                      ],
+                          const SizedBox(height: 24),
+
+                          // Save button
+                          _buildSaveButton(enabled: isToday),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              );
+            }),
         },
         ),
       ),
@@ -140,7 +144,7 @@ class _HydrationScreenState extends ConsumerState<HydrationScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
-            onTap: _cancelAndGoBack,
+            onTap: _goBack,
             child: const Icon(
               LucideIcons.arrowLeft,
               color: AppColors.white,
@@ -226,122 +230,137 @@ class _HydrationScreenState extends ConsumerState<HydrationScreen> {
     );
   }
 
-  Widget _buildGlassSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Añadir agua',
-          style: TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: AppColors.white,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
+  Widget _buildGlassSection({required bool enabled}) {
+    return Opacity(
+      opacity: enabled ? 1.0 : 0.4,
+      child: IgnorePointer(
+        ignoring: !enabled,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: _GlassButton(
-                icon: LucideIcons.glassWater,
-                label: '250 ml',
-                onTap: () =>
-                    ref.read(hydrationProvider.notifier).addPresetWater(250),
+            const Text(
+              'Añadir agua',
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppColors.white,
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _GlassButton(
-                icon: LucideIcons.glassWater,
-                label: '500 ml',
-                onTap: () =>
-                    ref.read(hydrationProvider.notifier).addPresetWater(500),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _GlassButton(
+                    icon: LucideIcons.glassWater,
+                    label: '250 ml',
+                    onTap: () =>
+                        ref.read(hydrationProvider.notifier).addPresetWater(250),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _GlassButton(
+                    icon: LucideIcons.glassWater,
+                    label: '500 ml',
+                    onTap: () =>
+                        ref.read(hydrationProvider.notifier).addPresetWater(500),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _GlassButton(
+                    icon: LucideIcons.cupSoda,
+                    label: '1 Litro',
+                    onTap: () =>
+                        ref.read(hydrationProvider.notifier).addPresetWater(1000),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomSection({required bool enabled}) {
+    return Opacity(
+      opacity: enabled ? 1.0 : 0.4,
+      child: IgnorePointer(
+        ignoring: !enabled,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Cantidad personalizada',
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppColors.white,
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _GlassButton(
-                icon: LucideIcons.cupSoda,
-                label: '1 Litro',
-                onTap: () =>
-                    ref.read(hydrationProvider.notifier).addPresetWater(1000),
+            const SizedBox(height: 12),
+            Container(
+              height: 56,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    LucideIcons.droplet,
+                    color: AppColors.textMuted,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _customAmountController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        color: AppColors.white,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Ingresa cantidad en ml',
+                        hintStyle: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.textMuted,
+                        ),
+                        border: InputBorder.none,
+                      ),
+                      onChanged: (value) {
+                        final amount = int.tryParse(value);
+                        ref.read(hydrationProvider.notifier).setCustomAmount(amount);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildCustomSection() {
+  Widget _buildHistorySection(
+    List<HydrationRecord> records, {
+    required bool enabled,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Cantidad personalizada',
-          style: TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: AppColors.white,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          height: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                LucideIcons.droplet,
-                color: AppColors.textMuted,
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _customAmountController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 16,
-                    color: AppColors.white,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Ingresa cantidad en ml',
-                    hintStyle: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.textMuted,
-                    ),
-                    border: InputBorder.none,
-                  ),
-                  onChanged: (value) {
-                    final amount = int.tryParse(value);
-                    ref.read(hydrationProvider.notifier).setCustomAmount(amount);
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHistorySection(List<HydrationRecord> records) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Hoy',
+          'Historial',
           style: TextStyle(
             fontFamily: 'Plus Jakarta Sans',
             fontSize: 18,
@@ -393,11 +412,13 @@ class _HydrationScreenState extends ConsumerState<HydrationScreen> {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _HistoryRecord(
                   record: record,
-                  onDelete: () {
-                    ref
-                        .read(hydrationProvider.notifier)
-                        .deleteRecord(record.id);
-                  },
+                  onDelete: enabled
+                      ? () {
+                          ref
+                              .read(hydrationProvider.notifier)
+                              .deleteRecord(record.id);
+                        }
+                      : null,
                 ),
               );
             }).toList(),
@@ -406,40 +427,44 @@ class _HydrationScreenState extends ConsumerState<HydrationScreen> {
     );
   }
 
-  Widget _buildSaveButton() {
+  Widget _buildSaveButton({required bool enabled}) {
     return GestureDetector(
-      onTap: () {
-        // First add custom amount if any
-        ref.read(hydrationProvider.notifier).addCustomAmount();
-        _customAmountController.clear();
-        // Then save to home and exit
-        _saveAndGoBack();
-      },
-      child: Container(
-        height: 56,
-        decoration: BoxDecoration(
-          color: AppColors.blue,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              LucideIcons.plus,
-              color: AppColors.white,
-              size: 20,
-            ),
-            SizedBox(width: 8),
-            Text(
-              'Guardar cantidad',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+      onTap: enabled
+          ? () async {
+              // Add custom amount if any, then go back
+              await ref.read(hydrationProvider.notifier).addCustomAmount();
+              _customAmountController.clear();
+              _goBack();
+            }
+          : null,
+      child: Opacity(
+        opacity: enabled ? 1.0 : 0.4,
+        child: Container(
+          height: 56,
+          decoration: BoxDecoration(
+            color: AppColors.blue,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                LucideIcons.plus,
                 color: AppColors.white,
+                size: 20,
               ),
-            ),
-          ],
+              SizedBox(width: 8),
+              Text(
+                'Guardar cantidad',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -497,11 +522,11 @@ class _GlassButton extends StatelessWidget {
 class _HistoryRecord extends StatelessWidget {
   const _HistoryRecord({
     required this.record,
-    required this.onDelete,
+    this.onDelete,
   });
 
   final HydrationRecord record;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -545,15 +570,17 @@ class _HistoryRecord extends StatelessWidget {
                   color: AppColors.textMuted,
                 ),
               ),
-              const SizedBox(width: 12),
-              GestureDetector(
-                onTap: onDelete,
-                child: Icon(
-                  LucideIcons.trash2,
-                  color: AppColors.redBright,
-                  size: 18,
+              if (onDelete != null) ...[
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: onDelete,
+                  child: Icon(
+                    LucideIcons.trash2,
+                    color: AppColors.redBright,
+                    size: 18,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ],

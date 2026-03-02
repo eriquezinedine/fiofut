@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:model/model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../domain/model/exercise.dart';
 import '../../domain/model/exercise_schedule_item.dart';
 
 final exerciseHomeRepositoryProvider =
@@ -111,4 +113,134 @@ class ExerciseHomeRepository {
       'completed_at': isCompleted ? DateTime.now().toIso8601String() : null,
     }).eq('id', setId);
   }
+
+  /// Fetches paginated exercises for the catalog with optional search/filter.
+  Future<({List<Exercise> exercises, bool hasMore})> fetchExercises({
+    String query = '',
+    String? muscleGroupFilter,
+    int page = 0,
+    int pageSize = 25,
+  }) async {
+    final muscleSelect = muscleGroupFilter != null
+        ? '*, muscle:id_muscle!inner(*)'
+        : '*, muscle:id_muscle(*)';
+
+    var builder = _client.from('exercise').select(muscleSelect);
+
+    if (query.isNotEmpty) {
+      builder = builder.ilike('name', '%$query%');
+    }
+    if (muscleGroupFilter != null) {
+      builder = builder.eq('muscle.muscle_group', muscleGroupFilter);
+    }
+
+    final data = await builder
+        .order('name')
+        .range(page * pageSize, (page + 1) * pageSize - 1);
+
+    return (
+      exercises: data.map(_toClientExercise).toList(),
+      hasMore: data.length == pageSize,
+    );
+  }
+
+  /// Schedules selected exercises with 3 default sets each.
+  ///
+  /// For "today" scheduling: only [date] is used.
+  /// For "weekly" scheduling: provide [daysOfWeek], [startDate], [endDate].
+  Future<void> scheduleExercises({
+    required String userId,
+    required List<Exercise> exercises,
+    required DateTime date,
+    Set<int>? daysOfWeek,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    final isWeekly = daysOfWeek != null && daysOfWeek.isNotEmpty;
+    final start = (isWeekly ? startDate ?? date : date)
+        .toIso8601String()
+        .split('T')
+        .first;
+    final end = (isWeekly ? endDate ?? date : date)
+        .toIso8601String()
+        .split('T')
+        .first;
+    final daysStr = isWeekly
+        ? (daysOfWeek.toList()..sort()).join(',')
+        : null;
+
+    for (final exercise in exercises) {
+      final schedule = await _client
+          .from('exercise_schedule')
+          .insert({
+            'id_user_profile': userId,
+            'id_exercise': exercise.id,
+            'id_created_by': userId,
+            'schedule_type': isWeekly ? 'weekly' : 'custom',
+            'start_date': start,
+            'end_date': end,
+            'days_of_week': daysStr,
+          })
+          .select('id')
+          .single();
+
+      final scheduleId = schedule['id'] as String;
+      final type = exerciseTypeString(exercise.metricType);
+
+      await _client.from('exercise_set').insert(
+        List.generate(
+          3,
+          (i) => <String, dynamic>{
+            'id_exercise_schedule': scheduleId,
+            'set_number': i + 1,
+            'repetitions': type != 'cardio' ? 10 : null,
+            'weight': type == 'strength' ? 0.0 : null,
+            'minutes': type == 'cardio' ? 5 : null,
+            'seconds': type == 'cardio' ? 0 : null,
+            'is_completed': false,
+          },
+        ),
+      );
+    }
+  }
+
+  static Exercise _toClientExercise(Map<String, dynamic> row) {
+    final muscleData = row['muscle'] as Map<String, dynamic>?;
+    final muscleMain = muscleData != null
+        ? Muscle.fromJson(muscleData)
+        : const Muscle(
+            id: '',
+            name: '',
+            isMain: true,
+            muscleGroup: MuscleGroup.chest,
+          );
+
+    final typeStr = row['type_exercise'] as String? ?? 'strength';
+    final metricType = switch (typeStr) {
+      'cardio' => MetricType.distance,
+      'strength' => MetricType.weight,
+      _ => MetricType.reps,
+    };
+
+    return Exercise(
+      id: row['id'] as String,
+      title: row['name'] as String,
+      description: row['description'] as String? ?? '',
+      imageUrl: row['url_img_exercise'] as String?,
+      videoUrl: row['url_video_exercise'] as String?,
+      muscleMain: muscleMain,
+      muscleSecundaries: const [],
+      instruccion: '',
+      currentValue: 0,
+      targetValue: 0,
+      metricType: metricType,
+      status: ExerciseStatus.pending,
+    );
+  }
+
+  static String exerciseTypeString(MetricType type) => switch (type) {
+        MetricType.distance || MetricType.time => 'cardio',
+        MetricType.weight => 'strength',
+        MetricType.reps => 'reps',
+      };
 }

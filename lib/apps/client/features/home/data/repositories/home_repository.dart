@@ -29,6 +29,56 @@ abstract class HomeRepository {
   /// Incluye completadas y programadas, con totales precalculados.
   /// Llama al RPC `get_daily_meals`.
   Future<List<DailyMealItem>> getDailyMeals(String userId, DateTime date);
+
+  /// Gets total water consumed + records for a user on a date.
+  Future<DailyWaterSummary> getDailyWater(String userId, DateTime date);
+
+  /// Adds a water intake record.
+  Future<WaterIntakeRecord> addWaterIntake({
+    required String userId,
+    required int amountMl,
+    required DateTime date,
+  });
+
+  /// Deletes a water intake record.
+  Future<void> deleteWaterIntake(String recordId);
+}
+
+/// Summary of daily water intake from Supabase.
+class DailyWaterSummary {
+  const DailyWaterSummary({required this.totalMl, required this.records});
+
+  final int totalMl;
+  final List<WaterIntakeRecord> records;
+
+  static const empty = DailyWaterSummary(totalMl: 0, records: []);
+}
+
+/// A single water intake record from Supabase.
+class WaterIntakeRecord {
+  const WaterIntakeRecord({
+    required this.id,
+    required this.amountMl,
+    required this.intakeDate,
+    required this.intakeTime,
+    required this.createdAt,
+  });
+
+  final String id;
+  final int amountMl;
+  final String intakeDate;
+  final String intakeTime;
+  final DateTime createdAt;
+
+  factory WaterIntakeRecord.fromJson(Map<String, dynamic> json) {
+    return WaterIntakeRecord(
+      id: json['id'] as String,
+      amountMl: (json['amount_ml'] as num).toInt(),
+      intakeDate: json['intake_date'] as String,
+      intakeTime: json['intake_time'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+    );
+  }
 }
 
 /// Aggregated home data model.
