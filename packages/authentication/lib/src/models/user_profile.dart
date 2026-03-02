@@ -35,13 +35,14 @@ class UserProfile {
       userType: _parseUserType(json['role'] as String?),
       isProfileComplete: json['is_profile_complete'] as bool? ?? false,
       onboardingStep: json['onboarding_step'] as int?,
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'] as String)
-          : null,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'] as String)
-          : null,
+      createdAt: _tryParseDate(json['created_at']),
+      updatedAt: _tryParseDate(json['updated_at']),
     );
+  }
+
+  static DateTime? _tryParseDate(dynamic value) {
+    if (value == null) return null;
+    return DateTime.tryParse(value.toString());
   }
 
   Map<String, dynamic> toJson() {

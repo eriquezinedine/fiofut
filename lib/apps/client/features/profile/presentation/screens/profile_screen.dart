@@ -23,9 +23,13 @@ class ProfileScreen extends ConsumerWidget {
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (e, _) => Center(
-          child: Text(
-            'Error cargando perfil',
-            style: AppTextStyles.body.copyWith(color: AppColors.error),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              'Error cargando perfil: $e',
+              style: AppTextStyles.body.copyWith(color: AppColors.error),
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
         data: (profile) {

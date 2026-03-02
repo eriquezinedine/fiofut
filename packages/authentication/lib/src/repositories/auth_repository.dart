@@ -62,7 +62,10 @@ class AuthRepository {
   Future<UserProfile?> getProfile(String userId) async {
     final data = await _client
         .from('profiles')
-        .select()
+        .select(
+          'id, full_name, avatar_url, whatsapp_number, role, '
+          'is_profile_complete, onboarding_step, created_at, updated_at',
+        )
         .eq('id', userId)
         .maybeSingle();
 
@@ -109,35 +112,14 @@ class AuthRepository {
     return UserProfile.fromJson(data);
   }
 
-  /// Save all onboarding data and mark profile as complete
+  /// Save all onboarding data and mark profile as complete.
+  ///
+  /// Accepts a [userId] and a JSON map from `SaveOnboardingRequest.toJson()`.
   Future<void> saveOnboardingData({
     required String userId,
-    required String weightGoal,
-    required double heightCm,
-    required double currentWeight,
-    required double desiredWeight,
-    required String gender,
-    required DateTime birthDate,
-    required List<String> workoutLocations,
-    String? referralCode,
-    String? injuries,
-    List<String> excludedFoods = const [],
-    bool useKgUnit = true,
+    required Map<String, dynamic> data,
   }) async {
-    await _client.from('profiles').update({
-      'weight_goal': weightGoal,
-      'height_cm': heightCm,
-      'current_weight': currentWeight,
-      'desired_weight': desiredWeight,
-      'gender': gender,
-      'birth_date': birthDate.toIso8601String().split('T').first,
-      'workout_locations': workoutLocations,
-      'referral_code': referralCode,
-      'injuries': injuries,
-      'excluded_foods': excludedFoods,
-      'use_kg_unit': useKgUnit,
-      'is_profile_complete': true,
-    }).eq('id', userId);
+    await _client.from('profiles').update(data).eq('id', userId);
   }
 
   /// Update onboarding step

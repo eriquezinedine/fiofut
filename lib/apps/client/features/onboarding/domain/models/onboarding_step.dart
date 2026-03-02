@@ -1,55 +1,64 @@
 /// Represents each step in the onboarding wizard.
 /// Order based on design: fio_design.pen
 enum OnboardingStep {
-  /// Step 1: Enter birth date
-  birthDate(1),
+  /// Step 1: How did you find us
+  referralSource(1),
 
-  /// Step 2: Select gender
-  gender(2),
+  /// Step 2: Enter birth date
+  birthDate(2),
 
-  /// Step 3: Select workout location preference
-  workoutLocation(3),
+  /// Step 3: Select gender
+  gender(3),
 
-  /// Step 4: Enter current weight in kg
-  currentWeight(4),
+  /// Step 4: Select workout location preference
+  workoutLocation(4),
 
-  /// Step 5: Enter height in cm
-  height(5),
+  /// Step 5: Enter current weight in kg
+  currentWeight(5),
 
-  /// Step 6: Select weight goal (lose, maintain, gain)
-  weightGoal(6),
+  /// Step 6: Enter height in cm
+  height(6),
 
-  /// Step 7: Enter desired weight in kg
-  desiredWeight(7),
+  /// Step 7: Select weight goal (lose, maintain, gain)
+  weightGoal(7),
 
-  /// Step 8: Motivational screen
-  motivational(8),
+  /// Step 8: Enter desired weight in kg
+  desiredWeight(8),
 
-  /// Step 9: Select excluded foods
-  excludedFoods(9),
+  /// Step 9: Motivational screen
+  motivational(9),
 
-  /// Step 10: Enter optional injuries description
+  /// Step 10: Select muscles to train
   injuries(10),
 
-  /// Step 11: Enter optional referral code
-  referralCode(11),
+  /// Step 11: Select activity level
+  activityLevel(11),
 
-  /// Step 12: Loading/completion screen
-  loading(12);
+  /// Step 12: Select preferred training duration
+  trainingDuration(12),
+
+  /// Step 13: How many days per week to train
+  trainingDays(13),
+
+  /// Step 14: Enter optional referral code
+  referralCode(14),
+
+  /// Step 15: Loading/completion screen
+  loading(15);
 
   const OnboardingStep(this.stepNumber);
 
-  /// The numeric step number (1-12)
+  /// The numeric step number (1-15)
   final int stepNumber;
 
   /// Total number of steps in the onboarding wizard
-  static const int totalSteps = 12;
+  static const int totalSteps = 15;
 
   /// Returns the progress as a value between 0.0 and 1.0
   double get progress => stepNumber / totalSteps;
 
   /// Returns true if this is the first step
-  bool get isFirst => this == OnboardingStep.birthDate;
+  bool get isFirst => this == OnboardingStep.referralSource;
 
   /// Returns true if this is the last step
   bool get isLast => this == OnboardingStep.loading;

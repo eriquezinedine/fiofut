@@ -44,7 +44,7 @@ class _OnboardingWizardState extends ConsumerState<OnboardingWizard> {
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         if (state is OnboardingInProgress) {
-          if (state.currentStep == OnboardingStep.weightGoal) {
+          if (state.currentStep == OnboardingStep.referralSource) {
             final success = await ref.read(logoutProvider.notifier).signOut();
             if (success && context.mounted) {
               context.go(LoginGoogleScreen.path);
@@ -66,18 +66,21 @@ class _OnboardingWizardState extends ConsumerState<OnboardingWizard> {
 
   Widget _buildStepScreen(OnboardingStep step, OnboardingData data) {
     return switch (step) {
-      OnboardingStep.weightGoal => const WeightGoalPage(),
-      OnboardingStep.height => const HeightPage(),
-      OnboardingStep.currentWeight => const CurrentWeightPage(),
-      OnboardingStep.workoutLocation => const WorkoutLocationPage(),
-      OnboardingStep.gender => const GenderPage(),
+      OnboardingStep.referralSource => const ReferralSourcePage(),
       OnboardingStep.birthDate => const BirthDatePage(),
-      OnboardingStep.loading => const LoadingPage(),
-      OnboardingStep.referralCode => const ReferralCodePage(),
-      OnboardingStep.injuries => const InjuriesPage(),
-      OnboardingStep.excludedFoods => const ExcludedFoodsPage(),
-      OnboardingStep.motivational => const MotivationalPage(),
+      OnboardingStep.gender => const GenderPage(),
+      OnboardingStep.workoutLocation => const WorkoutLocationPage(),
+      OnboardingStep.currentWeight => const CurrentWeightPage(),
+      OnboardingStep.height => const HeightPage(),
+      OnboardingStep.weightGoal => const WeightGoalPage(),
       OnboardingStep.desiredWeight => const DesiredWeightPage(),
+      OnboardingStep.motivational => const MotivationalPage(),
+      OnboardingStep.injuries => const InjuriesPage(),
+      OnboardingStep.activityLevel => const ActivityLevelPage(),
+      OnboardingStep.trainingDuration => const TrainingDurationPage(),
+      OnboardingStep.trainingDays => const TrainingDaysPage(),
+      OnboardingStep.referralCode => const ReferralCodePage(),
+      OnboardingStep.loading => const LoadingPage(),
     };
   }
 }

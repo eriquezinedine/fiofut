@@ -56,7 +56,7 @@ extension OnboardingStateX on OnboardingState {
   /// Returns the current step, or the first step if not in progress.
   OnboardingStep get currentStep => switch (this) {
         OnboardingInProgress(:final currentStep) => currentStep,
-        _ => OnboardingStep.weightGoal,
+        _ => OnboardingStep.referralSource,
       };
 
   /// Returns the onboarding data, or empty data if not available.

@@ -22,17 +22,17 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
   /// Starts the onboarding process from the first step.
   void startOnboarding() {
     state = OnboardingInProgress(
-      currentStep: OnboardingStep.birthDate,
+      currentStep: OnboardingStep.referralSource,
       data: const OnboardingData.empty(),
     );
-    _saveStep(OnboardingStep.birthDate);
+    _saveStep(OnboardingStep.referralSource);
   }
 
   /// Starts the onboarding from a specific step (for resume).
   void startFromStep(int stepNumber) {
     final step = OnboardingStep.values.firstWhere(
       (s) => s.stepNumber == stepNumber,
-      orElse: () => OnboardingStep.birthDate,
+      orElse: () => OnboardingStep.referralSource,
     );
     state = OnboardingInProgress(
       currentStep: step,
@@ -213,6 +213,26 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     _updateData((data) => data.copyWith(desiredWeight: desiredWeight));
   }
 
+  /// Updates the user's activity level.
+  void updateActivityLevel(ActivityLevel activityLevel) {
+    _updateData((data) => data.copyWith(activityLevel: activityLevel));
+  }
+
+  /// Updates the user's preferred training duration.
+  void updateTrainingDuration(TrainingDuration trainingDuration) {
+    _updateData((data) => data.copyWith(trainingDuration: trainingDuration));
+  }
+
+  /// Updates how many days per week the user wants to train.
+  void updateTrainingDays(int days) {
+    _updateData((data) => data.copyWith(trainingDays: days));
+  }
+
+  /// Updates how the user found the app.
+  void updateReferralSource(ReferralSource referralSource) {
+    _updateData((data) => data.copyWith(referralSource: referralSource));
+  }
+
   /// Completes the onboarding process and saves data to Supabase.
   ///
   /// Returns true if onboarding was completed successfully,
@@ -220,39 +240,26 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
   Future<bool> completeOnboarding() async {
     return switch (state) {
       OnboardingInProgress(:final data) => () async {
-          if (!data.isComplete) {
-            debugPrint('[Onboarding] Data incompleta:');
-            debugPrint('  weightGoal: ${data.weightGoal}');
-            debugPrint('  height: ${data.height}');
-            debugPrint('  currentWeight: ${data.currentWeight}');
-            debugPrint('  desiredWeight: ${data.desiredWeight}');
-            debugPrint('  gender: ${data.gender}');
-            debugPrint('  birthDate: ${data.birthDate}');
-            debugPrint('  workoutLocations: ${data.workoutLocations}');
-            return false;
-          }
-
           final userId = Supabase.instance.client.auth.currentUser?.id;
           if (userId == null) {
             debugPrint('[Onboarding] userId es null');
             return false;
           }
 
+          final request = SaveOnboardingRequest.fromData(
+            userId: userId,
+            data: data,
+          );
+
+          if (request == null) {
+            debugPrint('[Onboarding] Data incompleta');
+            return false;
+          }
+
           try {
             await ref.read(authRepositoryProvider).saveOnboardingData(
                   userId: userId,
-                  weightGoal: data.weightGoal!.name,
-                  heightCm: data.height!,
-                  currentWeight: data.currentWeight!,
-                  desiredWeight: data.desiredWeight!,
-                  gender: data.gender!.name,
-                  birthDate: data.birthDate!,
-                  workoutLocations:
-                      data.workoutLocations.map((e) => e.name).toList(),
-                  referralCode: data.referralCode,
-                  injuries: data.injuries,
-                  excludedFoods: data.excludedFoods,
-                  useKgUnit: data.useKgUnit,
+                  data: request.toJson(),
                 );
             return true;
           } catch (e, st) {

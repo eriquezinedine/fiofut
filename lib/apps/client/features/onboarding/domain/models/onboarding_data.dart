@@ -1,4 +1,7 @@
+import 'package:fio_fut/apps/client/features/onboarding/domain/models/activity_level.dart';
 import 'package:fio_fut/apps/client/features/onboarding/domain/models/gender.dart';
+import 'package:fio_fut/apps/client/features/onboarding/domain/models/referral_source.dart';
+import 'package:fio_fut/apps/client/features/onboarding/domain/models/training_duration.dart';
 import 'package:fio_fut/apps/client/features/onboarding/domain/models/weight_goal.dart';
 import 'package:fio_fut/apps/client/features/onboarding/domain/models/workout_location.dart';
 
@@ -18,6 +21,10 @@ class OnboardingData {
     this.excludedFoods = const [],
     this.desiredWeight,
     this.useKgUnit = true,
+    this.activityLevel,
+    this.trainingDuration,
+    this.trainingDays,
+    this.referralSource,
   });
 
   /// Creates an empty OnboardingData with default values.
@@ -32,7 +39,11 @@ class OnboardingData {
         injuries = null,
         excludedFoods = const [],
         desiredWeight = null,
-        useKgUnit = true;
+        useKgUnit = true,
+        activityLevel = null,
+        trainingDuration = null,
+        trainingDays = null,
+        referralSource = null;
 
   /// Step 1: The user's weight goal (lose, maintain, gain)
   final WeightGoal? weightGoal;
@@ -67,6 +78,18 @@ class OnboardingData {
   /// Whether the user prefers kilograms (true) or pounds (false) for weight display
   final bool useKgUnit;
 
+  /// The user's current activity level
+  final ActivityLevel? activityLevel;
+
+  /// The user's preferred daily training duration
+  final TrainingDuration? trainingDuration;
+
+  /// How many days per week the user wants to train (1-7)
+  final int? trainingDays;
+
+  /// How the user discovered the app
+  final ReferralSource? referralSource;
+
   /// Creates a copy of this OnboardingData with the given fields replaced.
   OnboardingData copyWith({
     WeightGoal? weightGoal,
@@ -80,6 +103,10 @@ class OnboardingData {
     List<String>? excludedFoods,
     double? desiredWeight,
     bool? useKgUnit,
+    ActivityLevel? activityLevel,
+    TrainingDuration? trainingDuration,
+    int? trainingDays,
+    ReferralSource? referralSource,
     // Use these to explicitly set nullable fields to null
     bool clearReferralCode = false,
     bool clearInjuries = false,
@@ -97,6 +124,10 @@ class OnboardingData {
       excludedFoods: excludedFoods ?? this.excludedFoods,
       desiredWeight: desiredWeight ?? this.desiredWeight,
       useKgUnit: useKgUnit ?? this.useKgUnit,
+      activityLevel: activityLevel ?? this.activityLevel,
+      trainingDuration: trainingDuration ?? this.trainingDuration,
+      trainingDays: trainingDays ?? this.trainingDays,
+      referralSource: referralSource ?? this.referralSource,
     );
   }
 
@@ -144,7 +175,11 @@ class OnboardingData {
         other.injuries == injuries &&
         _listEquals(other.excludedFoods, excludedFoods) &&
         other.desiredWeight == desiredWeight &&
-        other.useKgUnit == useKgUnit;
+        other.useKgUnit == useKgUnit &&
+        other.activityLevel == activityLevel &&
+        other.trainingDuration == trainingDuration &&
+        other.trainingDays == trainingDays &&
+        other.referralSource == referralSource;
   }
 
   @override
@@ -160,6 +195,10 @@ class OnboardingData {
         Object.hashAll(excludedFoods),
         desiredWeight,
         useKgUnit,
+        activityLevel,
+        trainingDuration,
+        trainingDays,
+        referralSource,
       );
 
   bool _listEquals<T>(List<T> a, List<T> b) {
@@ -187,5 +226,9 @@ class OnboardingData {
       'injuries: $injuries, '
       'excludedFoods: $excludedFoods, '
       'desiredWeight: $desiredWeight, '
-      'useKgUnit: $useKgUnit)';
+      'useKgUnit: $useKgUnit, '
+      'activityLevel: $activityLevel, '
+      'trainingDuration: $trainingDuration, '
+      'trainingDays: $trainingDays, '
+      'referralSource: $referralSource)';
 }
