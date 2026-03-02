@@ -19,6 +19,16 @@ abstract class HomeRepository {
 
   /// Fetches exercise items for the current user.
   Future<List<MealItem>> getExerciseItems();
+
+  /// Obtiene los totales de nutrición consumida para un usuario en una fecha.
+  /// Solo cuenta comidas con is_completed = true.
+  /// Llama al RPC `get_daily_nutrition`.
+  Future<DailyNutritionSummary> getDailyNutrition(String userId, DateTime date);
+
+  /// Obtiene las comidas del día con ingredientes completos.
+  /// Incluye completadas y programadas, con totales precalculados.
+  /// Llama al RPC `get_daily_meals`.
+  Future<List<DailyMealItem>> getDailyMeals(String userId, DateTime date);
 }
 
 /// Aggregated home data model.

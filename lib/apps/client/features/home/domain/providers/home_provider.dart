@@ -1,5 +1,9 @@
+import 'package:fio_fut/apps/client/features/home/data/repositories/home_repository_impl.dart';
 import 'package:fio_fut/apps/client/features/home/domain/models/models.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'week_provider.dart';
 
 part 'home_state.dart';
 
@@ -12,97 +16,127 @@ final homeProvider = NotifierProvider<HomeNotifier, HomeState>(
 class HomeNotifier extends Notifier<HomeState> {
   @override
   HomeState build() {
-    // TODO: Initialize with actual data from repository
+    // Listen to weekProvider date changes to refresh nutrition.
+    ref.listen(weekProvider, (prev, next) {
+      if (next is! WeekLoaded) return;
+      final prevLoaded = prev is WeekLoaded ? prev : null;
+      if (prevLoaded != null &&
+          prevLoaded.selectedDate == next.selectedDate) {
+        return; // Same date, skip.
+      }
+      loadNutritionForDate(next.selectedDate);
+    });
+
     return const HomeInitial();
   }
 
-  /// Loads the home data for the current user.
+  /// Loads the home data for the current user (today by default).
   Future<void> loadHomeData() async {
     state = const HomeLoading();
 
     try {
-      // TODO: Fetch data from repository
-      // final data = await ref.read(homeRepositoryProvider).getHomeData();
+      final supabase = Supabase.instance.client;
+      final userId = supabase.auth.currentUser?.id;
 
-      // Placeholder data
-      state = HomeLoaded(
-        caloriesData: const CaloriesData(
-          consumed: 1300,
-          goal: 2000,
-          protein: 50,
-          proteinGoal: 150,
-          carbs: 50,
-          carbsGoal: 250,
-          fat: 50,
-          fatGoal: 70,
-        ),
-        hydrationData: const HydrationData(
-          consumed: 0,
-          goal: 2500,
-        ),
-        weekDays: [],
-        mealItems: const [
-          MealItem(
-            id: '1',
-            name: 'Pollo Frito...',
-            description: 'Pollo frito crujiente con especias',
-            calories: 988,
-            imageUrl:
-                'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400',
-            type: MealItemType.meal,
-            protein: 54,
-            carbs: 39,
-            fat: 60,
-            isCompleted: true,
-            time: '10:10 PM',
+      // Defaults
+      int caloriesGoal = 2000;
+      int proteinGoal = 150;
+      int carbsGoal = 250;
+      int fatGoal = 70;
+      int waterGoal = 2500;
+
+      if (userId != null) {
+        final repo = ref.read(homeRepositoryProvider);
+
+        // Fetch goals + consumed nutrition in parallel.
+        final profileFuture = supabase
+            .from('profiles')
+            .select(
+              'daily_calories, daily_protein_g, daily_carbs_g, daily_fat_g, daily_water_ml',
+            )
+            .eq('id', userId)
+            .maybeSingle();
+        final nutritionFuture = repo.getDailyNutrition(userId, DateTime.now());
+
+        // Both futures are already running, await results.
+        final profile = await profileFuture;
+        final nutrition = await nutritionFuture;
+
+        if (profile != null) {
+          caloriesGoal = profile['daily_calories'] as int? ?? caloriesGoal;
+          proteinGoal = profile['daily_protein_g'] as int? ?? proteinGoal;
+          carbsGoal = profile['daily_carbs_g'] as int? ?? carbsGoal;
+          fatGoal = profile['daily_fat_g'] as int? ?? fatGoal;
+          waterGoal = profile['daily_water_ml'] as int? ?? waterGoal;
+        }
+
+        state = HomeLoaded(
+          caloriesData: CaloriesData(
+            consumed: nutrition.totalCalories,
+            goal: caloriesGoal,
+            protein: nutrition.totalProtein,
+            proteinGoal: proteinGoal,
+            carbs: nutrition.totalCarbs,
+            carbsGoal: carbsGoal,
+            fat: nutrition.totalFat,
+            fatGoal: fatGoal,
           ),
-          MealItem(
-            id: '2',
-            name: 'Ensalada César',
-            description: 'Ensalada fresca con pollo y aderezo',
-            calories: 320,
-            imageUrl:
-                'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400',
-            type: MealItemType.meal,
-            protein: 28,
-            carbs: 12,
-            fat: 18,
-            isCompleted: false,
-            time: '1:30 PM',
+          hydrationData: HydrationData(
+            consumed: 0,
+            goal: waterGoal,
           ),
-          MealItem(
-            id: '3',
-            name: 'Cardio Matutino',
-            description: '30 minutos de trote',
-            calories: 250,
-            imageUrl:
-                'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400',
-            type: MealItemType.exercise,
+          weekDays: [],
+          mealItems: const [],
+          streak: 0,
+        );
+      } else {
+        state = HomeLoaded(
+          caloriesData: CaloriesData(
+            consumed: 0,
+            goal: caloriesGoal,
             protein: 0,
+            proteinGoal: proteinGoal,
             carbs: 0,
+            carbsGoal: carbsGoal,
             fat: 0,
-            isCompleted: true,
-            time: '7:00 AM',
+            fatGoal: fatGoal,
           ),
-          MealItem(
-            id: '4',
-            name: 'Entrenamiento de Fuerza',
-            description: '45 minutos de pesas',
-            calories: 350,
-            imageUrl:
-                'https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=400',
-            type: MealItemType.exercise,
-            protein: 0,
-            carbs: 0,
-            fat: 0,
-            isCompleted: false,
-            time: '6:00 PM',
+          hydrationData: HydrationData(
+            consumed: 0,
+            goal: waterGoal,
           ),
-        ],
-        streak: 7,
-      );
+          weekDays: [],
+          mealItems: const [],
+          streak: 0,
+        );
+      }
     } catch (e) {
       state = HomeError(message: e.toString());
+    }
+  }
+
+  /// Loads consumed nutrition for a specific date and updates CaloriesData.
+  Future<void> loadNutritionForDate(DateTime date) async {
+    if (state is! HomeLoaded) return;
+    final currentState = state as HomeLoaded;
+
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      final repo = ref.read(homeRepositoryProvider);
+      final nutrition = await repo.getDailyNutrition(userId, date);
+
+      state = currentState.copyWith(
+        caloriesData: currentState.caloriesData.copyWith(
+          consumed: nutrition.totalCalories,
+          protein: nutrition.totalProtein,
+          carbs: nutrition.totalCarbs,
+          fat: nutrition.totalFat,
+        ),
+      );
+    } catch (_) {
+      // Keep current state on error
     }
   }
 
@@ -121,7 +155,8 @@ class HomeNotifier extends Notifier<HomeState> {
 
     state = currentState.copyWith(weekDays: updatedDays);
 
-    // TODO: Load data for the selected date
+    // Load nutrition for the selected date
+    loadNutritionForDate(date);
   }
 
   /// Updates the calories data.

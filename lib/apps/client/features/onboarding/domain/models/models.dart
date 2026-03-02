@@ -2,6 +2,7 @@
 export 'activity_level.dart';
 export 'gender.dart';
 export 'ingredient_category.dart';
+export 'nutrition_calculator.dart';
 export 'onboarding_data.dart';
 export 'onboarding_step.dart';
 export 'referral_source.dart';

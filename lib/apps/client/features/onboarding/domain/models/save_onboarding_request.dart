@@ -2,6 +2,7 @@ import 'package:model/model.dart';
 
 import 'activity_level.dart';
 import 'gender.dart';
+import 'nutrition_calculator.dart';
 import 'onboarding_data.dart';
 import 'referral_source.dart';
 import 'training_duration.dart';
@@ -28,6 +29,11 @@ class SaveOnboardingRequest {
     this.trainingDays,
     this.referralSource,
     this.selectedMuscles = const [],
+    this.dailyCalories,
+    this.dailyProteinG,
+    this.dailyCarbsG,
+    this.dailyFatG,
+    this.dailyWaterMl,
   });
 
   /// Creates a request from [OnboardingData].
@@ -47,6 +53,8 @@ class SaveOnboardingRequest {
       return null;
     }
 
+    final nutrition = NutritionCalculator.calculateAll(data);
+
     return SaveOnboardingRequest(
       userId: userId,
       weightGoal: data.weightGoal!,
@@ -65,6 +73,11 @@ class SaveOnboardingRequest {
       trainingDays: data.trainingDays,
       referralSource: data.referralSource,
       selectedMuscles: selectedMuscles,
+      dailyCalories: nutrition?.calories,
+      dailyProteinG: nutrition?.proteinG,
+      dailyCarbsG: nutrition?.carbsG,
+      dailyFatG: nutrition?.fatG,
+      dailyWaterMl: nutrition?.waterMl,
     );
   }
 
@@ -85,6 +98,11 @@ class SaveOnboardingRequest {
   final int? trainingDays;
   final ReferralSource? referralSource;
   final List<MuscleGroup> selectedMuscles;
+  final int? dailyCalories;
+  final int? dailyProteinG;
+  final int? dailyCarbsG;
+  final int? dailyFatG;
+  final int? dailyWaterMl;
 
   /// Converts to JSON map matching the `profiles` table columns.
   Map<String, dynamic> toJson() {
@@ -105,6 +123,11 @@ class SaveOnboardingRequest {
       'training_days': trainingDays,
       'referral_source': referralSource?.name,
       'selected_muscles': selectedMuscles.map((e) => e.name).toList(),
+      'daily_calories': dailyCalories,
+      'daily_protein_g': dailyProteinG,
+      'daily_carbs_g': dailyCarbsG,
+      'daily_fat_g': dailyFatG,
+      'daily_water_ml': dailyWaterMl,
       'is_profile_complete': true,
     };
   }

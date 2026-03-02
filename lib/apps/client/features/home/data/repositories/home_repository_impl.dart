@@ -1,5 +1,12 @@
 import 'package:fio_fut/apps/client/features/home/data/repositories/home_repository.dart';
 import 'package:fio_fut/apps/client/features/home/domain/models/models.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+/// Provider for HomeRepository.
+final homeRepositoryProvider = Provider<HomeRepository>((ref) {
+  return const HomeRepositoryImpl();
+});
 
 /// Implementation of the HomeRepository.
 class HomeRepositoryImpl implements HomeRepository {
@@ -113,6 +120,41 @@ class HomeRepositoryImpl implements HomeRepository {
       default:
         return '';
     }
+  }
+
+  @override
+  Future<DailyNutritionSummary> getDailyNutrition(
+    String userId,
+    DateTime date,
+  ) async {
+    final result = await Supabase.instance.client.rpc(
+      'get_daily_nutrition',
+      params: {
+        'p_user_id': userId,
+        'p_date': date.toIso8601String().split('T').first,
+      },
+    );
+    final list = result as List<dynamic>? ?? [];
+    if (list.isEmpty) return DailyNutritionSummary.empty;
+    return DailyNutritionSummary.fromJson(list[0] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<DailyMealItem>> getDailyMeals(
+    String userId,
+    DateTime date,
+  ) async {
+    final result = await Supabase.instance.client.rpc(
+      'get_daily_meals',
+      params: {
+        'p_user_id': userId,
+        'p_date': date.toIso8601String().split('T').first,
+      },
+    );
+    final list = result as List<dynamic>? ?? [];
+    return list
+        .map((e) => DailyMealItem.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   List<MealItem> _getMockMealItems() {

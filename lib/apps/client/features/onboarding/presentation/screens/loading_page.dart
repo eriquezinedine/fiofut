@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../domain/models/models.dart';
 import '../../domain/providers/providers.dart';
 
 /// Pantalla 12: Pantalla de carga completada
@@ -21,47 +22,68 @@ class LoadingPage extends ConsumerStatefulWidget {
 class _LoadingPageState extends ConsumerState<LoadingPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late List<_ChecklistItem> _checklistItems;
   bool _isComplete = false;
   bool _hasError = false;
 
-  final List<_ChecklistItem> _checklistItems = [
-    _ChecklistItem(
-      icon: LucideIcons.flame,
-      iconColor: AppColors.redBright,
-      title: 'Calorías diarias',
-      subtitle: '2,150 kcal objetivo',
-    ),
-    _ChecklistItem(
-      icon: LucideIcons.wheat,
-      iconColor: AppColors.orange,
-      title: 'Carbohidratos',
-      subtitle: '268g diarios',
-    ),
-    _ChecklistItem(
-      icon: LucideIcons.beef,
-      iconColor: AppColors.redBright,
-      title: 'Proteína',
-      subtitle: '161g diarios',
-    ),
-    _ChecklistItem(
-      icon: LucideIcons.droplet,
-      iconColor: AppColors.orange,
-      title: 'Grasas',
-      subtitle: '72g diarios',
-    ),
-    _ChecklistItem(
-      icon: LucideIcons.heart,
-      iconColor: AppColors.pink,
-      title: 'Puntuación de salud',
-      subtitle: '85 puntos',
-    ),
-    _ChecklistItem(
-      icon: LucideIcons.dumbbell,
-      iconColor: AppColors.purple,
-      title: 'Ejercicios',
-      subtitle: 'Plan de 4 días/semana',
-    ),
-  ];
+  List<_ChecklistItem> _buildChecklist() {
+    final data = ref.read(onboardingProvider).data;
+    final nutrition = NutritionCalculator.calculateAll(data);
+    final trainingDays = data.trainingDays;
+
+    return [
+      _ChecklistItem(
+        icon: LucideIcons.flame,
+        iconColor: AppColors.redBright,
+        title: 'Calorías diarias',
+        subtitle: '${_formatNumber(nutrition?.calories)} kcal objetivo',
+      ),
+      _ChecklistItem(
+        icon: LucideIcons.wheat,
+        iconColor: AppColors.orange,
+        title: 'Carbohidratos',
+        subtitle: '${nutrition?.carbsG ?? '—'}g diarios',
+      ),
+      _ChecklistItem(
+        icon: LucideIcons.beef,
+        iconColor: AppColors.redBright,
+        title: 'Proteína',
+        subtitle: '${nutrition?.proteinG ?? '—'}g diarios',
+      ),
+      _ChecklistItem(
+        icon: LucideIcons.droplet,
+        iconColor: AppColors.orange,
+        title: 'Grasas',
+        subtitle: '${nutrition?.fatG ?? '—'}g diarios',
+      ),
+      _ChecklistItem(
+        icon: LucideIcons.glassWater,
+        iconColor: AppColors.blue,
+        title: 'Agua diaria',
+        subtitle: '${_formatNumber(nutrition?.waterMl)} ml objetivo',
+      ),
+      _ChecklistItem(
+        icon: LucideIcons.dumbbell,
+        iconColor: AppColors.purple,
+        title: 'Ejercicios',
+        subtitle: trainingDays != null
+            ? 'Plan de $trainingDays días/semana'
+            : 'Plan personalizado',
+      ),
+    ];
+  }
+
+  String _formatNumber(int? value) {
+    if (value == null) return '—';
+    if (value >= 1000) {
+      final thousands = value ~/ 1000;
+      final remainder = value % 1000;
+      return remainder == 0
+          ? '$thousands,000'
+          : '$thousands,${remainder.toString().padLeft(3, '0')}';
+    }
+    return value.toString();
+  }
 
   double get _progress => _controller.value * 100;
 
@@ -69,6 +91,7 @@ class _LoadingPageState extends ConsumerState<LoadingPage>
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this);
+    _checklistItems = _buildChecklist();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _saveAndNavigate());
   }

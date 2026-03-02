@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../../../core/services/isar_service.dart';
 import '../../../home/domain/models/meal_item.dart';
+import '../../../home/domain/providers/home_provider.dart';
 import '../../../home/domain/providers/week_provider.dart';
 import '../../../register_food/domain/providers/food_provider_detail.dart';
 import '../../data/local/food_local_source.dart';
@@ -221,6 +222,8 @@ class FoodHomeNotifier extends Notifier<Map<String, List<FoodHomeItem>>> {
 
     try {
       await _repo.deleteFoodSchedule(scheduleId);
+      // Refresh home nutrition card (actions only happen on today).
+      ref.read(homeProvider.notifier).loadNutritionForDate(DateTime.now());
     } catch (e) {
       // Reload on error to restore state.
       final weekState = ref.read(weekProvider);
@@ -299,6 +302,9 @@ class FoodHomeNotifier extends Notifier<Map<String, List<FoodHomeItem>>> {
 
       // 5. Resolve loading -> loaded.
       _resolveLoadingItem(tempId, mealItem, result.id, result);
+
+      // 5b. Refresh home nutrition card.
+      ref.read(homeProvider.notifier).loadNutritionForDate(DateTime.now());
 
       // 6. Update Isar cache for today.
       final todayKey = _dateKey(DateTime.now());
@@ -397,6 +403,9 @@ class FoodHomeNotifier extends Notifier<Map<String, List<FoodHomeItem>>> {
     }).toList();
 
     _updateDateItems(todayKey, updated);
+
+    // Refresh home nutrition card after ingredient edit.
+    ref.read(homeProvider.notifier).loadNutritionForDate(DateTime.now());
   }
 
   void retryItem(String tempId) {
