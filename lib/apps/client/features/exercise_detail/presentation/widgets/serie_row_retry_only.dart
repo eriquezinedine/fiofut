@@ -1,10 +1,9 @@
 part of 'serie_exercise_widget.dart';
 
-class _SerieRowRetryOnly extends ConsumerWidget {
+class _SerieRowRetryOnly extends ConsumerStatefulWidget {
   const _SerieRowRetryOnly({
     required this.serie,
     required this.isActive,
-    required this.groupType,
     this.isStarted = false,
     this.isCurrent = false,
     this.isLastCompleted = false,
@@ -13,48 +12,72 @@ class _SerieRowRetryOnly extends ConsumerWidget {
 
   final SerieSet serie;
   final bool isActive;
-  final SerieGroupType groupType;
   final bool isStarted;
   final bool isCurrent;
   final bool isLastCompleted;
   final VoidCallback? onRegisterSerie;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.read(serieDetailProvider(groupType).notifier);
+  ConsumerState<_SerieRowRetryOnly> createState() =>
+      _SerieRowRetryOnlyState();
+}
+
+class _SerieRowRetryOnlyState extends ConsumerState<_SerieRowRetryOnly> {
+  Future<void> _onNumberCellTap() async {
+    if (!widget.isStarted) {
+      final action = await SetTypeModal.show(context);
+      if (action == null || !mounted) return;
+
+      final notifier = ref.read(serieDetailProvider.notifier);
+      if (action == SetTypeAction.delete) {
+        notifier.removeSerie(widget.serie.id);
+      } else {
+        final type = SetTypeModal.toSetType(action);
+        if (type != null) notifier.updateSetType(widget.serie.id, type);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final serie = widget.serie;
+    final notifier = ref.read(serieDetailProvider.notifier);
 
     VoidCallback? numberCellTap;
-    if (isCurrent) {
-      numberCellTap = onRegisterSerie;
-    } else if (isLastCompleted) {
+    if (!widget.isStarted) {
+      numberCellTap = _onNumberCellTap;
+    } else if (widget.isCurrent) {
+      numberCellTap = widget.onRegisterSerie;
+    } else if (widget.isLastCompleted) {
       numberCellTap = () => notifier.toggleSerieCompleted(serie.id);
     }
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20)
-          .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
+          .add(EdgeInsets.only(top: widget.isActive ? 12 : 4, bottom: 8)),
       child: Row(
         children: [
           _SerieNumberCell(
             number: serie.number,
-            isActive: isActive,
-            isStarted: isStarted,
-            isCurrent: isCurrent,
+            isActive: widget.isActive,
+            isStarted: widget.isStarted,
+            isCurrent: widget.isCurrent,
+            setType: serie.setType,
             onTap: numberCellTap,
           ),
           const SizedBox(width: 16),
           Expanded(
             child: _CellContainer(
-              isActive: isActive,
-              isStarted: isStarted,
-              isCurrent: isCurrent,
+              isActive: widget.isActive,
+              isStarted: widget.isStarted,
+              isCurrent: widget.isCurrent,
               child: SerieTextField(
                 key: ValueKey('${serie.id}_reps'),
                 initialValue: serie.reps?.toString(),
                 hint: '0',
-                isActive: isActive,
-                isStarted: isStarted,
-                isCurrent: isCurrent,
+                isActive: widget.isActive,
+                isStarted: widget.isStarted,
+                isCurrent: widget.isCurrent,
                 onChanged: (v) {
                   final reps = int.tryParse(v);
                   if (reps != null) notifier.updateReps(serie.id, reps);

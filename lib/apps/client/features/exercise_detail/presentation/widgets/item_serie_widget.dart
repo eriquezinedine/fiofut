@@ -7,7 +7,6 @@ class ItemSerieWidget extends StatelessWidget {
     super.key,
     required this.repiteType,
     required this.serie,
-    required this.groupType,
     required this.isStarted,
     this.currentSerieId,
     this.lastCompletedId,
@@ -18,7 +17,6 @@ class ItemSerieWidget extends StatelessWidget {
 
   final RepiteType repiteType;
   final SerieSet serie;
-  final SerieGroupType groupType;
   final bool isStarted;
   final String? currentSerieId;
   final String? lastCompletedId;
@@ -35,7 +33,6 @@ class ItemSerieWidget extends StatelessWidget {
       RepiteType.byKg => _SerieRowByKg(
           serie: serie,
           isActive: isActive,
-          groupType: groupType,
           isStarted: isStarted,
           isCurrent: isCurrent,
           isLastCompleted: isLastCompleted,
@@ -44,7 +41,6 @@ class ItemSerieWidget extends StatelessWidget {
       RepiteType.byKm => _SerieRowByKm(
           serie: serie,
           isActive: isActive,
-          groupType: groupType,
           isStarted: isStarted,
           isCurrent: isCurrent,
           isLastCompleted: isLastCompleted,
@@ -53,7 +49,6 @@ class ItemSerieWidget extends StatelessWidget {
       RepiteType.retryOnly => _SerieRowRetryOnly(
           serie: serie,
           isActive: isActive,
-          groupType: groupType,
           isStarted: isStarted,
           isCurrent: isCurrent,
           isLastCompleted: isLastCompleted,
@@ -89,8 +84,6 @@ class ItemSerieWidget extends StatelessWidget {
                 return AnimatedBuilder(
                   animation: controller.animation,
                   builder: (context, child) {
-                    // animation.value goes 0 → ~0.25 (extentRatio),
-                    // normalize to 0 → 1 for the scale.
                     final t =
                         (controller.animation.value / 0.25).clamp(0.0, 1.0);
                     return Transform.scale(scale: t, child: child);

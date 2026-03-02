@@ -4,7 +4,6 @@ class _SerieRowByKg extends ConsumerStatefulWidget {
   const _SerieRowByKg({
     required this.serie,
     required this.isActive,
-    required this.groupType,
     this.isStarted = false,
     this.isCurrent = false,
     this.isLastCompleted = false,
@@ -13,7 +12,6 @@ class _SerieRowByKg extends ConsumerStatefulWidget {
 
   final SerieSet serie;
   final bool isActive;
-  final SerieGroupType groupType;
   final bool isStarted;
   final bool isCurrent;
   final bool isLastCompleted;
@@ -37,17 +35,33 @@ class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
     return kg == kg.roundToDouble() ? kg.toInt().toString() : kg.toString();
   }
 
+  Future<void> _onNumberCellTap() async {
+    if (!widget.isStarted) {
+      final action = await SetTypeModal.show(context);
+      if (action == null || !mounted) return;
+
+      final notifier = ref.read(serieDetailProvider.notifier);
+      if (action == SetTypeAction.delete) {
+        notifier.removeSerie(widget.serie.id);
+      } else {
+        final type = SetTypeModal.toSetType(action);
+        if (type != null) notifier.updateSetType(widget.serie.id, type);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final serie = widget.serie;
     final isActive = widget.isActive;
     final isStarted = widget.isStarted;
     final isCurrent = widget.isCurrent;
-    final notifier =
-        ref.read(serieDetailProvider(widget.groupType).notifier);
+    final notifier = ref.read(serieDetailProvider.notifier);
 
     VoidCallback? numberCellTap;
-    if (widget.isCurrent) {
+    if (!isStarted) {
+      numberCellTap = _onNumberCellTap;
+    } else if (widget.isCurrent) {
       numberCellTap = widget.onRegisterSerie;
     } else if (widget.isLastCompleted) {
       numberCellTap = () => notifier.toggleSerieCompleted(serie.id);
@@ -63,6 +77,7 @@ class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
             isActive: isActive,
             isStarted: isStarted,
             isCurrent: isCurrent,
+            setType: serie.setType,
             onTap: numberCellTap,
           ),
             const SizedBox(width: 16),

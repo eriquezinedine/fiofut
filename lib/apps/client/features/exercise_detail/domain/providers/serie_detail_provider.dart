@@ -8,20 +8,17 @@ part 'serie_detail_state.dart';
 
 const _uuid = Uuid();
 
-/// Family provider keyed by [SerieGroupType] — each group gets its own instance.
-/// AutoDispose cleans up when leaving the page.
-final serieDetailProvider = NotifierProvider.autoDispose
-    .family<SerieDetailNotifier, SerieDetailState, SerieGroupType>(
+/// Single provider for all series (no more family keyed by group type).
+final serieDetailProvider =
+    NotifierProvider.autoDispose<SerieDetailNotifier, SerieDetailState>(
   SerieDetailNotifier.new,
 );
 
-class SerieDetailNotifier
-    extends AutoDisposeFamilyNotifier<SerieDetailState, SerieGroupType> {
+class SerieDetailNotifier extends AutoDisposeNotifier<SerieDetailState> {
   @override
-  SerieDetailState build(SerieGroupType arg) => const SerieDetailInitial();
+  SerieDetailState build() => const SerieDetailInitial();
 
   /// Initializes the workout with an exercise and its type.
-  /// Call this from the page's initState or on first build.
   void init({
     required Exercise exercise,
     required RepiteType repiteType,
@@ -127,6 +124,12 @@ class SerieDetailNotifier
 
   void updateSegs(String serieId, int segs) {
     _updateSerie(serieId, (s) => s.copyWith(segs: segs));
+  }
+
+  // ── Set type ──────────────────────────────────────────────────
+
+  void updateSetType(String serieId, SetType type) {
+    _updateSerie(serieId, (s) => s.copyWith(setType: type));
   }
 
   // ── Complete / uncomplete serie ─────────────────────────────────

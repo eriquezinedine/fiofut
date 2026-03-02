@@ -1,10 +1,9 @@
 part of 'serie_exercise_widget.dart';
 
-class _SerieRowByKm extends ConsumerWidget {
+class _SerieRowByKm extends ConsumerStatefulWidget {
   const _SerieRowByKm({
     required this.serie,
     required this.isActive,
-    required this.groupType,
     this.isStarted = false,
     this.isCurrent = false,
     this.isLastCompleted = false,
@@ -13,50 +12,73 @@ class _SerieRowByKm extends ConsumerWidget {
 
   final SerieSet serie;
   final bool isActive;
-  final SerieGroupType groupType;
   final bool isStarted;
   final bool isCurrent;
   final bool isLastCompleted;
   final VoidCallback? onRegisterSerie;
 
+  @override
+  ConsumerState<_SerieRowByKm> createState() => _SerieRowByKmState();
+}
+
+class _SerieRowByKmState extends ConsumerState<_SerieRowByKm> {
   Color get _separatorColor {
-    if (!isStarted) {
-      return isActive ? AppColors.background : AppColors.white;
+    if (!widget.isStarted) {
+      return widget.isActive ? AppColors.background : AppColors.white;
     }
-    if (!isActive) return AppColors.black;
-    if (isCurrent) return AppColors.background;
+    if (!widget.isActive) return AppColors.black;
+    if (widget.isCurrent) return AppColors.background;
     return AppColors.white;
   }
 
+  Future<void> _onNumberCellTap() async {
+    if (!widget.isStarted) {
+      final action = await SetTypeModal.show(context);
+      if (action == null || !mounted) return;
+
+      final notifier = ref.read(serieDetailProvider.notifier);
+      if (action == SetTypeAction.delete) {
+        notifier.removeSerie(widget.serie.id);
+      } else {
+        final type = SetTypeModal.toSetType(action);
+        if (type != null) notifier.updateSetType(widget.serie.id, type);
+      }
+    }
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.read(serieDetailProvider(groupType).notifier);
+  Widget build(BuildContext context) {
+    final serie = widget.serie;
+    final notifier = ref.read(serieDetailProvider.notifier);
 
     VoidCallback? numberCellTap;
-    if (isCurrent) {
-      numberCellTap = onRegisterSerie;
-    } else if (isLastCompleted) {
+    if (!widget.isStarted) {
+      numberCellTap = _onNumberCellTap;
+    } else if (widget.isCurrent) {
+      numberCellTap = widget.onRegisterSerie;
+    } else if (widget.isLastCompleted) {
       numberCellTap = () => notifier.toggleSerieCompleted(serie.id);
     }
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20)
-          .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
+          .add(EdgeInsets.only(top: widget.isActive ? 12 : 4, bottom: 8)),
       child: Row(
         children: [
           _SerieNumberCell(
             number: serie.number,
-            isActive: isActive,
-            isStarted: isStarted,
-            isCurrent: isCurrent,
+            isActive: widget.isActive,
+            isStarted: widget.isStarted,
+            isCurrent: widget.isCurrent,
+            setType: serie.setType,
             onTap: numberCellTap,
           ),
           const SizedBox(width: 16),
           Expanded(
             child: _CellContainer(
-              isActive: isActive,
-              isStarted: isStarted,
-              isCurrent: isCurrent,
+              isActive: widget.isActive,
+              isStarted: widget.isStarted,
+              isCurrent: widget.isCurrent,
               child: Row(
                 children: [
                   Expanded(
@@ -64,9 +86,9 @@ class _SerieRowByKm extends ConsumerWidget {
                       key: ValueKey('${serie.id}_mins'),
                       initialValue: serie.mins?.toString(),
                       hint: '00',
-                      isActive: isActive,
-                      isStarted: isStarted,
-                      isCurrent: isCurrent,
+                      isActive: widget.isActive,
+                      isStarted: widget.isStarted,
+                      isCurrent: widget.isCurrent,
                       maxLength: 2,
                       onChanged: (v) {
                         final mins = int.tryParse(v);
@@ -90,9 +112,9 @@ class _SerieRowByKm extends ConsumerWidget {
                       key: ValueKey('${serie.id}_segs'),
                       initialValue: serie.segs?.toString(),
                       hint: '00',
-                      isActive: isActive,
-                      isStarted: isStarted,
-                      isCurrent: isCurrent,
+                      isActive: widget.isActive,
+                      isStarted: widget.isStarted,
+                      isCurrent: widget.isCurrent,
                       maxLength: 2,
                       onChanged: (v) {
                         final segs = int.tryParse(v);
@@ -109,9 +131,9 @@ class _SerieRowByKm extends ConsumerWidget {
           const SizedBox(width: 16),
           Expanded(
             child: _CellContainer(
-              isActive: isActive,
-              isStarted: isStarted,
-              isCurrent: isCurrent,
+              isActive: widget.isActive,
+              isStarted: widget.isStarted,
+              isCurrent: widget.isCurrent,
               child: SerieTextField(
                 key: ValueKey('${serie.id}_kg'),
                 initialValue: serie.kg != null
@@ -120,9 +142,9 @@ class _SerieRowByKm extends ConsumerWidget {
                         : serie.kg.toString())
                     : null,
                 hint: '0',
-                isActive: isActive,
-                isStarted: isStarted,
-                isCurrent: isCurrent,
+                isActive: widget.isActive,
+                isStarted: widget.isStarted,
+                isCurrent: widget.isCurrent,
                 onChanged: (v) {
                   final kg = double.tryParse(v);
                   if (kg != null) notifier.updateKg(serie.id, kg);

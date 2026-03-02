@@ -4,8 +4,6 @@ import 'package:fio_fut/apps/client/features/exercise_home/domain/model/model.da
 
 enum WorkoutStatus { pending, inProgress, completed }
 
-enum SerieGroupType { effective, warmup }
-
 class WorkoutExercise {
   const WorkoutExercise({
     required this.id,

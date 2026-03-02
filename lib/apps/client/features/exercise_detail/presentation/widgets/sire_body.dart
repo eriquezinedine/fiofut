@@ -4,21 +4,19 @@ class SireBody extends ConsumerWidget {
   const SireBody({
     super.key,
     this.repiteType = RepiteType.byKg,
-    this.groupType = SerieGroupType.effective,
     this.isStarted = false,
     this.currentSerieId,
     this.onRegisterSerie,
   });
 
   final RepiteType repiteType;
-  final SerieGroupType groupType;
   final bool isStarted;
   final String? currentSerieId;
   final VoidCallback? onRegisterSerie;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(serieDetailProvider(groupType));
+    final state = ref.watch(serieDetailProvider);
     final isRetryOnly = repiteType == RepiteType.retryOnly;
     final middleHeader = switch (repiteType) {
       RepiteType.byKg => 'Repeticiones',
@@ -49,14 +47,13 @@ class SireBody extends ConsumerWidget {
           ItemSerieWidget(
             repiteType: repiteType,
             serie: serie,
-            groupType: groupType,
             isStarted: isStarted,
             currentSerieId: currentSerieId,
             lastCompletedId: lastCompletedId,
             onRegisterSerie: onRegisterSerie,
             canDelete: series.length > 1,
             onDelete: () => ref
-                .read(serieDetailProvider(groupType).notifier)
+                .read(serieDetailProvider.notifier)
                 .removeSerie(serie.id),
           ),
       ],

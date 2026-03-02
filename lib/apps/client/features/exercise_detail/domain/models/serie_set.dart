@@ -2,6 +2,8 @@ import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widget
 
 enum SerieStatus { pending, completed }
 
+enum SetType { normal, warmup, dropset }
+
 class SerieSet {
   const SerieSet({
     required this.id,
@@ -11,6 +13,7 @@ class SerieSet {
     this.mins,
     this.segs,
     this.status = SerieStatus.pending,
+    this.setType = SetType.normal,
   });
 
   final String id;
@@ -20,6 +23,7 @@ class SerieSet {
   final int? mins;
   final int? segs;
   final SerieStatus status;
+  final SetType setType;
 
   bool get isCompleted => status == SerieStatus.completed;
 
@@ -43,6 +47,7 @@ class SerieSet {
     int? mins,
     int? segs,
     SerieStatus? status,
+    SetType? setType,
   }) {
     return SerieSet(
       id: id ?? this.id,
@@ -52,6 +57,7 @@ class SerieSet {
       mins: mins ?? this.mins,
       segs: segs ?? this.segs,
       status: status ?? this.status,
+      setType: setType ?? this.setType,
     );
   }
 
@@ -66,12 +72,13 @@ class SerieSet {
           kg == other.kg &&
           mins == other.mins &&
           segs == other.segs &&
-          status == other.status;
+          status == other.status &&
+          setType == other.setType;
 
   @override
-  int get hashCode => Object.hash(id, number, reps, kg, mins, segs, status);
+  int get hashCode => Object.hash(id, number, reps, kg, mins, segs, status, setType);
 
   @override
   String toString() =>
-      'SerieSet(id: $id, #$number, reps: $reps, kg: $kg, mins: $mins, segs: $segs, status: $status)';
+      'SerieSet(id: $id, #$number, reps: $reps, kg: $kg, mins: $mins, segs: $segs, status: $status, setType: $setType)';
 }

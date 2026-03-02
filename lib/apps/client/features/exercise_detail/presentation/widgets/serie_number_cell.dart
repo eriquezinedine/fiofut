@@ -6,6 +6,7 @@ class _SerieNumberCell extends StatelessWidget {
     required this.isActive,
     this.isStarted = false,
     this.isCurrent = false,
+    this.setType = SetType.normal,
     this.onTap,
   });
 
@@ -13,6 +14,7 @@ class _SerieNumberCell extends StatelessWidget {
   final bool isActive;
   final bool isStarted;
   final bool isCurrent;
+  final SetType setType;
   final VoidCallback? onTap;
 
   bool get _isCompleted => !isActive;
@@ -49,17 +51,43 @@ class _SerieNumberCell extends StatelessWidget {
         alignment: Alignment.center,
         child: isStarted && _isCompleted
             ? Icon(LucideIcons.check, color: AppColors.black, size: 18)
-            : Text(
-                '$number',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: textColor,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.32,
-                  height: 1.25,
-                ),
-              ),
+            : _buildTypeContent(textColor),
       ),
     );
+  }
+
+  Widget _buildTypeContent(Color defaultTextColor) {
+    return switch (setType) {
+      SetType.normal => Text(
+          '$number',
+          textAlign: TextAlign.center,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: defaultTextColor,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.32,
+            height: 1.25,
+          ),
+        ),
+      SetType.warmup => Text(
+          'C',
+          textAlign: TextAlign.center,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.orange,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.32,
+            height: 1.25,
+          ),
+        ),
+      SetType.dropset => Text(
+          'D',
+          textAlign: TextAlign.center,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.error,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.32,
+            height: 1.25,
+          ),
+        ),
+    };
   }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider.dart';
+import 'package:fio_fut/core/widgets/modal/set_type_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,25 +25,18 @@ class SerieExerciseWidget extends ConsumerWidget {
   const SerieExerciseWidget({
     super.key,
     this.repiteType = RepiteType.byKm,
-    this.groupType = SerieGroupType.effective,
     this.isStarted = false,
     this.currentSerieId,
     this.onRegisterSerie,
   });
 
   final RepiteType repiteType;
-  final SerieGroupType groupType;
   final bool isStarted;
   final String? currentSerieId;
   final VoidCallback? onRegisterSerie;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final title = switch (groupType) {
-      SerieGroupType.effective => 'Series efectivas',
-      SerieGroupType.warmup => 'Sets de calentamiento',
-    };
-
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24)
           .add(EdgeInsets.only(bottom: 0)),
@@ -50,14 +44,13 @@ class SerieExerciseWidget extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            title,
+            'Series',
             style: AppTextStyles.h3.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
           SireBody(
             repiteType: repiteType,
-            groupType: groupType,
             isStarted: isStarted,
             currentSerieId: currentSerieId,
             onRegisterSerie: onRegisterSerie,

@@ -116,6 +116,7 @@ class ExerciseSetData {
     this.distance,
     required this.isCompleted,
     this.completedAt,
+    this.setType = 'normal',
   });
 
   final String id;
@@ -127,6 +128,7 @@ class ExerciseSetData {
   final double? distance;
   final bool isCompleted;
   final DateTime? completedAt;
+  final String setType;
 
   factory ExerciseSetData.fromJson(Map<String, dynamic> json) {
     return ExerciseSetData(
@@ -141,6 +143,7 @@ class ExerciseSetData {
       completedAt: json['completed_at'] != null
           ? DateTime.parse(json['completed_at'] as String)
           : null,
+      setType: json['set_type'] as String? ?? 'normal',
     );
   }
 }
