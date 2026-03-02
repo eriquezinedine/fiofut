@@ -43,14 +43,25 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
   /// Advances to the next step in the wizard.
   ///
   /// Returns true if successfully moved to next step, false if already at last step.
+  /// When the goal is "maintain", skips the desiredWeight step and sets
+  /// desiredWeight equal to currentWeight.
   bool nextStep() {
     return switch (state) {
       OnboardingInProgress(:final currentStep, :final data) => () {
-          final next = currentStep.next;
+          var next = currentStep.next;
+          var updatedData = data;
+
+          // Skip desiredWeight when goal is maintain
+          if (currentStep == OnboardingStep.weightGoal &&
+              data.weightGoal == WeightGoal.maintain) {
+            updatedData = data.copyWith(desiredWeight: data.currentWeight);
+            next = OnboardingStep.motivational;
+          }
+
           if (next != null) {
             state = OnboardingInProgress(
               currentStep: next,
-              data: data,
+              data: updatedData,
             );
             _saveStep(next);
             return true;
@@ -64,10 +75,18 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
   /// Goes back to the previous step in the wizard.
   ///
   /// Returns true if successfully moved to previous step, false if already at first step.
+  /// When the goal is "maintain", skips back over the desiredWeight step.
   bool previousStep() {
     return switch (state) {
       OnboardingInProgress(:final currentStep, :final data) => () {
-          final prev = currentStep.previous;
+          var prev = currentStep.previous;
+
+          // Skip desiredWeight going back when goal is maintain
+          if (currentStep == OnboardingStep.motivational &&
+              data.weightGoal == WeightGoal.maintain) {
+            prev = OnboardingStep.weightGoal;
+          }
+
           if (prev != null) {
             state = OnboardingInProgress(
               currentStep: prev,
