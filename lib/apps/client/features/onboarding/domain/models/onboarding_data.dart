@@ -13,7 +13,7 @@ class OnboardingData {
     this.weightGoal,
     this.height,
     this.currentWeight,
-    this.workoutLocations = const {},
+    this.workoutLocation,
     this.gender,
     this.birthDate,
     this.referralCode,
@@ -32,7 +32,7 @@ class OnboardingData {
       : weightGoal = null,
         height = null,
         currentWeight = null,
-        workoutLocations = const {},
+        workoutLocation = null,
         gender = null,
         birthDate = null,
         referralCode = null,
@@ -54,8 +54,8 @@ class OnboardingData {
   /// Step 3: The user's current weight in kilograms
   final double? currentWeight;
 
-  /// Step 4: Where the user prefers to workout (can select multiple)
-  final Set<WorkoutLocation> workoutLocations;
+  /// Step 4: Where the user prefers to workout
+  final WorkoutLocation? workoutLocation;
 
   /// Step 5: The user's gender
   final Gender? gender;
@@ -95,7 +95,7 @@ class OnboardingData {
     WeightGoal? weightGoal,
     double? height,
     double? currentWeight,
-    Set<WorkoutLocation>? workoutLocations,
+    WorkoutLocation? workoutLocation,
     Gender? gender,
     DateTime? birthDate,
     String? referralCode,
@@ -115,7 +115,7 @@ class OnboardingData {
       weightGoal: weightGoal ?? this.weightGoal,
       height: height ?? this.height,
       currentWeight: currentWeight ?? this.currentWeight,
-      workoutLocations: workoutLocations ?? this.workoutLocations,
+      workoutLocation: workoutLocation ?? this.workoutLocation,
       gender: gender ?? this.gender,
       birthDate: birthDate ?? this.birthDate,
       referralCode:
@@ -155,7 +155,7 @@ class OnboardingData {
       weightGoal != null &&
       height != null &&
       currentWeight != null &&
-      workoutLocations.isNotEmpty &&
+      workoutLocation != null &&
       gender != null &&
       birthDate != null &&
       desiredWeight != null;
@@ -168,7 +168,7 @@ class OnboardingData {
     return other.weightGoal == weightGoal &&
         other.height == height &&
         other.currentWeight == currentWeight &&
-        _setEquals(other.workoutLocations, workoutLocations) &&
+        other.workoutLocation == workoutLocation &&
         other.gender == gender &&
         other.birthDate == birthDate &&
         other.referralCode == referralCode &&
@@ -187,7 +187,7 @@ class OnboardingData {
         weightGoal,
         height,
         currentWeight,
-        Object.hashAll(workoutLocations),
+        workoutLocation,
         gender,
         birthDate,
         referralCode,
@@ -209,17 +209,12 @@ class OnboardingData {
     return true;
   }
 
-  bool _setEquals<T>(Set<T> a, Set<T> b) {
-    if (a.length != b.length) return false;
-    return a.containsAll(b);
-  }
-
   @override
   String toString() => 'OnboardingData('
       'weightGoal: $weightGoal, '
       'height: $height, '
       'currentWeight: $currentWeight, '
-      'workoutLocations: $workoutLocations, '
+      'workoutLocation: $workoutLocation, '
       'gender: $gender, '
       'birthDate: $birthDate, '
       'referralCode: $referralCode, '

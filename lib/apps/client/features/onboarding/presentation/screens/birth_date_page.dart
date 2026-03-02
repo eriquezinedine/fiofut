@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:zentoast/zentoast.dart';
 
 import '../../domain/providers/providers.dart';
 import '../widgets/widgets.dart';
@@ -79,6 +82,63 @@ class _BirthDatePageState extends ConsumerState<BirthDatePage> {
     return DateTime(_selectedYear, _selectedMonth, day);
   }
 
+  int get _age {
+    final now = DateTime.now();
+    int age = now.year - _selectedDate.year;
+    if (now.month < _selectedDate.month ||
+        (now.month == _selectedDate.month && now.day < _selectedDate.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  bool get _isUnder13 => _age < 13;
+
+  void _showAgeToast() {
+    const color = AppColors.error;
+    Toast(
+      height: 40,
+      category: ToastCategory.error,
+      builder: (toast) => Material(
+        color: Colors.transparent,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: color.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: color,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Debes tener al menos 13 a\u00f1os',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ).show(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(onboardingProvider);
@@ -93,6 +153,10 @@ class _BirthDatePageState extends ConsumerState<BirthDatePage> {
       onBack: () => notifier.previousStep(),
       bottomSection: OnboardingContinueButton(
         onPressed: () {
+          if (_isUnder13) {
+            _showAgeToast();
+            return;
+          }
           notifier.updateBirthDate(_selectedDate);
           notifier.nextStep();
         },

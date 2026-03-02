@@ -10,7 +10,7 @@ enum TrainingDuration {
   ninety;
 
   String get label => switch (this) {
-        TrainingDuration.thirty => '30 min',
+        TrainingDuration.thirty => '20 min',
         TrainingDuration.fortyFive => '45 min',
         TrainingDuration.sixty => '60 min',
         TrainingDuration.ninety => '90+ min',

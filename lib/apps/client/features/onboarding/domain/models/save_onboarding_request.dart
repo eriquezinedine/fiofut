@@ -18,7 +18,7 @@ class SaveOnboardingRequest {
     required this.desiredWeight,
     required this.gender,
     required this.birthDate,
-    required this.workoutLocations,
+    required this.workoutLocation,
     this.referralCode,
     this.injuries,
     this.excludedFoods = const [],
@@ -42,7 +42,8 @@ class SaveOnboardingRequest {
         data.currentWeight == null ||
         data.desiredWeight == null ||
         data.gender == null ||
-        data.birthDate == null) {
+        data.birthDate == null ||
+        data.workoutLocation == null) {
       return null;
     }
 
@@ -54,7 +55,7 @@ class SaveOnboardingRequest {
       desiredWeight: data.desiredWeight!,
       gender: data.gender!,
       birthDate: data.birthDate!,
-      workoutLocations: data.workoutLocations.toList(),
+      workoutLocation: data.workoutLocation!,
       referralCode: data.referralCode,
       injuries: data.injuries,
       excludedFoods: data.excludedFoods,
@@ -74,7 +75,7 @@ class SaveOnboardingRequest {
   final double desiredWeight;
   final Gender gender;
   final DateTime birthDate;
-  final List<WorkoutLocation> workoutLocations;
+  final WorkoutLocation workoutLocation;
   final String? referralCode;
   final String? injuries;
   final List<String> excludedFoods;
@@ -94,7 +95,7 @@ class SaveOnboardingRequest {
       'desired_weight': desiredWeight,
       'gender': gender.name,
       'birth_date': birthDate.toIso8601String().split('T').first,
-      'workout_locations': workoutLocations.map((e) => e.name).toList(),
+      'workout_location': workoutLocation.name,
       'referral_code': referralCode,
       'injuries': injuries,
       'excluded_foods': excludedFoods,

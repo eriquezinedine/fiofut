@@ -9,20 +9,20 @@ enum Gender {
   /// Female
   female,
 
-  /// Other/Non-binary
-  other;
+  /// Prefer not to say
+  preferNotToSay;
 
   /// Returns a human-readable label for the gender.
   String get label => switch (this) {
         Gender.male => 'Male',
         Gender.female => 'Female',
-        Gender.other => 'Other',
+        Gender.preferNotToSay => 'Prefer not to say',
       };
 
   /// Returns the color associated with this gender.
   Color getColor() => switch (this) {
         Gender.male => AppColors.blue,
         Gender.female => AppColors.pink,
-        Gender.other => AppColors.green,
+        Gender.preferNotToSay => AppColors.textSecondary,
       };
 }

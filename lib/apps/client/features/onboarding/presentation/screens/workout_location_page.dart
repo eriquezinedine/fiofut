@@ -15,41 +15,54 @@ class WorkoutLocationPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(onboardingProvider);
     final notifier = ref.read(onboardingProvider.notifier);
-    final selectedLocations = state.data.workoutLocations;
+    final selected = state.data.workoutLocation;
 
     return OnboardingScaffold(
       progress: state.progress,
-      title: '¿Dónde prefieres\nentrenar?',
-      subtitle: '¡Tenemos un programa para tu espacio de entrenamiento!',
+      title: '\u00bfD\u00f3nde prefieres\nentrenar?',
+      subtitle: '\u00a1Tenemos un programa para tu espacio de entrenamiento!',
       onBack: () => notifier.previousStep(),
       bottomSection: OnboardingContinueButton(
-        onPressed: selectedLocations.isNotEmpty ? () => notifier.nextStep() : null,
-        isEnabled: selectedLocations.isNotEmpty,
+        onPressed: selected != null ? () => notifier.nextStep() : null,
+        isEnabled: selected != null,
       ),
-      child: Row(
+      child: AppAnimatedColumn(
         children: [
-          Expanded(
-            child: _LocationCard(
-              icon: LucideIcons.home,
-              iconBackgroundColor: AppColors.red.withValues(alpha: 0.13),
-              iconColor: AppColors.red,
-              title: 'Casa',
-              isSelected: selectedLocations.contains(WorkoutLocation.home),
-              selectedBorderColor: AppColors.red,
-              onTap: () => notifier.toggleWorkoutLocation(WorkoutLocation.home),
-            ),
+          const SizedBox(height: 8),
+          _LocationCard(
+            icon: LucideIcons.home,
+            iconBackgroundColor: AppColors.red.withValues(alpha: 0.13),
+            iconColor: AppColors.red,
+            title: 'Casa',
+            subtitle: 'Entrena desde la comodidad de tu hogar',
+            isSelected: selected == WorkoutLocation.home,
+            selectedBorderColor: AppColors.red,
+            onTap: () =>
+                notifier.updateWorkoutLocation(WorkoutLocation.home),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _LocationCard(
-              icon: LucideIcons.dumbbell,
-              iconBackgroundColor: AppColors.blue.withValues(alpha: 0.13),
-              iconColor: AppColors.blue,
-              title: 'Gym',
-              isSelected: selectedLocations.contains(WorkoutLocation.gym),
-              selectedBorderColor: AppColors.blue,
-              onTap: () => notifier.toggleWorkoutLocation(WorkoutLocation.gym),
-            ),
+          const SizedBox(height: 16),
+          _LocationCard(
+            icon: LucideIcons.dumbbell,
+            iconBackgroundColor: AppColors.blue.withValues(alpha: 0.13),
+            iconColor: AppColors.blue,
+            title: 'Gym',
+            subtitle: 'Aprovecha al m\u00e1ximo el equipo del gimnasio',
+            isSelected: selected == WorkoutLocation.gym,
+            selectedBorderColor: AppColors.blue,
+            onTap: () =>
+                notifier.updateWorkoutLocation(WorkoutLocation.gym),
+          ),
+          const SizedBox(height: 16),
+          _LocationCard(
+            icon: LucideIcons.repeat,
+            iconBackgroundColor: AppColors.green.withValues(alpha: 0.13),
+            iconColor: AppColors.green,
+            title: 'Ambos',
+            subtitle: 'Combina entrenamientos en casa y gimnasio',
+            isSelected: selected == WorkoutLocation.both,
+            selectedBorderColor: AppColors.green,
+            onTap: () =>
+                notifier.updateWorkoutLocation(WorkoutLocation.both),
           ),
         ],
       ),
@@ -63,6 +76,7 @@ class _LocationCard extends StatelessWidget {
     required this.iconBackgroundColor,
     required this.iconColor,
     required this.title,
+    required this.subtitle,
     required this.isSelected,
     required this.selectedBorderColor,
     required this.onTap,
@@ -72,6 +86,7 @@ class _LocationCard extends StatelessWidget {
   final Color iconBackgroundColor;
   final Color iconColor;
   final String title;
+  final String subtitle;
   final bool isSelected;
   final Color selectedBorderColor;
   final VoidCallback onTap;
@@ -81,37 +96,47 @@ class _LocationCard extends StatelessWidget {
     return AppAnimatedEntry(
       onTap: onTap,
       child: Container(
-        height: 180,
-        padding: const EdgeInsets.all(20),
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(20),
-          border: isSelected
-              ? Border.all(color: selectedBorderColor, width: 2)
-              : null,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? selectedBorderColor : AppColors.card,
+            width: 2,
+          ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
           children: [
             Container(
-              width: 64,
-              height: 64,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: iconBackgroundColor,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 32,
-              ),
+              child: Icon(icon, color: iconColor, size: 24),
             ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: AppTextStyles.titleMedium.copyWith(
-                color: AppColors.white,
-                fontWeight: FontWeight.w700,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -120,4 +145,3 @@ class _LocationCard extends StatelessWidget {
     );
   }
 }
-

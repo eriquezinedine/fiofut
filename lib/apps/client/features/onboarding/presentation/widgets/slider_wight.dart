@@ -9,6 +9,8 @@ class SliderWeight extends StatelessWidget {
     required this.max,
     required this.onChanged,
     required this.isKg,
+    this.referenceValue,
+    this.rangeColor,
   });
 
   final double value;
@@ -16,6 +18,8 @@ class SliderWeight extends StatelessWidget {
   final double max;
   final ValueChanged<double> onChanged;
   final bool isKg;
+  final double? referenceValue;
+  final Color? rangeColor;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +51,8 @@ class SliderWeight extends StatelessWidget {
             labelStyle: AppTextStyles.small.copyWith(
               color: AppColors.textMuted,
             ),
+            referenceValue: referenceValue,
+            rangeColor: rangeColor,
             onChange: onChanged,
           ),
         ),

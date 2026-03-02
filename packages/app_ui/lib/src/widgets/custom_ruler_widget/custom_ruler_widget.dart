@@ -58,6 +58,8 @@ class CustomRuler extends StatefulWidget {
     this.labelStyle,
     this.physics,
     this.verticalPointerPositionFactor = 3.5,
+    this.referenceValue,
+    this.rangeColor,
   }) : assert(minRange < maxRange, 'minRange must be less than maxRange');
 
   /// The minimum value of the ruler range.
@@ -212,6 +214,12 @@ class CustomRuler extends StatefulWidget {
   ///
   /// Lower values move the pointer higher. Defaults to `3.5`.
   final double verticalPointerPositionFactor;
+
+  /// An optional reference value to show a range bar from the pointer to.
+  final double? referenceValue;
+
+  /// The base color for the range bar (drawn with alpha 0.4).
+  final Color? rangeColor;
 
   @override
   CustomRulerState createState() => CustomRulerState();
@@ -499,6 +507,8 @@ class CustomRulerState extends State<CustomRuler> {
                         majorInterval: widget.majorInterval,
                         mediumInterval: widget.mediumInterval,
                         labelStyle: widget.labelStyle,
+                        referenceValue: widget.referenceValue,
+                        rangeColor: widget.rangeColor,
                       ),
                     ),
                   ),

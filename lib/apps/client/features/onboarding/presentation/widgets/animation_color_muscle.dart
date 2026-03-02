@@ -213,7 +213,7 @@ class _AnimationColorMuscleState extends State<AnimationColorMuscle>
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
                 dividerColor: Colors.transparent,
-                labelColor: AppColors.white,
+                labelColor: AppColors.black,
                 unselectedLabelColor: AppColors.textSecondary,
                 labelStyle: AppTextStyles.bodySmall.copyWith(
                   fontWeight: FontWeight.w600,

@@ -46,6 +46,16 @@ class GenderPage extends ConsumerWidget {
             isSelected: selectedGender == Gender.female,
             onTap: () => notifier.updateGender(Gender.female),
           ),
+          const SizedBox(height: 16),
+          _GenderCard(
+            icon: LucideIcons.eyeOff,
+            iconBackgroundColor:
+                AppColors.textSecondary.withValues(alpha: 0.13),
+            iconColor: AppColors.textSecondary,
+            label: 'Prefiero no decirlo',
+            isSelected: selectedGender == Gender.preferNotToSay,
+            onTap: () => notifier.updateGender(Gender.preferNotToSay),
+          ),
         ],
       ),
     );

@@ -140,23 +140,9 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     _updateData((data) => data.copyWith(useKgUnit: useKgUnit));
   }
 
-  /// Toggles a workout location in the selection.
-  void toggleWorkoutLocation(WorkoutLocation location) {
-    switch (state) {
-      case OnboardingInProgress(:final currentStep, :final data):
-        final newLocations = Set<WorkoutLocation>.from(data.workoutLocations);
-        if (newLocations.contains(location)) {
-          newLocations.remove(location);
-        } else {
-          newLocations.add(location);
-        }
-        state = OnboardingInProgress(
-          currentStep: currentStep,
-          data: data.copyWith(workoutLocations: newLocations),
-        );
-      default:
-        break;
-    }
+  /// Updates the workout location selection.
+  void updateWorkoutLocation(WorkoutLocation location) {
+    _updateData((data) => data.copyWith(workoutLocation: location));
   }
 
   /// Updates the user's gender.

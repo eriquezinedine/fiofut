@@ -45,9 +45,20 @@ class _DesiredWeightPageState extends ConsumerState<DesiredWeightPage> {
     final notifier = ref.read(onboardingProvider.notifier);
     final isKg = state.data.useKgUnit;
 
+    final currentWeight = state.data.currentWeight ?? _weight;
     final displayWeight = isKg ? _weight : _weight * 2.20462;
+    final displayCurrentWeight = isKg ? currentWeight : currentWeight * 2.20462;
     final minWeight = isKg ? 40.0 : 88.0;
     final maxWeight = isKg ? 150.0 : 330.0;
+
+    final Color? rangeColor;
+    if (_weight < currentWeight) {
+      rangeColor = AppColors.red;
+    } else if (_weight > currentWeight) {
+      rangeColor = AppColors.green;
+    } else {
+      rangeColor = null;
+    }
 
     return OnboardingScaffold(
       progress: state.progress,
@@ -100,6 +111,8 @@ class _DesiredWeightPageState extends ConsumerState<DesiredWeightPage> {
               min: minWeight,
               max: maxWeight,
               isKg: isKg,
+              referenceValue: displayCurrentWeight,
+              rangeColor: rangeColor,
               onChanged: (value) {
                 setState(() {
                   _weight = isKg ? value : value / 2.20462;

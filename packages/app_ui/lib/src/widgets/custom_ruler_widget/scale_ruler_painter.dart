@@ -25,6 +25,8 @@ class ScaleRulerPainter extends CustomPainter {
     this.majorInterval,
     this.mediumInterval,
     this.labelStyle,
+    this.referenceValue,
+    this.rangeColor,
     Listenable? repaintListenable,
   }) : super(repaint: repaintListenable);
 
@@ -85,6 +87,12 @@ class ScaleRulerPainter extends CustomPainter {
   /// Optional custom text style for labels.
   final TextStyle? labelStyle;
 
+  /// An optional reference value to show a range bar from.
+  final double? referenceValue;
+
+  /// The color for the range bar (drawn with alpha 0.4).
+  final Color? rangeColor;
+
   @override
   void paint(Canvas canvas, Size size) {
     final isHorizontal = orientation == RulerOrientation.horizontal;
@@ -109,6 +117,25 @@ class ScaleRulerPainter extends CustomPainter {
     final longLine = rulerHeight * 0.35;
     final mediumLine = rulerHeight * 0.25;
     final shortLine = rulerHeight * 0.15;
+
+    // Draw range bar between referenceValue and current pointer
+    if (referenceValue != null && rangeColor != null && isHorizontal) {
+      final refPx =
+          ((referenceValue! - minRange) / lineSpacing) * pixelSpacing;
+      final pointerPx = scrollOffset;
+      final left = refPx < pointerPx ? refPx : pointerPx;
+      final right = refPx < pointerPx ? pointerPx : refPx;
+
+      if ((right - left).abs() > 0.5) {
+        final rangePaint = Paint()
+          ..color = rangeColor!.withValues(alpha: 0.4);
+        final barTop = size.height - shortLine;
+        canvas.drawRect(
+          Rect.fromLTRB(left, barTop, right, size.height),
+          rangePaint,
+        );
+      }
+    }
 
     final range = maxRange - minRange;
     final numLines = (range / lineSpacing).round();
@@ -285,6 +312,8 @@ class ScaleRulerPainter extends CustomPainter {
         leadingPadding != old.leadingPadding ||
         majorInterval != old.majorInterval ||
         mediumInterval != old.mediumInterval ||
-        labelStyle != old.labelStyle;
+        labelStyle != old.labelStyle ||
+        referenceValue != old.referenceValue ||
+        rangeColor != old.rangeColor;
   }
 }
