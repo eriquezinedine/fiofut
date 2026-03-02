@@ -128,23 +128,36 @@ class _AnimationColorMuscleState extends State<AnimationColorMuscle>
     )!;
   }
 
+  static const _deltoidGroup = {
+    MuscleGroup.lateralDeltoid,
+    MuscleGroup.frontDeltoid,
+    MuscleGroup.rearDeltoid,
+  };
+
   void _onTap(MuscleGroup muscle) {
+    final isDeltoid = _deltoidGroup.contains(muscle);
+    final muscles = isDeltoid ? _deltoidGroup : {muscle};
     final wasSelected = _selected.contains(muscle);
+    final nowSelected = !wasSelected;
+
     setState(() {
-      if (wasSelected) {
-        _selected.remove(muscle);
-        _createColorController(muscle, selected: false);
-      } else {
-        _selected.add(muscle);
-        _createColorController(muscle, selected: true);
+      for (final m in muscles) {
+        if (nowSelected) {
+          _selected.add(m);
+          _createColorController(m, selected: true);
+        } else {
+          _selected.remove(m);
+          _createColorController(m, selected: false);
+        }
       }
     });
-    _showToast(muscle, selected: !wasSelected);
+    final toastLabel = isDeltoid ? 'Hombros' : muscle.getLabel;
+    _showToast(toastLabel, selected: nowSelected);
     widget.onMuscleTap?.call(muscle);
     widget.onSelectionChanged?.call(Set.unmodifiable(_selected));
   }
 
-  void _showToast(MuscleGroup muscle, {required bool selected}) {
+  void _showToast(String label, {required bool selected}) {
     final color = selected ? AppColors.primary : AppColors.error;
     final icon = selected
         ? Icons.check_circle_rounded
@@ -173,7 +186,7 @@ class _AnimationColorMuscleState extends State<AnimationColorMuscle>
                   Icon(icon, color: color, size: 18),
                   const SizedBox(width: 8),
                   Text(
-                    muscle.getLabel,
+                    label,
                     style: AppTextStyles.bodySmall.copyWith(
                       color: color,
                       fontWeight: FontWeight.w600,
