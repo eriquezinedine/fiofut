@@ -40,7 +40,11 @@ class ListExercise extends StatelessWidget {
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final item = exercises[index];
-        final card = ExerciseCard(item: item);
+        final card = ExerciseCard(
+          item: item,
+          allExercises: exercises,
+          index: index,
+        );
 
         if (onDelete == null) return card;
 

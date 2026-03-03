@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider.dart';
+import 'package:fio_fut/core/widgets/app_toast.dart';
 import 'package:fio_fut/core/widgets/modal/set_type_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,12 +25,14 @@ enum RepiteType { byKg, byKm, retryOnly }
 class SerieExerciseWidget extends ConsumerWidget {
   const SerieExerciseWidget({
     super.key,
+    required this.scheduleId,
     this.repiteType = RepiteType.byKm,
     this.isStarted = false,
     this.currentSerieId,
     this.onRegisterSerie,
   });
 
+  final String scheduleId;
   final RepiteType repiteType;
   final bool isStarted;
   final String? currentSerieId;
@@ -50,6 +53,7 @@ class SerieExerciseWidget extends ConsumerWidget {
             ),
           ),
           SireBody(
+            scheduleId: scheduleId,
             repiteType: repiteType,
             isStarted: isStarted,
             currentSerieId: currentSerieId,

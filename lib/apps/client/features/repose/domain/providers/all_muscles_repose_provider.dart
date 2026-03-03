@@ -40,6 +40,15 @@ class AllMusclesReposeNotifier extends Notifier<AllMusclesReposeState> {
     // ref.read(reposeRepositoryProvider).updateMuscleProgress(group, percentage);
   }
 
+  /// Reduces a muscle's recovery percentage by the given amount.
+  /// Used after completing reps (e.g., amount = reps * kFatiguePerRep).
+  void reduceMuscleProgress(MuscleGroup group, double amount) {
+    final current = state.muscles[group];
+    if (current == null) return;
+    final newPercentage = (current.percentage - amount).clamp(0, 100).round();
+    updateMuscleProgress(group, newPercentage);
+  }
+
   /// Resets all muscles to 100%.
   void resetAll() {
     final updated = state.muscles.map(

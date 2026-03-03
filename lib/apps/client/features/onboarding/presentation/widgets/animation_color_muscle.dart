@@ -1,12 +1,10 @@
-import 'dart:ui';
-
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/widgets/muscle_custom_painter/back_body_custom_paint.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/widgets/muscle_custom_painter/front_body_custom_paint.dart';
 import 'package:fio_fut/core/extension/muscle_group_extension.dart';
+import 'package:fio_fut/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:model/model.dart';
-import 'package:zentoast/zentoast.dart';
 
 class AnimationColorMuscle extends StatefulWidget {
   const AnimationColorMuscle({
@@ -158,47 +156,11 @@ class _AnimationColorMuscleState extends State<AnimationColorMuscle>
   }
 
   void _showToast(String label, {required bool selected}) {
-    final color = selected ? AppColors.primary : AppColors.error;
-    final icon = selected
-        ? Icons.check_circle_rounded
-        : Icons.remove_circle_rounded;
-
-    Toast(
-      height: 40,
-      category: selected ? ToastCategory.success : ToastCategory.error,
-      builder: (toast) => Material(
-        color: Colors.transparent,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: color.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, color: color, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    label,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    ).show(context);
+    if (selected) {
+      AppToast.success(context, label);
+    } else {
+      AppToast.error(context, label);
+    }
   }
 
   @override

@@ -6,26 +6,81 @@ import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/se
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_flow_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/exercise_detail_sliver_app_bar.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/serie_exercise_widget.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/model.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/exercise_detail/exercise_detail.dart';
+import 'package:fio_fut/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-class ExerciseDetailPage extends ConsumerStatefulWidget {
-  const ExerciseDetailPage({super.key, required this.exercise});
+// ── Standalone page (used for direct navigation) ────────────────────
+
+class ExerciseDetailPage extends StatelessWidget {
+  const ExerciseDetailPage({
+    super.key,
+    required this.exercise,
+    required this.scheduleId,
+  });
+
   final Exercise exercise;
+  final String scheduleId;
 
   static const String name = 'exercise-detail';
   static const String path = '/exercise-detail';
 
   @override
-  ConsumerState<ExerciseDetailPage> createState() =>
-      _ExerciseDetailPageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: ExerciseDetailContent(
+        exercise: exercise,
+        scheduleId: scheduleId,
+        showAppBar: true,
+      ),
+    );
+  }
 }
 
-class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
+// ── Embeddable content (used inside PageView or standalone) ─────────
+
+class ExerciseDetailContent extends ConsumerStatefulWidget {
+  const ExerciseDetailContent({
+    super.key,
+    required this.exercise,
+    required this.scheduleId,
+    this.existingSets = const [],
+    this.showAppBar = false,
+    this.isSessionStarted = false,
+    this.onStartWorkout,
+    this.onExerciseCompleted,
+    this.onExerciseUncompleted,
+  });
+
+  final Exercise exercise;
+  final String scheduleId;
+  final List<ExerciseSetData> existingSets;
+  final bool showAppBar;
+
+  /// Whether the global session is already started (from another exercise).
+  final bool isSessionStarted;
+
+  /// Called when user taps "Comenzar entrenamiento".
+  final VoidCallback? onStartWorkout;
+
+  /// Called when all series for this exercise are completed.
+  final VoidCallback? onExerciseCompleted;
+
+  /// Called when a previously-completed exercise gets uncompleted.
+  final VoidCallback? onExerciseUncompleted;
+
+  @override
+  ConsumerState<ExerciseDetailContent> createState() =>
+      _ExerciseDetailContentState();
+}
+
+class _ExerciseDetailContentState
+    extends ConsumerState<ExerciseDetailContent> {
   RepiteType get _repiteType => switch (widget.exercise.metricType) {
         MetricType.weight => RepiteType.byKg,
         MetricType.distance => RepiteType.byKm,
@@ -39,15 +94,28 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   bool _descansoRunning = false;
   int _descansoSeconds = 58;
   Timer? _descansoTimer;
+  bool _wasAllDone = false;
 
   @override
   void initState() {
     super.initState();
+    _isStarted = widget.isSessionStarted;
     Future.microtask(() {
-      ref
-          .read(serieDetailProvider.notifier)
-          .init(exercise: widget.exercise, repiteType: _repiteType);
+      ref.read(serieDetailProvider(widget.scheduleId).notifier).init(
+            exercise: widget.exercise,
+            repiteType: _repiteType,
+            scheduleId: widget.scheduleId,
+            existingSets: widget.existingSets,
+          );
     });
+  }
+
+  @override
+  void didUpdateWidget(ExerciseDetailContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isSessionStarted && !_isStarted) {
+      setState(() => _isStarted = true);
+    }
   }
 
   @override
@@ -60,12 +128,18 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
 
   void _startWorkout() {
     setState(() => _isStarted = true);
+    widget.onStartWorkout?.call();
   }
 
   void _registerSerie() {
-    final flowNotifier = ref.read(workoutFlowProvider.notifier);
+    final flowNotifier =
+        ref.read(workoutFlowProvider(widget.scheduleId).notifier);
 
-    flowNotifier.registerNext();
+    final success = flowNotifier.registerNext();
+    if (!success) {
+      AppToast.error(context, 'Completa las repeticiones y peso');
+      return;
+    }
 
     // Show descanso if there are more series to do,
     // but skip it if the next serie is a dropset (no rest between drops).
@@ -81,15 +155,31 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     } else {
       _stopDescanso();
     }
+
+    // Check if all series just got completed
+    _checkCompletion();
   }
 
   Future<void> _completeAllSeries() async {
     final confirmed = await _showConfirmCompleteSheet();
     if (!confirmed) return;
 
-    ref.read(workoutFlowProvider.notifier).completeAll();
-
+    ref.read(workoutFlowProvider(widget.scheduleId).notifier).completeAll();
     _stopDescanso();
+    _checkCompletion();
+  }
+
+  void _checkCompletion() {
+    final allDone = ref
+        .read(workoutFlowProvider(widget.scheduleId).notifier)
+        .isAllCompleted();
+    if (allDone && !_wasAllDone) {
+      _wasAllDone = true;
+      widget.onExerciseCompleted?.call();
+    } else if (!allDone && _wasAllDone) {
+      _wasAllDone = false;
+      widget.onExerciseUncompleted?.call();
+    }
   }
 
   void _startDescansoTimer() {
@@ -134,10 +224,8 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     });
   }
 
-  void _done() => Navigator.pop(context);
-
   void _onAddSerie() {
-    ref.read(serieDetailProvider.notifier).addSerie();
+    ref.read(serieDetailProvider(widget.scheduleId).notifier).addSerie();
   }
 
   // ── Bottom Sheets ──────────────────────────────────────────────
@@ -147,7 +235,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
-          builder: (_) => _ConfirmSheet(
+          builder: (_) => const ConfirmSheet(
             title: 'Completar ejercicio',
             subtitle: '¿Deseas completar todas las series?',
             icon: LucideIcons.checkCircle,
@@ -157,113 +245,96 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
         false;
   }
 
-  Future<void> _showExitConfirmation() async {
-    final shouldExit = await showModalBottomSheet<bool>(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => _ConfirmSheet(
-            title: 'Entrenamiento en progreso',
-            subtitle: '¿Estás en pleno entrenamiento, deseas regresar?',
-            icon: LucideIcons.alertTriangle,
-            confirmText: 'Regresar',
-          ),
-        ) ??
-        false;
-
-    if (shouldExit && mounted) {
-      Navigator.pop(context);
-    }
-  }
-
   // ── Build ───────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(workoutFlowProvider);
+    ref.watch(workoutFlowProvider(widget.scheduleId));
+    ref.watch(serieDetailProvider(widget.scheduleId));
 
-    // Watch serie provider to trigger rebuilds on series changes
-    ref.watch(serieDetailProvider);
-
-    // Derive current serie from the flow provider
     String? currentId;
     if (_isStarted) {
-      currentId = ref.read(workoutFlowProvider.notifier).nextSerieToRegister();
+      currentId = ref
+          .read(workoutFlowProvider(widget.scheduleId).notifier)
+          .nextSerieToRegister();
     }
 
     final allDone = _isStarted &&
-        ref.read(workoutFlowProvider.notifier).isAllCompleted();
+        ref
+            .read(workoutFlowProvider(widget.scheduleId).notifier)
+            .isAllCompleted();
 
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: PopScope(
-        canPop: !_isStarted || allDone,
-        onPopInvokedWithResult: (didPop, _) {
-          if (didPop) return;
-          _showExitConfirmation();
-        },
-        child: Stack(
+    return Stack(
+      children: [
+        Column(
           children: [
-            Scaffold(
-              body: CustomScrollView(
-            slivers: [
-              ExerciseDetailSliverAppBar(
-                title: widget.exercise.title,
-                imageUrl: widget.exercise.imageUrl,
-              ),
-              SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DetailActionChips(
-                      exercise: widget.exercise,
-                      duration: Duration(seconds: 20),
+            Expanded(
+              child: CustomScrollView(
+                slivers: [
+                  if (widget.showAppBar)
+                    ExerciseDetailSliverAppBar(
+                      title: widget.exercise.title,
+                      imageUrl: widget.exercise.imageUrl,
+                    )
+                  else
+                    ExerciseDetailSliverAppBar(
+                      title: widget.exercise.title,
+                      imageUrl: widget.exercise.imageUrl,
                     ),
-                    SerieExerciseWidget(
-                      repiteType: _repiteType,
-                      isStarted: _isStarted,
-                      currentSerieId: currentId,
-                      onRegisterSerie: _registerSerie,
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DetailActionChips(
+                          exercise: widget.exercise,
+                          duration: const Duration(seconds: 20),
+                        ),
+                        SerieExerciseWidget(
+                          scheduleId: widget.scheduleId,
+                          repiteType: _repiteType,
+                          isStarted: _isStarted,
+                          currentSerieId: currentId,
+                          onRegisterSerie: _registerSerie,
+                        ),
+                        AddSerieButton(onTap: _onAddSerie),
+                        if (_showDescanso) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                            ),
+                            child: DescansoWidget(
+                              seconds: _descansoSeconds,
+                              isRunning: _descansoRunning,
+                              onToggle: _toggleDescanso,
+                              onAdjust: _adjustDescanso,
+                              onStop: _stopDescanso,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: AppSpacing.md),
+                      ],
                     ),
-                    AddSerieButton(onTap: _onAddSerie),
-                    if (_showDescanso) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                        ),
-                        child: DescansoWidget(
-                          seconds: _descansoSeconds,
-                          isRunning: _descansoRunning,
-                          onToggle: _toggleDescanso,
-                          onAdjust: _adjustDescanso,
-                          onStop: _stopDescanso,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: AppSpacing.md),
-                  ],
-                ),
-              ),
-            ],
-          ),
-              bottomNavigationBar: _buildFooter(allDone, context),
-            ),
-            if (allDone)
-              Positioned.fill(
-                top: 0,
-                child: IgnorePointer(
-                  child: Lottie.asset(
-                    'assets/lottie/confeti.json',
-                    fit: BoxFit.fitWidth,
-                    alignment: Alignment.topCenter,
-                    repeat: false,
                   ),
-                ),
+                ],
               ),
+            ),
+            _buildFooter(allDone, context),
           ],
         ),
-      ),
+        if (allDone)
+          Positioned.fill(
+            top: 0,
+            child: IgnorePointer(
+              child: Lottie.asset(
+                'assets/lottie/confeti.json',
+                fit: BoxFit.fitWidth,
+                alignment: Alignment.topCenter,
+                repeat: false,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -279,7 +350,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
       child: !_isStarted
           ? _buildStartButton()
           : allDone
-              ? _buildDoneButton()
+              ? _buildDoneIndicator()
               : _buildRegisterRow(),
     );
   }
@@ -306,35 +377,32 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     );
   }
 
-  Widget _buildDoneButton() {
-    return GestureDetector(
-      onTap: _done,
-      child: Container(
-        height: 56,
-        width: double.infinity,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              LucideIcons.arrowLeft,
+  Widget _buildDoneIndicator() {
+    return Container(
+      height: 56,
+      width: double.infinity,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            LucideIcons.checkCircle,
+            color: AppColors.black,
+            size: 20,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            'Ejercicio completado',
+            style: AppTextStyles.button.copyWith(
               color: AppColors.black,
-              size: 20,
+              fontWeight: FontWeight.w700,
             ),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              'Ejercicio terminado',
-              style: AppTextStyles.button.copyWith(
-                color: AppColors.black,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -388,8 +456,9 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
 
 // ── Confirm Bottom Sheet ───────────────────────────────────────
 
-class _ConfirmSheet extends StatelessWidget {
-  const _ConfirmSheet({
+class ConfirmSheet extends StatelessWidget {
+  const ConfirmSheet({
+    super.key,
     required this.title,
     required this.subtitle,
     required this.icon,

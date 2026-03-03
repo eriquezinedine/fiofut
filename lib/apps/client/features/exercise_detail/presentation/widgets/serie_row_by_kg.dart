@@ -2,6 +2,7 @@ part of 'serie_exercise_widget.dart';
 
 class _SerieRowByKg extends ConsumerStatefulWidget {
   const _SerieRowByKg({
+    required this.scheduleId,
     required this.serie,
     required this.isActive,
     this.isStarted = false,
@@ -10,6 +11,7 @@ class _SerieRowByKg extends ConsumerStatefulWidget {
     this.onRegisterSerie,
   });
 
+  final String scheduleId;
   final SerieSet serie;
   final bool isActive;
   final bool isStarted;
@@ -40,7 +42,7 @@ class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
       final action = await SetTypeModal.show(context);
       if (action == null || !mounted) return;
 
-      final notifier = ref.read(serieDetailProvider.notifier);
+      final notifier = ref.read(serieDetailProvider(widget.scheduleId).notifier);
       if (action == SetTypeAction.delete) {
         notifier.removeSerie(widget.serie.id);
       } else {
@@ -56,7 +58,7 @@ class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
     final isActive = widget.isActive;
     final isStarted = widget.isStarted;
     final isCurrent = widget.isCurrent;
-    final notifier = ref.read(serieDetailProvider.notifier);
+    final notifier = ref.read(serieDetailProvider(widget.scheduleId).notifier);
 
     VoidCallback? numberCellTap;
     if (!isStarted) {
@@ -64,7 +66,10 @@ class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
     } else if (widget.isCurrent) {
       numberCellTap = widget.onRegisterSerie;
     } else if (widget.isLastCompleted) {
-      numberCellTap = () => notifier.toggleSerieCompleted(serie.id);
+      numberCellTap = () {
+        final ok = notifier.toggleSerieCompleted(serie.id);
+        if (!ok) AppToast.error(context, 'Completa las repeticiones y peso');
+      };
     }
 
     return Padding(

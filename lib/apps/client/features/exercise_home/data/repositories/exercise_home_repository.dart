@@ -29,11 +29,12 @@ class ExerciseHomeRepository {
           id, id_exercise, id_user_profile, id_created_by,
           schedule_type, start_date, end_date, days_of_week, notes, created_at,
           exercise:id_exercise (
-            id, name, description, url_img_exercise, url_video_exercise, type_exercise, location, id_muscle
+            id, name, description, url_img_exercise, url_video_exercise, type_exercise, location, id_muscle,
+            muscle:id_muscle (id, name, is_main, muscle_group)
           ),
           exercise_set (
             id, set_number, repetitions, weight, minutes, seconds,
-            distance, is_completed, completed_at
+            distance, is_completed, completed_at, set_type
           )
         ''')
         .eq('id_user_profile', userId)
@@ -112,6 +113,40 @@ class ExerciseHomeRepository {
       'is_completed': isCompleted,
       'completed_at': isCompleted ? DateTime.now().toIso8601String() : null,
     }).eq('id', setId);
+  }
+
+  /// Marks all sets for a given schedule as completed in one call.
+  Future<void> markAllSetsCompleted(String scheduleId) async {
+    await _client.from('exercise_set').update({
+      'is_completed': true,
+      'completed_at': DateTime.now().toIso8601String(),
+    }).eq('id_exercise_schedule', scheduleId);
+  }
+
+  /// Syncs a set's full state (values + completion + type) to Supabase.
+  Future<void> syncSet({
+    required String setId,
+    int? repetitions,
+    double? weight,
+    int? minutes,
+    int? seconds,
+    required bool isCompleted,
+    String setType = 'normal',
+  }) async {
+    await _client.from('exercise_set').update({
+      'repetitions': repetitions,
+      'weight': weight,
+      'minutes': minutes,
+      'seconds': seconds,
+      'is_completed': isCompleted,
+      'completed_at': isCompleted ? DateTime.now().toIso8601String() : null,
+      'set_type': setType,
+    }).eq('id', setId);
+  }
+
+  /// Deletes a single set.
+  Future<void> deleteSet(String setId) async {
+    await _client.from('exercise_set').delete().eq('id', setId);
   }
 
   /// Fetches paginated exercises for the catalog with optional search/filter.

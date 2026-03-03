@@ -5,6 +5,7 @@ part of 'serie_exercise_widget.dart';
 class ItemSerieWidget extends StatelessWidget {
   const ItemSerieWidget({
     super.key,
+    required this.scheduleId,
     required this.repiteType,
     required this.serie,
     required this.isStarted,
@@ -15,6 +16,7 @@ class ItemSerieWidget extends StatelessWidget {
     this.canDelete = false,
   });
 
+  final String scheduleId;
   final RepiteType repiteType;
   final SerieSet serie;
   final bool isStarted;
@@ -31,6 +33,7 @@ class ItemSerieWidget extends StatelessWidget {
     final isLastCompleted = serie.id == lastCompletedId;
     final child = switch (repiteType) {
       RepiteType.byKg => _SerieRowByKg(
+          scheduleId: scheduleId,
           serie: serie,
           isActive: isActive,
           isStarted: isStarted,
@@ -39,6 +42,7 @@ class ItemSerieWidget extends StatelessWidget {
           onRegisterSerie: onRegisterSerie,
         ),
       RepiteType.byKm => _SerieRowByKm(
+          scheduleId: scheduleId,
           serie: serie,
           isActive: isActive,
           isStarted: isStarted,
@@ -47,6 +51,7 @@ class ItemSerieWidget extends StatelessWidget {
           onRegisterSerie: onRegisterSerie,
         ),
       RepiteType.retryOnly => _SerieRowRetryOnly(
+          scheduleId: scheduleId,
           serie: serie,
           isActive: isActive,
           isStarted: isStarted,

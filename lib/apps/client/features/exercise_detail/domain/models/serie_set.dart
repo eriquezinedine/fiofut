@@ -30,11 +30,11 @@ class SerieSet {
   /// Checks if the serie has enough data to be marked as completed
   bool canComplete(RepiteType type) {
     return switch (type) {
-      RepiteType.byKg => (reps != null && reps! > 0) && (kg != null && kg! > 0),
+      RepiteType.byKg => (reps != null && reps! > 0) && kg != null,
       RepiteType.byKm =>
         (mins != null || segs != null) &&
             ((mins ?? 0) > 0 || (segs ?? 0) > 0) &&
-            (kg != null && kg! > 0),
+            kg != null,
       RepiteType.retryOnly => reps != null && reps! > 0,
     };
   }

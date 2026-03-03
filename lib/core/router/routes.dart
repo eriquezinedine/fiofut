@@ -7,7 +7,9 @@ import 'package:fio_fut/apps/admin/features/meals/presentation/screens/food_form
 import 'package:fio_fut/apps/client/features/app_content/presentation/pages/app_content_page.dart';
 import 'package:fio_fut/apps/client/features/complete_profile/complete_profile.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/exercise_detail_page.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/workout_flow_page.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/presentation/pages/exercise_image_page.dart';
 import 'package:fio_fut/apps/client/features/home/presentation/screens/hydration_screen.dart';
 import 'package:fio_fut/apps/client/features/login/login.dart';
@@ -82,13 +84,32 @@ List<RouteBase> buildRoutes() => [
         },
       ),
 
-      // Exercise Detail
+      // Exercise Detail (standalone)
       GoRoute(
         path: ExerciseDetailPage.path,
         name: ExerciseDetailPage.name,
         builder: (context, state) {
-          final exercise = state.extra as Exercise;
-          return ExerciseDetailPage(exercise: exercise);
+          final data = state.extra as Map<String, dynamic>;
+          final exercise = data['exercise'] as Exercise;
+          final scheduleId = data['scheduleId'] as String;
+          return ExerciseDetailPage(
+            exercise: exercise,
+            scheduleId: scheduleId,
+          );
+        },
+      ),
+
+      // Workout Flow (PageView with all exercises)
+      GoRoute(
+        path: WorkoutFlowPage.path,
+        name: WorkoutFlowPage.name,
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>;
+          return WorkoutFlowPage(
+            exercises:
+                data['exercises'] as List<ExerciseScheduleItem>,
+            initialIndex: data['initialIndex'] as int,
+          );
         },
       ),
 

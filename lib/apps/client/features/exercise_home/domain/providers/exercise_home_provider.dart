@@ -143,6 +143,20 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
     }
   }
 
+  /// Forces sync of all pending items to Supabase and reloads.
+  /// Call this BEFORE navigating to workout flow.
+  Future<void> forceSyncPending() async {
+    try {
+      final local = ref.read(exerciseLocalSourceProvider);
+      final allPending = await local.getAllPending();
+      if (allPending.isNotEmpty) {
+        await _syncPendingItems(allPending);
+      }
+    } catch (_) {
+      // Silently fail
+    }
+  }
+
   /// Optimistic add: immediately adds to state + saves to Isar + syncs in background.
   Future<void> addOptimistic({
     required List<Exercise> exercises,

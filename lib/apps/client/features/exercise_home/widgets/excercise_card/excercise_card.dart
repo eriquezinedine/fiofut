@@ -1,22 +1,29 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/exercise_detail_page.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/workout_flow_page.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/workout_complete_modal.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/excercise_card/excercise_card_header.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/excercise_card/excercise_card_image.dart';
 import 'package:fio_fut/core/widgets/status_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class ExerciseCard extends StatelessWidget {
+class ExerciseCard extends ConsumerWidget {
   const ExerciseCard({
     super.key,
     required this.item,
+    required this.allExercises,
+    required this.index,
   });
 
   final ExerciseScheduleItem item;
+  final List<ExerciseScheduleItem> allExercises;
+  final int index;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final exercise = item.toExercise();
     final isCompleted = item.isCompleted;
     final separator = Padding(
@@ -28,7 +35,20 @@ class ExerciseCard extends StatelessWidget {
     );
 
     return GestureDetector(
-      onTap: () => context.pushNamed(ExerciseDetailPage.name, extra: exercise),
+      onTap: () async {
+        final result = await context.pushNamed<bool>(
+          WorkoutFlowPage.name,
+          extra: {
+            'exercises': allExercises,
+            'initialIndex': index,
+          },
+        );
+        if (!context.mounted) return;
+        ref.read(exerciseHomeProvider.notifier).reload();
+        if (result == true) {
+          WorkoutCompleteModal.show(context);
+        }
+      },
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(

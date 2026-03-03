@@ -1,6 +1,9 @@
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/serie_exercise_widget.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/model.dart';
+import 'package:fio_fut/apps/client/features/repose/domain/providers/all_muscles_repose_provider.dart';
+import 'package:fio_fut/core/constants/workout_constants.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -8,43 +11,75 @@ part 'serie_detail_state.dart';
 
 const _uuid = Uuid();
 
-/// Single provider for all series (no more family keyed by group type).
-final serieDetailProvider =
-    NotifierProvider.autoDispose<SerieDetailNotifier, SerieDetailState>(
+/// Family provider keyed by scheduleId — one instance per exercise in PageView.
+final serieDetailProvider = NotifierProvider.autoDispose
+    .family<SerieDetailNotifier, SerieDetailState, String>(
   SerieDetailNotifier.new,
 );
 
-class SerieDetailNotifier extends AutoDisposeNotifier<SerieDetailState> {
+class SerieDetailNotifier
+    extends AutoDisposeFamilyNotifier<SerieDetailState, String> {
   @override
-  SerieDetailState build() => const SerieDetailInitial();
+  SerieDetailState build(String arg) => const SerieDetailInitial();
 
   /// Initializes the workout with an exercise and its type.
+  ///
+  /// If [existingSets] is provided, uses real IDs and values.
+  /// Otherwise falls back to a single default serie.
   void init({
     required Exercise exercise,
     required RepiteType repiteType,
     DateTime? scheduledDate,
     String? scheduleId,
+    List<ExerciseSetData>? existingSets,
   }) {
     final now = DateTime.now();
     final date = scheduledDate ?? DateTime(now.year, now.month, now.day);
 
-    final defaults = _defaultsFor(repiteType);
-    final firstSerie = SerieSet(
-      id: _uuid.v4(),
-      number: 1,
-      reps: defaults.reps,
-      kg: defaults.kg,
-      mins: defaults.mins,
-      segs: defaults.segs,
-    );
+    final List<SerieSet> series;
+    if (existingSets != null && existingSets.isNotEmpty) {
+      series = existingSets
+          .map((s) => SerieSet(
+                id: s.id,
+                number: s.setNumber,
+                reps: s.repetitions,
+                kg: s.weight,
+                mins: s.minutes,
+                segs: s.seconds,
+                status: s.isCompleted
+                    ? SerieStatus.completed
+                    : SerieStatus.pending,
+                setType: _parseSetType(s.setType),
+              ))
+          .toList();
+    } else {
+      final defaults = _defaultsFor(repiteType);
+      series = [
+        SerieSet(
+          id: _uuid.v4(),
+          number: 1,
+          reps: defaults.reps,
+          kg: defaults.kg,
+          mins: defaults.mins,
+          segs: defaults.segs,
+        ),
+      ];
+    }
+
+    final allDone = series.isNotEmpty && series.every((s) => s.isCompleted);
+    final anyInProgress = series.any((s) => s.isCompleted);
 
     final workout = WorkoutExercise(
       id: _uuid.v4(),
       exercise: exercise,
       repiteType: repiteType,
       scheduledDate: date,
-      series: [firstSerie],
-      status: WorkoutStatus.pending,
+      series: series,
+      status: allDone
+          ? WorkoutStatus.completed
+          : anyInProgress
+              ? WorkoutStatus.inProgress
+              : WorkoutStatus.pending,
       scheduleId: scheduleId,
     );
 
@@ -134,9 +169,19 @@ class SerieDetailNotifier extends AutoDisposeNotifier<SerieDetailState> {
 
   // ── Complete / uncomplete serie ─────────────────────────────────
 
-  void toggleSerieCompleted(String serieId) {
+  /// Returns `true` if the toggle succeeded, `false` if canComplete failed.
+  bool toggleSerieCompleted(String serieId) {
     final current = _loaded;
-    if (current == null) return;
+    if (current == null) return false;
+
+    // Track whether we're completing or uncompleting
+    final targetSerie = current.series.firstWhere((s) => s.id == serieId);
+    final isCompleting = !targetSerie.isCompleted;
+
+    // Early check: if trying to complete but can't, return false
+    if (isCompleting && !targetSerie.canComplete(current.repiteType)) {
+      return false;
+    }
 
     final updatedSeries = current.series.map((s) {
       if (s.id != serieId) return s;
@@ -145,7 +190,6 @@ class SerieDetailNotifier extends AutoDisposeNotifier<SerieDetailState> {
         return s.copyWith(status: SerieStatus.pending);
       }
 
-      if (!s.canComplete(current.repiteType)) return s;
       return s.copyWith(status: SerieStatus.completed);
     }).toList();
 
@@ -166,6 +210,18 @@ class SerieDetailNotifier extends AutoDisposeNotifier<SerieDetailState> {
         status: workoutStatus,
       ),
     );
+
+    // Apply muscle fatigue when completing a serie with reps
+    if (isCompleting && targetSerie.reps != null && targetSerie.reps! > 0) {
+      final muscleGroup =
+          current.workout.exercise.muscleMain.muscleGroup;
+      final fatigue = targetSerie.reps! * kFatiguePerRep;
+      ref
+          .read(allMusclesReposeProvider.notifier)
+          .reduceMuscleProgress(muscleGroup, fatigue);
+    }
+
+    return true;
   }
 
   // ── Complete all series ─────────────────────────────────────────
@@ -187,7 +243,7 @@ class SerieDetailNotifier extends AutoDisposeNotifier<SerieDetailState> {
     );
   }
 
-  // ── Helpers ─────────────────────────────────────────────────────
+  // ── Local helpers ─────────────────────────────────────────────
 
   void _updateSerie(String serieId, SerieSet Function(SerieSet) update) {
     final current = _loaded;
@@ -215,4 +271,10 @@ class SerieDetailNotifier extends AutoDisposeNotifier<SerieDetailState> {
       RepiteType.retryOnly => (reps: 5, kg: null, mins: null, segs: null),
     };
   }
+
+  static SetType _parseSetType(String type) => switch (type) {
+        'warmup' => SetType.warmup,
+        'dropset' => SetType.dropset,
+        _ => SetType.normal,
+      };
 }

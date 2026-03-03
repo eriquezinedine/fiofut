@@ -19,6 +19,9 @@ class ExerciseScheduleItem {
     this.endDate,
     this.createdById,
     this.notes,
+    this.muscleId,
+    this.muscleName,
+    this.muscleGroup,
   });
 
   final String scheduleId;
@@ -34,6 +37,9 @@ class ExerciseScheduleItem {
   final DateTime? endDate;
   final String? createdById;
   final String? notes;
+  final String? muscleId;
+  final String? muscleName;
+  final String? muscleGroup;
 
   int get totalSets => sets.length;
   int get completedSets => sets.where((s) => s.isCompleted).length;
@@ -48,6 +54,15 @@ class ExerciseScheduleItem {
         _ => MetricType.weight,
       };
 
+  /// Parses a muscle_group string to [MuscleGroup] enum.
+  static MuscleGroup _parseMuscleGroup(String? group) {
+    if (group == null) return MuscleGroup.chest;
+    return MuscleGroup.values.firstWhere(
+      (e) => e.name == group,
+      orElse: () => MuscleGroup.chest,
+    );
+  }
+
   /// Converts this schedule item to a client [Exercise] for navigation.
   Exercise toExercise() {
     return Exercise(
@@ -56,11 +71,11 @@ class ExerciseScheduleItem {
       description: exerciseDescription ?? '',
       imageUrl: exerciseImageUrl,
       videoUrl: exerciseVideoUrl,
-      muscleMain: const Muscle(
-        id: '',
-        name: '',
+      muscleMain: Muscle(
+        id: muscleId ?? '',
+        name: muscleName ?? '',
         isMain: true,
-        muscleGroup: MuscleGroup.chest,
+        muscleGroup: _parseMuscleGroup(muscleGroup),
       ),
       muscleSecundaries: const [],
       instruccion: '',
@@ -78,6 +93,7 @@ class ExerciseScheduleItem {
   factory ExerciseScheduleItem.fromJson(Map<String, dynamic> json) {
     final exercise = json['exercise'] as Map<String, dynamic>?;
     final setsData = json['exercise_set'] as List<dynamic>? ?? [];
+    final muscle = exercise?['muscle'] as Map<String, dynamic>?;
 
     return ExerciseScheduleItem(
       scheduleId: json['id'] as String,
@@ -100,6 +116,9 @@ class ExerciseScheduleItem {
           : null,
       createdById: json['id_created_by'] as String?,
       notes: json['notes'] as String?,
+      muscleId: muscle?['id'] as String?,
+      muscleName: muscle?['name'] as String?,
+      muscleGroup: muscle?['muscle_group'] as String?,
     );
   }
 }

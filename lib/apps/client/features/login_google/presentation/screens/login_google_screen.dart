@@ -53,7 +53,7 @@ class LoginGoogleScreen extends ConsumerWidget {
 
                       // App Title - h1 con weight 800
                       Text(
-                        'FioFut',
+                        'FioFit',
                         style: AppTextStyles.h1.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
