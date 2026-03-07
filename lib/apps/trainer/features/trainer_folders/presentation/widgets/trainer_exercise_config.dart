@@ -1,4 +1,5 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/add_serie_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -28,7 +29,7 @@ class TrainerExerciseConfig extends ConsumerWidget {
   bool get _showKg => _repiteType != RepiteType.retryOnly;
   String get _middleHeader => switch (_repiteType) {
         RepiteType.byKg => 'Repeticiones',
-        RepiteType.byKm => 'Mins : Segs',
+        RepiteType.byKm => 'Tiempo',
         RepiteType.retryOnly => 'Repeticiones',
       };
 
@@ -72,7 +73,10 @@ class TrainerExerciseConfig extends ConsumerWidget {
 
           // ── Add serie ──
           const SizedBox(height: 8),
-          AddSerieButton(onTap: () => notifier.addSerie()),
+          AddSerieButton(
+            onTapSerie: () => notifier.addSerie(),
+            onCompleteAll: () => notifier.completeAll(),
+          ),
         ],
       ),
     );
@@ -429,7 +433,7 @@ class _ConfigRowByKm extends StatelessWidget {
                 Expanded(
                   child: SerieTextField(
                     key: ValueKey('${serie.id}_mins'),
-                    initialValue: serie.mins?.toString(),
+                    initialValue: serie.mins?.toString().padLeft(2, '0'),
                     hint: '00',
                     isActive: true,
                     maxLength: 2,
@@ -451,7 +455,7 @@ class _ConfigRowByKm extends StatelessWidget {
                 Expanded(
                   child: SerieTextField(
                     key: ValueKey('${serie.id}_segs'),
-                    initialValue: serie.segs?.toString(),
+                    initialValue: serie.segs?.toString().padLeft(2, '0'),
                     hint: '00',
                     isActive: true,
                     maxLength: 2,

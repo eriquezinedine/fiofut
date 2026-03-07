@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider/serie_detail_provider.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider/serie_detail_state.dart';
 import 'package:fio_fut/core/widgets/app_toast.dart';
 import 'package:fio_fut/core/widgets/modal/set_type_modal.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +42,7 @@ class SerieExerciseWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24)
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8)
           .add(EdgeInsets.only(bottom: 0)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,49 +61,6 @@ class SerieExerciseWidget extends ConsumerWidget {
             onRegisterSerie: onRegisterSerie,
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── Añadir Serie button ─────────────────────────────────────────────
-
-class AddSerieButton extends StatelessWidget {
-  const AddSerieButton({super.key, required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 20, right: 20, top: 4, bottom: 8),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.green.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.add,
-                size: 20,
-                color: AppColors.green,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Añadir Serie',
-              style: AppTextStyles.titleSmall.copyWith(
-                color: AppColors.green,
-                letterSpacing: -0.28,
-                height: 1.25,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

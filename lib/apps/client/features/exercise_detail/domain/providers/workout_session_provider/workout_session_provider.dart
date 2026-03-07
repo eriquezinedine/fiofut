@@ -1,10 +1,10 @@
-import 'dart:async';
-
-import 'package:flutter/foundation.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_session_provider/workout_session_state.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_timer_session_provider/workout_timer_provider.dart';
+import 'package:fio_fut/core/utils/debouncer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../data/repositories/workout_session_repository.dart';
+import '../../../data/repositories/workout_session_repository.dart';
 
 /// Global workout session state — NOT autoDispose so it persists across pages.
 final workoutSessionProvider =
@@ -12,65 +12,22 @@ final workoutSessionProvider =
   WorkoutSessionNotifier.new,
 );
 
-@immutable
-class WorkoutSessionState {
-  const WorkoutSessionState({
-    this.sessionId,
-    this.startedAt,
-    this.elapsedSeconds = 0,
-    this.completedExercises = 0,
-    this.totalExercises = 0,
-    this.isFinished = false,
-    this.photoUrl,
-  });
-
-  final String? sessionId;
-  final DateTime? startedAt;
-  final int elapsedSeconds;
-  final int completedExercises;
-  final int totalExercises;
-  final bool isFinished;
-  final String? photoUrl;
-
-  bool get isStarted => startedAt != null;
-  bool get allCompleted =>
-      totalExercises > 0 && completedExercises >= totalExercises;
-
-  String get formattedTime {
-    final mins = elapsedSeconds ~/ 60;
-    return '$mins min';
-  }
-
-  double get progress =>
-      totalExercises > 0 ? completedExercises / totalExercises : 0.0;
-
-  WorkoutSessionState copyWith({
-    String? sessionId,
-    DateTime? startedAt,
-    int? elapsedSeconds,
-    int? completedExercises,
-    int? totalExercises,
-    bool? isFinished,
-    String? photoUrl,
-  }) {
-    return WorkoutSessionState(
-      sessionId: sessionId ?? this.sessionId,
-      startedAt: startedAt ?? this.startedAt,
-      elapsedSeconds: elapsedSeconds ?? this.elapsedSeconds,
-      completedExercises: completedExercises ?? this.completedExercises,
-      totalExercises: totalExercises ?? this.totalExercises,
-      isFinished: isFinished ?? this.isFinished,
-      photoUrl: photoUrl ?? this.photoUrl,
-    );
-  }
-}
-
 class WorkoutSessionNotifier extends Notifier<WorkoutSessionState> {
-  Timer? _timer;
-  Timer? _syncDebounce;
+  final _syncDebouncer = Debouncer(milliseconds: 1000);
 
   @override
-  WorkoutSessionState build() => const WorkoutSessionState();
+  WorkoutSessionState build() {
+    // Listen to timer changes and sync elapsed seconds
+    ref.listen(workoutTimerProvider, (previous, next) {
+      _onTimerTick(next.elapsedSeconds);
+    });
+    return const WorkoutSessionState();
+  }
+
+  void _onTimerTick(int elapsedSeconds) {
+    state = state.copyWith(elapsedSeconds: elapsedSeconds);
+    _scheduleSyncDebounce();
+  }
 
   /// Starts the workout session with the given total exercises.
   Future<void> startSession(int totalExercises) async {
@@ -82,7 +39,8 @@ class WorkoutSessionNotifier extends Notifier<WorkoutSessionState> {
       totalExercises: totalExercises,
     );
 
-    _startTimer();
+    // Start the timer
+    ref.read(workoutTimerProvider.notifier).start();
 
     // Create session in backend
     final userId = Supabase.instance.client.auth.currentUser?.id;
@@ -98,21 +56,10 @@ class WorkoutSessionNotifier extends Notifier<WorkoutSessionState> {
     }
   }
 
-  void _startTimer() {
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      state = state.copyWith(elapsedSeconds: state.elapsedSeconds + 1);
-      _scheduleSyncDebounce();
-    });
-  }
-
   /// Debounce: sync elapsed seconds to backend every 5 seconds.
   void _scheduleSyncDebounce() {
     if (state.elapsedSeconds % 5 != 0) return;
-    _syncDebounce?.cancel();
-    _syncDebounce = Timer(const Duration(seconds: 1), () {
-      _syncElapsed();
-    });
+    _syncDebouncer.run(_syncElapsed);
   }
 
   Future<void> _syncElapsed() async {
@@ -140,8 +87,9 @@ class WorkoutSessionNotifier extends Notifier<WorkoutSessionState> {
   }
 
   Future<void> finishSession() async {
-    _timer?.cancel();
-    _syncDebounce?.cancel();
+    // Stop the timer
+    ref.read(workoutTimerProvider.notifier).pause();
+    _syncDebouncer.cancel();
 
     state = state.copyWith(isFinished: true);
 
@@ -167,8 +115,8 @@ class WorkoutSessionNotifier extends Notifier<WorkoutSessionState> {
   }
 
   void reset() {
-    _timer?.cancel();
-    _syncDebounce?.cancel();
+    ref.read(workoutTimerProvider.notifier).stop();
+    _syncDebouncer.cancel();
     state = const WorkoutSessionState();
   }
 }

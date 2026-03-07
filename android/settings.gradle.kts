@@ -20,7 +20,35 @@ pluginManagement {
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
     id("com.android.application") version "8.9.1" apply false
+    id("com.android.library") version "8.9.1" apply false
     id("org.jetbrains.kotlin.android") version "2.1.0" apply false
 }
 
 include(":app")
+
+// Workaround for old plugins without namespace (required by AGP 8.0+)
+gradle.beforeProject {
+    if (project.name != "app" && project.name != rootProject.name) {
+        val manifestFile = project.file("src/main/AndroidManifest.xml")
+        if (manifestFile.exists()) {
+            val manifestContent = manifestFile.readText()
+            val packageRegex = """package\s*=\s*["']([^"']+)["']""".toRegex()
+            val match = packageRegex.find(manifestContent)
+            if (match != null) {
+                val packageName = match.groupValues[1]
+                project.extra.set("namespace", packageName)
+            }
+        }
+    }
+}
+
+gradle.afterProject {
+    if (project.name != "app" && project.name != rootProject.name) {
+        if (project.extra.has("namespace") && project.plugins.hasPlugin("com.android.library")) {
+            val android = project.extensions.findByName("android") as? com.android.build.gradle.LibraryExtension
+            if (android != null && android.namespace.isNullOrEmpty()) {
+                android.namespace = project.extra.get("namespace") as String
+            }
+        }
+    }
+}

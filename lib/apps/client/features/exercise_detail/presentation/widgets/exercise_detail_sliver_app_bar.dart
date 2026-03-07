@@ -19,6 +19,7 @@ class ExerciseDetailSliverAppBar extends StatelessWidget {
       expandedHeight: 250,
       pinned: true,
       stretch: true,
+      automaticallyImplyLeading: false,
       flexibleSpace: LayoutBuilder(
         builder: (context, constraints) {
           final statusBarHeight = MediaQuery.of(context).padding.top;

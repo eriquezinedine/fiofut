@@ -1,5 +1,5 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home_provider.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home/exercise_home_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/add_exercise/add_exercise.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/list-exercise.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/muscle_reset.dart';

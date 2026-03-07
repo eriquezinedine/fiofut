@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_session_provider.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_session_provider/workout_session_provider.dart';
 import 'package:fio_fut/core/services/photo_storage/supabase_photo_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

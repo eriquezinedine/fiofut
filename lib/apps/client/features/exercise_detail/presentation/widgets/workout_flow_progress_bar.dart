@@ -30,7 +30,7 @@ class WorkoutFlowProgressBar extends StatelessWidget {
           // Left: elapsed time (only when session started)
           if (isSessionStarted) ...[
             Text(
-              elapsedMinutes ?? '0 min',
+              elapsedMinutes ?? '00:00',
               style: AppTextStyles.labelMedium.copyWith(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,

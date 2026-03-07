@@ -73,7 +73,7 @@ class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
     }
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20)
+      padding: EdgeInsets.symmetric(horizontal: 0)
           .add(EdgeInsets.only(top: isActive ? 12 : 4, bottom: 8)),
       child: Row(
         children: [

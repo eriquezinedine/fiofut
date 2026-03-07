@@ -1,4 +1,5 @@
-part of 'serie_detail_provider.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/serie_exercise_widget.dart';
 
 sealed class SerieDetailState {
   const SerieDetailState();

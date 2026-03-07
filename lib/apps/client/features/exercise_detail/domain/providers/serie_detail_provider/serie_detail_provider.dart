@@ -1,4 +1,5 @@
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider/serie_detail_state.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/serie_exercise_widget.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/model.dart';
@@ -6,8 +7,6 @@ import 'package:fio_fut/apps/client/features/repose/domain/providers/all_muscles
 import 'package:fio_fut/core/constants/workout_constants.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-
-part 'serie_detail_state.dart';
 
 const _uuid = Uuid();
 
@@ -213,8 +212,7 @@ class SerieDetailNotifier
 
     // Apply muscle fatigue when completing a serie with reps
     if (isCompleting && targetSerie.reps != null && targetSerie.reps! > 0) {
-      final muscleGroup =
-          current.workout.exercise.muscleMain.muscleGroup;
+      final muscleGroup = current.workout.exercise.muscleMain.muscleGroup;
       final fatigue = targetSerie.reps! * kFatiguePerRep;
       ref
           .read(allMusclesReposeProvider.notifier)

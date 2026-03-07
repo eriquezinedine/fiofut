@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/available_exercises_provider.dart';
-import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home_provider.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home/exercise_home_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/add_exercise/add_exercise_item.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/add_exercise/muscle_filter_modal.dart';
 import 'package:fio_fut/core/extension/muscle_group_extension.dart';

@@ -1,46 +1,18 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home/exercise_home_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:model/model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:fio_fut/apps/client/features/home/domain/providers/week_provider.dart';
 
-import '../../data/local/exercise_local_source_provider.dart';
-import '../../data/local/pending_schedule.dart';
-import '../../data/repositories/exercise_home_repository.dart';
-import '../model/exercise.dart';
-import '../model/exercise_schedule_item.dart';
+import '../../../data/local/exercise_local_source_provider.dart';
+import '../../../data/local/pending_schedule.dart';
+import '../../../data/repositories/exercise_home_repository.dart';
+import '../../model/exercise.dart';
+import '../../model/exercise_schedule_item.dart';
 
-/// State for exercise home — caches exercise lists per date.
-@immutable
-class ExerciseHomeState {
-  const ExerciseHomeState({
-    this.cache = const {},
-    this.selectedDateKey = '',
-  });
-
-  /// Exercises per date. Key = "yyyy-MM-dd".
-  final Map<String, List<ExerciseScheduleItem>> cache;
-
-  /// Currently selected date key.
-  final String selectedDateKey;
-
-  /// Convenience getter — returns exercises for the selected date.
-  List<ExerciseScheduleItem> get exercises =>
-      cache[selectedDateKey] ?? const [];
-
-  ExerciseHomeState copyWith({
-    Map<String, List<ExerciseScheduleItem>>? cache,
-    String? selectedDateKey,
-  }) {
-    return ExerciseHomeState(
-      cache: cache ?? this.cache,
-      selectedDateKey: selectedDateKey ?? this.selectedDateKey,
-    );
-  }
-}
 
 final exerciseHomeProvider =
     NotifierProvider<ExerciseHomeNotifier, ExerciseHomeState>(

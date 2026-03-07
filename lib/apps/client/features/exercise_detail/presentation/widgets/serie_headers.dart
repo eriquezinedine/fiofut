@@ -19,7 +19,7 @@ class _SerieHeaders extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20)
+      padding: const EdgeInsets.symmetric(horizontal: 0)
           .add(const EdgeInsets.only(top: 8, bottom: 4)),
       child: Row(
         children: [

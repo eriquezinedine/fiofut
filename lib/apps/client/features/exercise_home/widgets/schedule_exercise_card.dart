@@ -22,7 +22,7 @@ class ScheduleExerciseCard extends StatelessWidget {
   bool get _showKg => item.exerciseType != 'reps';
 
   String get _middleHeader {
-    if (_isCardio) return 'Mins : Segs';
+    if (_isCardio) return 'Tiempo';
     return 'Repeticiones';
   }
 
@@ -31,7 +31,10 @@ class ScheduleExerciseCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.pushNamed(
         ExerciseDetailPage.name,
-        extra: item.toExercise(),
+        extra: {
+          'exercise': item.toExercise(),
+          'scheduleId': item.scheduleId,
+        },
       ),
       child: Container(
         padding: const EdgeInsets.all(14),

@@ -130,7 +130,7 @@ class SerieTableRow extends StatelessWidget {
   String _formatTime() {
     final mins = set.minutes ?? 0;
     final secs = set.seconds ?? 0;
-    return '$mins:${secs.toString().padLeft(2, '0')}';
+    return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
   String _formatKg() {

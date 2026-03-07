@@ -1,8 +1,9 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/exercise_detail_page.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/workout_flow_page.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/workout_complete_modal.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
-import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home_provider.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home/exercise_home_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/excercise_card/excercise_card_header.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/excercise_card/excercise_card_image.dart';
 import 'package:fio_fut/core/widgets/status_widget.dart';
@@ -37,6 +38,7 @@ class ExerciseCard extends ConsumerWidget {
     return GestureDetector(
       onTap: () async {
         final result = await context.pushNamed<bool>(
+          // WorkoutFlowPage.name,
           WorkoutFlowPage.name,
           extra: {
             'exercises': allExercises,

@@ -98,6 +98,22 @@ class TrainerSerieConfigNotifier
     ];
   }
 
+  /// Completes all series with default values (adds 3 series total).
+  void completeAll() {
+    final defaults = _defaultsFor(arg.repiteType);
+    state = List.generate(
+      3,
+      (i) => SerieSet(
+        id: _uuid.v4(),
+        number: i + 1,
+        reps: defaults.reps,
+        kg: defaults.kg,
+        mins: defaults.mins,
+        segs: defaults.segs,
+      ),
+    );
+  }
+
   ({int? reps, double? kg, int? mins, int? segs}) _defaultsFor(
     RepiteType type,
   ) {

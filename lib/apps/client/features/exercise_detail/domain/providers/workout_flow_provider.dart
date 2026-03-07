@@ -1,5 +1,6 @@
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider/serie_detail_provider.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider/serie_detail_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Family provider keyed by scheduleId — mirrors serieDetailProvider.

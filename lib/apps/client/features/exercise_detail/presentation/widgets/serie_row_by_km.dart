@@ -89,7 +89,7 @@ class _SerieRowByKmState extends ConsumerState<_SerieRowByKm> {
                   Expanded(
                     child: SerieTextField(
                       key: ValueKey('${serie.id}_mins'),
-                      initialValue: serie.mins?.toString(),
+                      initialValue: serie.mins?.toString().padLeft(2, '0'),
                       hint: '00',
                       isActive: widget.isActive,
                       isStarted: widget.isStarted,
@@ -115,7 +115,7 @@ class _SerieRowByKmState extends ConsumerState<_SerieRowByKm> {
                   Expanded(
                     child: SerieTextField(
                       key: ValueKey('${serie.id}_segs'),
-                      initialValue: serie.segs?.toString(),
+                      initialValue: serie.segs?.toString().padLeft(2, '0'),
                       hint: '00',
                       isActive: widget.isActive,
                       isStarted: widget.isStarted,
