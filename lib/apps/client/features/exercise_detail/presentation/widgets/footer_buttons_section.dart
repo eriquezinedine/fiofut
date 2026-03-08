@@ -9,14 +9,12 @@ class FooterButtonsSection extends StatelessWidget {
     required this.allDone,
     required this.onStartWorkout,
     required this.onRegisterSerie,
-    required this.onCompleteAll,
   });
 
   final bool isStarted;
   final bool allDone;
   final VoidCallback onStartWorkout;
   final VoidCallback onRegisterSerie;
-  final VoidCallback onCompleteAll;
 
   @override
   Widget build(BuildContext context) {
@@ -30,12 +28,7 @@ class FooterButtonsSection extends StatelessWidget {
       ),
       child: !isStarted
           ? _StartButton(onTap: onStartWorkout)
-          : allDone
-              ? const _DoneIndicator()
-              : _RegisterRow(
-                  onRegister: onRegisterSerie,
-                  onCompleteAll: onCompleteAll,
-                ),
+          : SizedBox.fromSize(),
     );
   }
 }
@@ -107,11 +100,9 @@ class _DoneIndicator extends StatelessWidget {
 class _RegisterRow extends StatelessWidget {
   const _RegisterRow({
     required this.onRegister,
-    required this.onCompleteAll,
   });
 
   final VoidCallback onRegister;
-  final VoidCallback onCompleteAll;
 
   @override
   Widget build(BuildContext context) {
@@ -134,24 +125,6 @@ class _RegisterRow extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        GestureDetector(
-          onTap: onCompleteAll,
-          child: Container(
-            width: 56,
-            height: 56,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-            ),
-            child: const Icon(
-              LucideIcons.check,
-              color: AppColors.black,
-              size: 22,
             ),
           ),
         ),

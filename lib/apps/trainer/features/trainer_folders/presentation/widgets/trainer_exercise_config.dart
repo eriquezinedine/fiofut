@@ -74,6 +74,7 @@ class TrainerExerciseConfig extends ConsumerWidget {
           // ── Add serie ──
           const SizedBox(height: 8),
           AddSerieButton(
+            scheduleId: exercise.id,
             onTapSerie: () => notifier.addSerie(),
             onCompleteAll: () => notifier.completeAll(),
           ),

@@ -1,7 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/add_serie_button.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/exercise_detail_sliver_app_bar.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/footer_buttons_section.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/serie_exercise_widget.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/model.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/exercise_detail/exercise_detail.dart';
@@ -22,7 +21,6 @@ class ExerciseDetailBody extends StatelessWidget {
     required this.descansoRunning,
     required this.onStartWorkout,
     required this.onRegisterSerie,
-    required this.onCompleteAll,
     required this.onAddSerie,
     required this.onToggleDescanso,
     required this.onAdjustDescanso,
@@ -40,7 +38,6 @@ class ExerciseDetailBody extends StatelessWidget {
   final bool descansoRunning;
   final VoidCallback onStartWorkout;
   final VoidCallback onRegisterSerie;
-  final VoidCallback onCompleteAll;
   final VoidCallback onAddSerie;
   final VoidCallback onToggleDescanso;
   final ValueChanged<int> onAdjustDescanso;
@@ -75,8 +72,8 @@ class ExerciseDetailBody extends StatelessWidget {
                           onRegisterSerie: onRegisterSerie,
                         ),
                         AddSerieButton(
+                          scheduleId: scheduleId,
                           onTapSerie: onAddSerie,
-                          onCompleteAll: onCompleteAll,
                         ),
                         if (showDescanso) ...[
                           const SizedBox(height: AppSpacing.sm),

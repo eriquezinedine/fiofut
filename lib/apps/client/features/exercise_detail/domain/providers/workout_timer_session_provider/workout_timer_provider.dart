@@ -21,10 +21,10 @@ class WorkoutTimerNotifier extends Notifier<WorkoutTimerState> {
     if (state.isRunning) return;
 
     state = state.copyWith(isRunning: true);
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      state = state.copyWith(elapsedSeconds: state.elapsedSeconds + 1);
-    });
+    // _timer?.cancel();
+    // _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+    //   state = state.copyWith(elapsedSeconds: state.elapsedSeconds + 1);
+    // });
   }
 
   /// Pauses the timer without resetting.

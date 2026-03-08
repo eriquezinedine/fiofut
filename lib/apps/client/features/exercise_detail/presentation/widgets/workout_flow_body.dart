@@ -1,5 +1,4 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_session_provider/workout_session_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_session_provider/workout_session_state.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/exercise_detail_content.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/footer_buttons_section.dart';
@@ -126,7 +125,6 @@ class WorkoutFlowBody extends StatelessWidget {
               allDone: false,
               onStartWorkout: onStartWorkout,
               onRegisterSerie: (){},
-              onCompleteAll: (){},
             ),
           ],
         ),

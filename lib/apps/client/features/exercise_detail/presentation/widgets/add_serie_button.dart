@@ -1,34 +1,48 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_flow_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-class AddSerieButton extends StatelessWidget {
+class AddSerieButton extends ConsumerWidget {
   const AddSerieButton({
     super.key,
+    required this.scheduleId,
     required this.onTapSerie,
-    required this.onCompleteAll,
+    this.onCompleteAll,
   });
 
+  final String scheduleId;
   final VoidCallback onTapSerie;
-  final VoidCallback onCompleteAll;
+  final VoidCallback? onCompleteAll;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.only(left: 20, right: 20, top: 4, bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _addSerie(),
-          _completeSerie(),
+          _AddSerieAction(onTap: onTapSerie),
+          _CompleteSerieAction(
+            scheduleId: scheduleId,
+            onCompleteAll: onCompleteAll,
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _addSerie() {
+class _AddSerieAction extends StatelessWidget {
+  const _AddSerieAction({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
     return CustomGestureDetector(
-      onTap: onTapSerie,
+      onTap: onTap,
       child: ColoredBox(
         color: Colors.transparent,
         child: Row(
@@ -42,10 +56,25 @@ class AddSerieButton extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _completeSerie() {
+class _CompleteSerieAction extends ConsumerWidget {
+  const _CompleteSerieAction({
+    required this.scheduleId,
+    this.onCompleteAll,
+  });
+
+  final String scheduleId;
+  final VoidCallback? onCompleteAll;
+
+  Future<void> _handleCompleteAll(BuildContext context, WidgetRef ref) async {
+    ref.read(workoutFlowProvider(scheduleId).notifier).completeAll();
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     return CustomGestureDetector(
-      onTap: onCompleteAll,
+      onTap: () => _handleCompleteAll(context, ref),
       child: ColoredBox(
         color: Colors.transparent,
         child: Row(

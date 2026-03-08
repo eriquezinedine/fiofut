@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider/serie_detail_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_flow_provider.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/confirm_sheet.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/exercise_detail_body.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/serie_exercise_widget.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
@@ -11,7 +10,6 @@ import 'package:fio_fut/apps/client/features/exercise_home/domain/model/model.da
 import 'package:fio_fut/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 
 class ExerciseDetailContent extends ConsumerStatefulWidget {
   const ExerciseDetailContent({
@@ -109,32 +107,23 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
       return;
     }
 
-    // Show descanso if there are more series to do,
-    // but skip it if the next serie is a dropset (no rest between drops).
-    final nextId = flowNotifier.nextSerieToRegister();
-    final nextType = flowNotifier.nextSerieSetType();
-    if (nextId != null && nextType != SetType.dropset) {
-      setState(() {
-        _showDescanso = true;
-        _descansoRunning = true;
-        _descansoSeconds = 58;
-      });
-      _startDescansoTimer();
-    } else {
-      _stopDescanso();
-    }
+    // // Show descanso if there are more series to do,
+    // // but skip it if the next serie is a dropset (no rest between drops).
+    // final nextId = flowNotifier.nextSerieToRegister();
+    // final nextType = flowNotifier.nextSerieSetType();
+    // if (nextId != null && nextType != SetType.dropset) {
+    //   setState(() {
+    //     _showDescanso = true;
+    //     _descansoRunning = true;
+    //     _descansoSeconds = 58;
+    //   });
+    //   _startDescansoTimer();
+    // } else {
+    //   _stopDescanso();
+    // }
 
-    // Check if all series just got completed
-    _checkCompletion();
-  }
-
-  Future<void> _completeAllSeries() async {
-    final confirmed = await _showConfirmCompleteSheet();
-    if (!confirmed) return;
-
-    ref.read(workoutFlowProvider(widget.scheduleId).notifier).completeAll();
-    _stopDescanso();
-    _checkCompletion();
+    // // Check if all series just got completed
+    // _checkCompletion();
   }
 
   void _checkCompletion() {
@@ -152,18 +141,18 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
 
   void _startDescansoTimer() {
     _descansoTimer?.cancel();
-    _descansoTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (_descansoSeconds <= 0) {
-        _descansoTimer?.cancel();
-        setState(() {
-          _showDescanso = false;
-          _descansoRunning = false;
-          _descansoSeconds = 58;
-        });
-        return;
-      }
-      setState(() => _descansoSeconds--);
-    });
+    // _descansoTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+    //   if (_descansoSeconds <= 0) {
+    //     _descansoTimer?.cancel();
+    //     setState(() {
+    //       _showDescanso = false;
+    //       _descansoRunning = false;
+    //       _descansoSeconds = 58;
+    //     });
+    //     return;
+    //   }
+    //   setState(() => _descansoSeconds--);
+    // });
   }
 
   void _adjustDescanso(int delta) {
@@ -194,23 +183,6 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
 
   void _onAddSerie() {
     ref.read(serieDetailProvider(widget.scheduleId).notifier).addSerie();
-  }
-
-  // ── Bottom Sheets ──────────────────────────────────────────────
-
-  Future<bool> _showConfirmCompleteSheet() async {
-    return await showModalBottomSheet<bool>(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => const ConfirmSheet(
-            title: 'Completar ejercicio',
-            subtitle: '¿Deseas completar todas las series?',
-            icon: LucideIcons.checkCircle,
-            confirmText: 'Completar',
-          ),
-        ) ??
-        false;
   }
 
   // ── Build ───────────────────────────────────────────────────────
@@ -244,7 +216,6 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
       descansoRunning: _descansoRunning,
       onStartWorkout: _startWorkout,
       onRegisterSerie: _registerSerie,
-      onCompleteAll: _completeAllSeries,
       onAddSerie: _onAddSerie,
       onToggleDescanso: _toggleDescanso,
       onAdjustDescanso: _adjustDescanso,
