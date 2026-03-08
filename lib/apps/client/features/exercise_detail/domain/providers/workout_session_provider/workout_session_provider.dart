@@ -1,5 +1,6 @@
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_session_provider/workout_session_state.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_timer_session_provider/workout_timer_provider.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:fio_fut/core/utils/debouncer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -29,14 +30,14 @@ class WorkoutSessionNotifier extends Notifier<WorkoutSessionState> {
     _scheduleSyncDebounce();
   }
 
-  /// Starts the workout session with the given total exercises.
-  Future<void> startSession(int totalExercises) async {
+  /// Starts the workout session with the given exercises.
+  Future<void> startSession(List<ExerciseScheduleItem> exercises) async {
     if (state.isStarted) return;
 
     final now = DateTime.now();
     state = state.copyWith(
       startedAt: now,
-      totalExercises: totalExercises,
+      allExercises: exercises,
     );
 
     // Start the timer
@@ -50,7 +51,7 @@ class WorkoutSessionNotifier extends Notifier<WorkoutSessionState> {
         userId: userId,
         date: now,
         startedAt: now,
-        totalExercises: totalExercises,
+        totalExercises: exercises.length,
       );
       state = state.copyWith(sessionId: sessionId);
     }

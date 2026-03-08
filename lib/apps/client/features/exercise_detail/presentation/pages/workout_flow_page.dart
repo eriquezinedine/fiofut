@@ -46,7 +46,7 @@ class _WorkoutFlowPageState extends ConsumerState<WorkoutFlowPage> {
     if (!session.isStarted) {
       ref
           .read(workoutSessionProvider.notifier)
-          .startSession(widget.exercises.length);
+          .startSession(widget.exercises);
     }
   }
 

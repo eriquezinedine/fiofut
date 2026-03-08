@@ -1,5 +1,6 @@
-
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:flutter/material.dart';
+
 @immutable
 class WorkoutSessionState {
   const WorkoutSessionState({
@@ -7,18 +8,20 @@ class WorkoutSessionState {
     this.startedAt,
     this.elapsedSeconds = 0,
     this.completedExercises = 0,
-    this.totalExercises = 0,
     this.isFinished = false,
     this.photoUrl,
+    this.allExercises = const [],
   });
 
   final String? sessionId;
   final DateTime? startedAt;
   final int elapsedSeconds;
   final int completedExercises;
-  final int totalExercises;
   final bool isFinished;
   final String? photoUrl;
+  final List<ExerciseScheduleItem> allExercises;
+
+  int get totalExercises => allExercises.length;
 
   bool get isStarted => startedAt != null;
   bool get allCompleted =>
@@ -38,18 +41,18 @@ class WorkoutSessionState {
     DateTime? startedAt,
     int? elapsedSeconds,
     int? completedExercises,
-    int? totalExercises,
     bool? isFinished,
     String? photoUrl,
+    List<ExerciseScheduleItem>? allExercises,
   }) {
     return WorkoutSessionState(
       sessionId: sessionId ?? this.sessionId,
       startedAt: startedAt ?? this.startedAt,
       elapsedSeconds: elapsedSeconds ?? this.elapsedSeconds,
       completedExercises: completedExercises ?? this.completedExercises,
-      totalExercises: totalExercises ?? this.totalExercises,
       isFinished: isFinished ?? this.isFinished,
       photoUrl: photoUrl ?? this.photoUrl,
+      allExercises: allExercises ?? this.allExercises,
     );
   }
 }

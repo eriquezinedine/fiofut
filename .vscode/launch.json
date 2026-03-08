@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "fio_fut (Android Debug)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "emulator-5554",
+            "program": "lib/main.dart",
+            "flutterMode": "debug"
+        },
+        {
             "name": "fio_fut",
             "request": "launch",
             "type": "dart"

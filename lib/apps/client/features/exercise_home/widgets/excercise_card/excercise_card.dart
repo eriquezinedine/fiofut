@@ -1,5 +1,4 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/exercise_detail_page.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/workout_flow_page.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/workout_complete_modal.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
