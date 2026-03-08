@@ -49,6 +49,9 @@ class _SerieHeaders extends StatelessWidget {
               ),
             ),
           ],
+          // Columna vacía para el check (sin título)
+          const SizedBox(width: 12),
+          const SizedBox(width: 44),
         ],
       ),
     );

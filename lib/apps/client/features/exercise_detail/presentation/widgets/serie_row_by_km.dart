@@ -4,20 +4,20 @@ class _SerieRowByKm extends ConsumerStatefulWidget {
   const _SerieRowByKm({
     required this.scheduleId,
     required this.serie,
-    required this.isActive,
+    required this.isCompleted,
     this.isStarted = false,
     this.isCurrent = false,
-    this.isLastCompleted = false,
-    this.onRegisterSerie,
+    this.onNumberCellTap,
+    this.onCheckCellTap,
   });
 
   final String scheduleId;
   final SerieSet serie;
-  final bool isActive;
+  final bool isCompleted;
   final bool isStarted;
   final bool isCurrent;
-  final bool isLastCompleted;
-  final VoidCallback? onRegisterSerie;
+  final VoidCallback? onNumberCellTap;
+  final VoidCallback? onCheckCellTap;
 
   @override
   ConsumerState<_SerieRowByKm> createState() => _SerieRowByKmState();
@@ -26,62 +26,36 @@ class _SerieRowByKm extends ConsumerStatefulWidget {
 class _SerieRowByKmState extends ConsumerState<_SerieRowByKm> {
   Color get _separatorColor {
     if (!widget.isStarted) {
-      return widget.isActive ? AppColors.background : AppColors.white;
+      return !widget.isCompleted ? AppColors.background : AppColors.white;
     }
-    if (!widget.isActive) return AppColors.black;
+    if (widget.isCompleted) return AppColors.black;
     if (widget.isCurrent) return AppColors.background;
     return AppColors.white;
-  }
-
-  Future<void> _onNumberCellTap() async {
-    if (!widget.isStarted) {
-      final action = await SetTypeModal.show(context);
-      if (action == null || !mounted) return;
-
-      final notifier = ref.read(serieDetailProvider(widget.scheduleId).notifier);
-      if (action == SetTypeAction.delete) {
-        notifier.removeSerie(widget.serie.id);
-      } else {
-        final type = SetTypeModal.toSetType(action);
-        if (type != null) notifier.updateSetType(widget.serie.id, type);
-      }
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final serie = widget.serie;
+    final isCompleted = widget.isCompleted;
     final notifier = ref.read(serieDetailProvider(widget.scheduleId).notifier);
-
-    VoidCallback? numberCellTap;
-    if (!widget.isStarted) {
-      numberCellTap = _onNumberCellTap;
-    } else if (widget.isCurrent) {
-      numberCellTap = widget.onRegisterSerie;
-    } else if (widget.isLastCompleted) {
-      numberCellTap = () {
-        final ok = notifier.toggleSerieCompleted(serie.id);
-        if (!ok) AppToast.error(context, 'Completa los campos requeridos');
-      };
-    }
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20)
-          .add(EdgeInsets.only(top: widget.isActive ? 12 : 4, bottom: 8)),
+          .add(EdgeInsets.only(top: !isCompleted ? 12 : 4, bottom: 8)),
       child: Row(
         children: [
           _SerieNumberCell(
             number: serie.number,
-            isActive: widget.isActive,
+            isCompleted: isCompleted,
             isStarted: widget.isStarted,
             isCurrent: widget.isCurrent,
             setType: serie.setType,
-            onTap: numberCellTap,
+            onTap: widget.onNumberCellTap,
           ),
           const SizedBox(width: 16),
           Expanded(
             child: _CellContainer(
-              isActive: widget.isActive,
+              isCompleted: isCompleted,
               isStarted: widget.isStarted,
               isCurrent: widget.isCurrent,
               child: Row(
@@ -91,7 +65,7 @@ class _SerieRowByKmState extends ConsumerState<_SerieRowByKm> {
                       key: ValueKey('${serie.id}_mins'),
                       initialValue: serie.mins?.toString().padLeft(2, '0'),
                       hint: '00',
-                      isActive: widget.isActive,
+                      isCompleted: isCompleted,
                       isStarted: widget.isStarted,
                       isCurrent: widget.isCurrent,
                       maxLength: 2,
@@ -117,7 +91,7 @@ class _SerieRowByKmState extends ConsumerState<_SerieRowByKm> {
                       key: ValueKey('${serie.id}_segs'),
                       initialValue: serie.segs?.toString().padLeft(2, '0'),
                       hint: '00',
-                      isActive: widget.isActive,
+                      isCompleted: isCompleted,
                       isStarted: widget.isStarted,
                       isCurrent: widget.isCurrent,
                       maxLength: 2,
@@ -136,7 +110,7 @@ class _SerieRowByKmState extends ConsumerState<_SerieRowByKm> {
           const SizedBox(width: 16),
           Expanded(
             child: _CellContainer(
-              isActive: widget.isActive,
+              isCompleted: isCompleted,
               isStarted: widget.isStarted,
               isCurrent: widget.isCurrent,
               child: SerieTextField(
@@ -147,7 +121,7 @@ class _SerieRowByKmState extends ConsumerState<_SerieRowByKm> {
                         : serie.kg.toString())
                     : null,
                 hint: '0',
-                isActive: widget.isActive,
+                isCompleted: isCompleted,
                 isStarted: widget.isStarted,
                 isCurrent: widget.isCurrent,
                 onChanged: (v) {
@@ -156,6 +130,13 @@ class _SerieRowByKmState extends ConsumerState<_SerieRowByKm> {
                 },
               ),
             ),
+          ),
+          const SizedBox(width: 12),
+          _SerieCheckCell(
+            isCompleted: isCompleted,
+            isStarted: widget.isStarted,
+            isCurrent: widget.isCurrent,
+            onTap: widget.onCheckCellTap,
           ),
         ],
       ),

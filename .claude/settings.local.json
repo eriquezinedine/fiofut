@@ -8,7 +8,8 @@
       "Bash(findstr:*)",
       "Bash(flutter run:*)",
       "Bash(flutter analyze:*)",
-      "Bash(flutter doctor:*)"
+      "Bash(flutter doctor:*)",
+      "Bash(dart pub cache:*)"
     ]
   }
 }

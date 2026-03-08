@@ -5,7 +5,7 @@ class SerieTextField extends StatefulWidget {
     super.key,
     this.initialValue,
     this.hint,
-    this.isActive = true,
+    this.isCompleted = false,
     this.isStarted = false,
     this.isCurrent = false,
     this.keyboardType,
@@ -19,7 +19,7 @@ class SerieTextField extends StatefulWidget {
 
   final String? initialValue;
   final String? hint;
-  final bool isActive;
+  final bool isCompleted;
   final bool isStarted;
   final bool isCurrent;
   final TextInputType? keyboardType;
@@ -80,10 +80,10 @@ class _SerieTextFieldState extends State<SerieTextField> {
 
   Color get _textColor {
     if (!widget.isStarted) {
-      return widget.isActive ? AppColors.background : AppColors.white;
+      return !widget.isCompleted ? AppColors.background : AppColors.white;
     }
     // Started: completed = black, current = dark (white bg), pending = white
-    if (!widget.isActive) return AppColors.black;
+    if (widget.isCompleted) return AppColors.black;
     if (widget.isCurrent) return AppColors.background;
     return AppColors.white;
   }

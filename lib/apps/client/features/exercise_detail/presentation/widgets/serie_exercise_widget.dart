@@ -4,7 +4,6 @@ import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider/serie_detail_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider/serie_detail_state.dart';
-import 'package:fio_fut/core/widgets/app_toast.dart';
 import 'package:fio_fut/core/widgets/modal/set_type_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -48,7 +47,7 @@ class SerieExerciseWidget extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Series',
+            'Registra tu entramiento',
             style: AppTextStyles.h3.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -66,17 +65,74 @@ class SerieExerciseWidget extends ConsumerWidget {
   }
 }
 
+// ── Check cell for completing serie ─────────────────────────────────
+
+class _SerieCheckCell extends StatelessWidget {
+  const _SerieCheckCell({
+    required this.isCompleted,
+    required this.isStarted,
+    required this.isCurrent,
+    this.onTap,
+  });
+
+  final bool isCompleted;
+  final bool isStarted;
+  final bool isCurrent;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool canTap = isStarted && (isCurrent || isCompleted);
+
+    Color iconColor;
+    Color bgColor;
+
+    if (!isStarted) {
+      iconColor = AppColors.black;
+      bgColor = AppColors.white;
+    } else if (isCompleted) {
+      iconColor = AppColors.black;
+      bgColor = AppColors.primary;
+    } else if (isCurrent) {
+      iconColor = AppColors.black;
+      bgColor = AppColors.white;
+    } else {
+      iconColor = AppColors.white;
+      bgColor = AppColors.card;
+    }
+
+    return GestureDetector(
+      onTap: canTap ? onTap : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.center,
+        child: Icon(
+          LucideIcons.check,
+          color: iconColor,
+          size: 20,
+        ),
+      ),
+    );
+  }
+}
+
 // ── Cell container (shared decoration) ──────────────────────────────
 
 class _CellContainer extends StatelessWidget {
   const _CellContainer({
-    required this.isActive,
+    required this.isCompleted,
     required this.child,
     this.isStarted = false,
     this.isCurrent = false,
   });
 
-  final bool isActive;
+  final bool isCompleted;
   final bool isStarted;
   final bool isCurrent;
   final Widget child;
@@ -86,9 +142,8 @@ class _CellContainer extends StatelessWidget {
     final Color bg;
 
     if (!isStarted) {
-      bg = isActive ? AppColors.white : AppColors.backgroundSecondary;
-    } else if (!isActive) {
-      // completed
+      bg = !isCompleted ? AppColors.white : AppColors.backgroundSecondary;
+    } else if (isCompleted) {
       bg = AppColors.primary;
     } else if (isCurrent) {
       // current — white like setup

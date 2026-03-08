@@ -31,17 +31,6 @@ class SireBody extends ConsumerWidget {
       _ => <SerieSet>[],
     };
 
-    // Find the last completed serie id (only that one can be untoggled)
-    String? lastCompletedId;
-    if (isStarted) {
-      for (var i = series.length - 1; i >= 0; i--) {
-        if (series[i].isCompleted) {
-          lastCompletedId = series[i].id;
-          break;
-        }
-      }
-    }
-
     return Column(
       children: [
         _SerieHeaders(middleHeader: middleHeader, showKg: !isRetryOnly),
@@ -52,7 +41,6 @@ class SireBody extends ConsumerWidget {
             serie: serie,
             isStarted: isStarted,
             currentSerieId: currentSerieId,
-            lastCompletedId: lastCompletedId,
             onRegisterSerie: onRegisterSerie,
             canDelete: series.length > 1,
             onDelete: () => ref

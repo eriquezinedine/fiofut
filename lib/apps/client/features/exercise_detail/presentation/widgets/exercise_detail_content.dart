@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider/serie_detail_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_flow_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/exercise_detail_body.dart';

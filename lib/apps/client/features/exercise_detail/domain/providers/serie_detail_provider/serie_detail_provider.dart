@@ -222,6 +222,43 @@ class SerieDetailNotifier
     return true;
   }
 
+  // ── Uncomplete from serie (and all below) ────────────────────────
+
+  /// Uncompletes the given serie and all series below it (with number >= target).
+  void uncompleteFromSerie(String serieId) {
+    final current = _loaded;
+    if (current == null) return;
+
+    final targetIndex = current.series.indexWhere((s) => s.id == serieId);
+    if (targetIndex == -1) return;
+
+    final updatedSeries = [
+      for (var i = 0; i < current.series.length; i++)
+        if (i >= targetIndex)
+          current.series[i].copyWith(status: SerieStatus.pending)
+        else
+          current.series[i],
+    ];
+
+    final allDone = updatedSeries.every((s) => s.isCompleted);
+    final anyInProgress = updatedSeries.any(
+      (s) => s.isCompleted || s.reps != null || s.kg != null,
+    );
+
+    final workoutStatus = allDone
+        ? WorkoutStatus.completed
+        : anyInProgress
+            ? WorkoutStatus.inProgress
+            : WorkoutStatus.pending;
+
+    state = current.copyWith(
+      workout: current.workout.copyWith(
+        series: updatedSeries,
+        status: workoutStatus,
+      ),
+    );
+  }
+
   // ── Complete all series ─────────────────────────────────────────
 
   void completeAll() {

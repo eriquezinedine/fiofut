@@ -375,7 +375,7 @@ class _ConfigRowByKgState extends State<_ConfigRowByKg> {
               key: ValueKey('${widget.serie.id}_reps'),
               initialValue: widget.serie.reps?.toString(),
               hint: '0',
-              isActive: true,
+              // isActive: true,
               nextFocusNode: _kgFocusNode,
               autoAdvanceMs: 300,
               onChanged: (v) {
@@ -392,7 +392,7 @@ class _ConfigRowByKgState extends State<_ConfigRowByKg> {
               key: ValueKey('${widget.serie.id}_kg'),
               initialValue: _formatKg(widget.serie.kg),
               hint: '0',
-              isActive: true,
+              // isActive: true,
               focusNode: _kgFocusNode,
               onChanged: (v) {
                 final kg = double.tryParse(v);
@@ -436,7 +436,7 @@ class _ConfigRowByKm extends StatelessWidget {
                     key: ValueKey('${serie.id}_mins'),
                     initialValue: serie.mins?.toString().padLeft(2, '0'),
                     hint: '00',
-                    isActive: true,
+                    // isActive: true,
                     maxLength: 2,
                     onChanged: (v) {
                       final mins = int.tryParse(v);
@@ -458,7 +458,7 @@ class _ConfigRowByKm extends StatelessWidget {
                     key: ValueKey('${serie.id}_segs'),
                     initialValue: serie.segs?.toString().padLeft(2, '0'),
                     hint: '00',
-                    isActive: true,
+                    // isActive: true,
                     maxLength: 2,
                     onChanged: (v) {
                       final segs = int.tryParse(v);
@@ -481,7 +481,7 @@ class _ConfigRowByKm extends StatelessWidget {
                       : serie.kg.toString())
                   : null,
               hint: '0',
-              isActive: true,
+              // isActive: true,
               onChanged: (v) {
                 final kg = double.tryParse(v);
                 if (kg != null) onKgChanged(kg);
@@ -517,7 +517,7 @@ class _ConfigRowRetryOnly extends StatelessWidget {
               key: ValueKey('${serie.id}_reps'),
               initialValue: serie.reps?.toString(),
               hint: '0',
-              isActive: true,
+              // isActive: true,
               onChanged: (v) {
                 final reps = int.tryParse(v);
                 if (reps != null) onRepsChanged(reps);
