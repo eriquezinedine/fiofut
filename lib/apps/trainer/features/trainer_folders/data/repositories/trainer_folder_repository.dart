@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:fio_fut/apps/admin/features/meals/domain/models/food.dart';
 import 'package:fio_fut/apps/admin/features/ingredients/domain/models/ingredient.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/serie_set.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:fio_fut/core/widgets/modal/schedule_date_modal.dart';
 
 import '../../domain/models/folder_exercise_item.dart';
@@ -177,7 +177,7 @@ class TrainerFolderRepository {
   Future<void> addExerciseToFolder({
     required String folderId,
     required String exerciseId,
-    required List<SerieSet> series,
+    required List<ExerciseSetData> series,
   }) async {
     // Derive flat summary from first serie
     final first = series.isNotEmpty ? series.first : null;
@@ -195,7 +195,7 @@ class TrainerFolderRepository {
       folderExerciseId = existing['id'] as String;
       await _client.from('trainer_folder_exercise').update({
         'sets': series.length,
-        'reps': first?.reps ?? 0,
+        'reps': first?.repetitions ?? 0,
       }).eq('id', folderExerciseId);
     } else {
       final data = await _client
@@ -204,7 +204,7 @@ class TrainerFolderRepository {
             'folder_id': folderId,
             'exercise_id': exerciseId,
             'sets': series.length,
-            'reps': first?.reps ?? 0,
+            'reps': first?.repetitions ?? 0,
             'sort_order': 0,
           })
           .select('id')
@@ -222,11 +222,11 @@ class TrainerFolderRepository {
     if (series.isNotEmpty) {
       final setRows = series.map((s) => {
             'folder_exercise_id': folderExerciseId,
-            'set_number': s.number,
-            'reps': s.reps,
-            'weight': s.kg,
-            'minutes': s.mins,
-            'seconds': s.segs,
+            'set_number': s.setNumber,
+            'reps': s.repetitions,
+            'weight': s.weight,
+            'minutes': s.minutes,
+            'seconds': s.seconds,
           }).toList();
       await _client.from('trainer_folder_exercise_set').insert(setRows);
     }
@@ -249,12 +249,12 @@ class TrainerFolderRepository {
 
   Future<void> updateExerciseSeries({
     required String itemId,
-    required List<SerieSet> series,
+    required List<ExerciseSetData> series,
   }) async {
     final first = series.isNotEmpty ? series.first : null;
     await _client.from('trainer_folder_exercise').update({
       'sets': series.length,
-      'reps': first?.reps ?? 0,
+      'reps': first?.repetitions ?? 0,
     }).eq('id', itemId);
 
     // Replace per-set config
@@ -266,11 +266,11 @@ class TrainerFolderRepository {
     if (series.isNotEmpty) {
       final setRows = series.map((s) => {
             'folder_exercise_id': itemId,
-            'set_number': s.number,
-            'reps': s.reps,
-            'weight': s.kg,
-            'minutes': s.mins,
-            'seconds': s.segs,
+            'set_number': s.setNumber,
+            'reps': s.repetitions,
+            'weight': s.weight,
+            'minutes': s.minutes,
+            'seconds': s.seconds,
           }).toList();
       await _client.from('trainer_folder_exercise_set').insert(setRows);
     }
@@ -466,12 +466,12 @@ class TrainerFolderRepository {
       setRows = item.configSets.map((s) {
         final row = <String, dynamic>{
           'id_exercise_schedule': scheduleId,
-          'set_number': s.number,
+          'set_number': s.setNumber,
         };
-        if (s.reps != null && s.reps! > 0) row['repetitions'] = s.reps;
-        if (s.kg != null && s.kg! > 0) row['weight'] = s.kg;
-        if (s.mins != null && s.mins! > 0) row['minutes'] = s.mins;
-        if (s.segs != null && s.segs! > 0) row['seconds'] = s.segs;
+        if (s.repetitions != null && s.repetitions! > 0) row['repetitions'] = s.repetitions;
+        if (s.weight != null && s.weight! > 0) row['weight'] = s.weight;
+        if (s.minutes != null && s.minutes! > 0) row['minutes'] = s.minutes;
+        if (s.seconds != null && s.seconds! > 0) row['seconds'] = s.seconds;
         return row;
       }).toList();
     } else {

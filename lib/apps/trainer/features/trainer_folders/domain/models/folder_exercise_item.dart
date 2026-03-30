@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:fio_fut/apps/admin/features/exercises/domain/models/exercise.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/serie_set.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 
 @immutable
 class FolderExerciseItem {
@@ -24,20 +24,21 @@ class FolderExerciseItem {
   final double? weight;
   final int? minutes;
   final int? seconds;
-  final List<SerieSet> configSets; // Per-set config from trainer_folder_exercise_set
+  final List<ExerciseSetData> configSets;
   final int sortOrder;
 
   factory FolderExerciseItem.fromJson(Map<String, dynamic> json) {
     final configSetsJson = json['config_sets'] as List<dynamic>?;
     final configSets = configSetsJson?.map((s) {
       final map = s as Map<String, dynamic>;
-      return SerieSet(
+      return ExerciseSetData(
         id: map['id'] as String,
-        number: (map['set_number'] as num).toInt(),
-        reps: (map['reps'] as num?)?.toInt(),
-        kg: (map['weight'] as num?)?.toDouble(),
-        mins: (map['minutes'] as num?)?.toInt(),
-        segs: (map['seconds'] as num?)?.toInt(),
+        setNumber: (map['set_number'] as num).toInt(),
+        sessionDate: DateTime.now(),
+        repetitions: (map['reps'] as num?)?.toInt(),
+        weight: (map['weight'] as num?)?.toDouble(),
+        minutes: (map['minutes'] as num?)?.toInt(),
+        seconds: (map['seconds'] as num?)?.toInt(),
       );
     }).toList() ?? [];
 
@@ -62,7 +63,7 @@ class FolderExerciseItem {
     double? weight,
     int? minutes,
     int? seconds,
-    List<SerieSet>? configSets,
+    List<ExerciseSetData>? configSets,
     int? sortOrder,
   }) {
     return FolderExerciseItem(

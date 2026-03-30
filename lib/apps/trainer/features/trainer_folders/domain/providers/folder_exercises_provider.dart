@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/serie_set.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 
 import '../../data/repositories/trainer_folder_repository.dart';
 import '../models/folder_exercise_item.dart';
@@ -28,7 +28,7 @@ class FolderExercisesNotifier
 
   Future<bool> addExercise({
     required String exerciseId,
-    required List<SerieSet> series,
+    required List<ExerciseSetData> series,
   }) async {
     try {
       final repo = ref.read(trainerFolderRepositoryProvider);
@@ -45,7 +45,7 @@ class FolderExercisesNotifier
   }
 
   Future<bool> addExercises(
-    List<({String exerciseId, List<SerieSet> series})> exercises,
+    List<({String exerciseId, List<ExerciseSetData> series})> exercises,
   ) async {
     state = const AsyncLoading();
     try {

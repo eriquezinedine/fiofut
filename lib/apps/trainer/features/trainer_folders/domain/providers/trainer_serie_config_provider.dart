@@ -1,66 +1,68 @@
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/serie_set.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/serie_exercise_widget.dart';
 
 const _uuid = Uuid();
 
 /// Key for the trainer serie config provider.
-typedef SerieConfigKey = ({String exerciseId, RepiteType repiteType});
+typedef SerieConfigKey = ({String exerciseId, MetricType repiteType});
 
 /// In-memory provider for configuring series per exercise during selection.
 /// Initializes with 3 default series based on the exercise's RepiteType.
 final trainerSerieConfigProvider = NotifierProvider.autoDispose
-    .family<TrainerSerieConfigNotifier, List<SerieSet>, SerieConfigKey>(
+    .family<TrainerSerieConfigNotifier, List<ExerciseSetData>, SerieConfigKey>(
   TrainerSerieConfigNotifier.new,
 );
 
 class TrainerSerieConfigNotifier
-    extends AutoDisposeFamilyNotifier<List<SerieSet>, SerieConfigKey> {
+    extends AutoDisposeFamilyNotifier<List<ExerciseSetData>, SerieConfigKey> {
   @override
-  List<SerieSet> build(SerieConfigKey arg) {
+  List<ExerciseSetData> build(SerieConfigKey arg) {
     final defaults = _defaultsFor(arg.repiteType);
     return List.generate(
       1,
-      (i) => SerieSet(
+      (i) => ExerciseSetData(
         id: _uuid.v4(),
-        number: i + 1,
-        reps: defaults.reps,
-        kg: defaults.kg,
-        mins: defaults.mins,
-        segs: defaults.segs,
+        setNumber: i + 1,
+        sessionDate: DateTime.now(),
+        repetitions: defaults.reps,
+        weight: defaults.kg,
+        minutes: defaults.mins,
+        seconds: defaults.segs,
       ),
     );
   }
 
   /// Load existing series (for editing an already-saved exercise).
-  void initWithSeries(List<SerieSet> series) {
+  void initWithSeries(List<ExerciseSetData> series) {
     if (series.isEmpty) return;
     state = [
       for (var i = 0; i < series.length; i++)
-        series[i].copyWith(number: i + 1),
+        series[i].copyWith(setNumber: i + 1),
     ];
   }
 
   void addSerie() {
     final defaults = _defaultsFor(arg.repiteType);
     final next = state.isEmpty
-        ? SerieSet(
+        ? ExerciseSetData(
             id: _uuid.v4(),
-            number: 1,
-            reps: defaults.reps,
-            kg: defaults.kg,
-            mins: defaults.mins,
-            segs: defaults.segs,
+            setNumber: 1,
+            sessionDate: DateTime.now(),
+            repetitions: defaults.reps,
+            weight: defaults.kg,
+            minutes: defaults.mins,
+            seconds: defaults.segs,
           )
-        : SerieSet(
+        : ExerciseSetData(
             id: _uuid.v4(),
-            number: state.length + 1,
-            reps: state.last.reps,
-            kg: state.last.kg,
-            mins: state.last.mins,
-            segs: state.last.segs,
+            setNumber: state.length + 1,
+            sessionDate: DateTime.now(),
+            repetitions: state.last.repetitions,
+            weight: state.last.weight,
+            minutes: state.last.minutes,
+            seconds: state.last.seconds,
           );
     state = [...state, next];
   }
@@ -70,31 +72,31 @@ class TrainerSerieConfigNotifier
     final filtered = state.where((s) => s.id != serieId).toList();
     state = [
       for (var i = 0; i < filtered.length; i++)
-        filtered[i].copyWith(number: i + 1),
+        filtered[i].copyWith(setNumber: i + 1),
     ];
   }
 
   void updateReps(String serieId, int reps) {
     state = [
-      for (final s in state) s.id == serieId ? s.copyWith(reps: reps) : s,
+      for (final s in state) s.id == serieId ? s.copyWith(repetitions: reps) : s,
     ];
   }
 
   void updateKg(String serieId, double kg) {
     state = [
-      for (final s in state) s.id == serieId ? s.copyWith(kg: kg) : s,
+      for (final s in state) s.id == serieId ? s.copyWith(weight: kg) : s,
     ];
   }
 
   void updateMins(String serieId, int mins) {
     state = [
-      for (final s in state) s.id == serieId ? s.copyWith(mins: mins) : s,
+      for (final s in state) s.id == serieId ? s.copyWith(minutes: mins) : s,
     ];
   }
 
   void updateSegs(String serieId, int segs) {
     state = [
-      for (final s in state) s.id == serieId ? s.copyWith(segs: segs) : s,
+      for (final s in state) s.id == serieId ? s.copyWith(seconds: segs) : s,
     ];
   }
 
@@ -103,24 +105,25 @@ class TrainerSerieConfigNotifier
     final defaults = _defaultsFor(arg.repiteType);
     state = List.generate(
       3,
-      (i) => SerieSet(
+      (i) => ExerciseSetData(
         id: _uuid.v4(),
-        number: i + 1,
-        reps: defaults.reps,
-        kg: defaults.kg,
-        mins: defaults.mins,
-        segs: defaults.segs,
+        setNumber: i + 1,
+        sessionDate: DateTime.now(),
+        repetitions: defaults.reps,
+        weight: defaults.kg,
+        minutes: defaults.mins,
+        seconds: defaults.segs,
       ),
     );
   }
 
   ({int? reps, double? kg, int? mins, int? segs}) _defaultsFor(
-    RepiteType type,
+    MetricType type,
   ) {
     return switch (type) {
-      RepiteType.byKg => (reps: 5, kg: 5.0, mins: null, segs: null),
-      RepiteType.byKm => (reps: null, kg: 5.0, mins: 5, segs: 5),
-      RepiteType.retryOnly => (reps: 5, kg: null, mins: null, segs: null),
+      MetricType.strength => (reps: 5, kg: 5.0, mins: null, segs: null),
+      MetricType.cardio => (reps: null, kg: 5.0, mins: 5, segs: 5),
+      MetricType.reps => (reps: 5, kg: null, mins: null, segs: null),
     };
   }
 }
