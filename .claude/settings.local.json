@@ -22,7 +22,8 @@
       "Bash(find '/c/Users/zinedine/Desktop/Flutter projects-2026/Mis proyectos/fiofut/lib' -type f -name *database* -o -name *db* -o -name *repository*)",
       "Bash(find '/c/Users/zinedine/Desktop/Flutter projects-2026/Mis proyectos/fiofut/packages' -type f -name *.dart)",
       "Bash(node -e \":*)",
-      "Bash(where.exe dart:*)"
+      "Bash(where.exe dart:*)",
+      "Bash(dart run:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -1,14 +1,12 @@
 import 'dart:async';
 
 import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home/exercise_home_state.dart';
+import 'package:fio_fut/core/services/sync_orchestrator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:fio_fut/apps/client/features/home/domain/providers/week_provider.dart';
 
-// ISAR disabled
-// import '../../../data/local/exercise_local_source_provider.dart';
-// import '../../../data/local/pending_schedule.dart';
 import '../../../data/repositories/exercise_home_repository.dart';
 import '../../model/exercise.dart';
 import '../../model/exercise_schedule_item.dart';
@@ -39,7 +37,7 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
       final key = _dateKey(weekState.selectedDate);
       Future.microtask(() async {
         await _fetchAndCache(weekState.selectedDate);
-        // _syncAllPending(); // ISAR disabled
+        ref.read(syncOrchestratorProvider.notifier).flushQueue();
       });
       return ExerciseHomeState(selectedDateKey: key);
     }

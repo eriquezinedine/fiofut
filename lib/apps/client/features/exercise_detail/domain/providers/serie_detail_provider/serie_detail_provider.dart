@@ -1,6 +1,6 @@
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider/serie_detail_state.dart';
 import 'package:fio_fut/apps/client/features/training_exercise/presentation/widgets/modal/edit_serie_value_modal.dart';
-import 'package:fio_fut/apps/client/features/exercise_home/data/repositories/exercise_home_repository.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/data/repositories/offline_aware_exercise_repository.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/model.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home/exercise_home_provider.dart';
 import 'package:fio_fut/apps/client/features/training_exercise/domain/providers/training_session_provider/training_session_provider.dart';
@@ -22,7 +22,7 @@ final serieDetailProvider = NotifierProvider.autoDispose
 
 class SerieDetailNotifier
     extends AutoDisposeFamilyNotifier<SerieDetailState, String> {
-  ExerciseHomeRepository get _repo => ref.read(exerciseHomeRepositoryProvider);
+  OfflineAwareExerciseRepository get _repo => ref.read(offlineExerciseRepoProvider);
 
   String get _scheduleId => arg;
 

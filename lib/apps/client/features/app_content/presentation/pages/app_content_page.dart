@@ -4,6 +4,7 @@ import 'package:fio_fut/apps/client/features/app_content/presentation/widgets/ap
 import 'package:fio_fut/apps/client/features/home/home.dart';
 import 'package:fio_fut/apps/client/features/profile/presentation/screens/profile_screen.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/screens/screens.dart';
+import 'package:fio_fut/core/services/sync_orchestrator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -17,19 +18,34 @@ class AppContentPage extends ConsumerStatefulWidget {
   ConsumerState<AppContentPage> createState() => _AppContentPageState();
 }
 
-class _AppContentPageState extends ConsumerState<AppContentPage> {
+class _AppContentPageState extends ConsumerState<AppContentPage>
+    with WidgetsBindingObserver {
   late final PageController _pageController;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Flush pendientes al abrir la app
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(syncOrchestratorProvider.notifier).flushQueue();
+    });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pageController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.read(syncOrchestratorProvider.notifier).flushQueue();
+    }
   }
 
   @override

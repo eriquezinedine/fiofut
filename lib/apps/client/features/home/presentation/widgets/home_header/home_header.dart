@@ -35,7 +35,7 @@ class HomeHeader extends StatelessWidget {
           ),
           Row(
             children: [
-              SyncStatusIndicator(isSynced: false),
+              SyncStatusIndicator(),
               const SizedBox(width: 8),
               DayFireHome(streak: streak),
             ],
