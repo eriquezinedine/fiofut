@@ -23,7 +23,7 @@ class WorkoutFlowProgressBar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
+        vertical: 0,
       ),
       child: Row(
         children: [
@@ -31,7 +31,7 @@ class WorkoutFlowProgressBar extends StatelessWidget {
           if (isSessionStarted) ...[
             Text(
               elapsedMinutes ?? '00:00',
-              style: AppTextStyles.labelMedium.copyWith(
+              style: AppTextStyles.body.copyWith(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),
@@ -51,7 +51,7 @@ class WorkoutFlowProgressBar extends StatelessWidget {
                   builder: (context, value, _) {
                     return LinearProgressIndicator(
                       value: value,
-                      backgroundColor: AppColors.card,
+                      backgroundColor: AppColors.divider,
                       valueColor: const AlwaysStoppedAnimation<Color>(
                         AppColors.primary,
                       ),
@@ -65,7 +65,7 @@ class WorkoutFlowProgressBar extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           Text(
             '$completedExercises/$totalExercises',
-            style: AppTextStyles.labelMedium.copyWith(
+            style: AppTextStyles.body.copyWith(
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w600,
             ),

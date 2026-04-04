@@ -62,7 +62,7 @@ class DetailActiveRow extends StatelessWidget {
         ),
 
         // Reps field
-        if (metricType != MetricType.time)
+        if (metricType != MetricType.cardio)
           Expanded(
             child: _ValueCell(
               value: '$reps',
@@ -73,7 +73,7 @@ class DetailActiveRow extends StatelessWidget {
           ),
 
         // Time field (time case)
-        if (metricType == MetricType.time)
+        if (metricType == MetricType.cardio)
           Expanded(
             child: _ValueCell(
               value: _formatDuration(time),
@@ -84,7 +84,7 @@ class DetailActiveRow extends StatelessWidget {
           ),
 
         // Kg field (weight & time cases)
-        if (metricType == MetricType.weight || metricType == MetricType.time)
+        if (metricType == MetricType.strength || metricType == MetricType.cardio)
           Expanded(
             child: _ValueCell(
               value: weightKg != null ? '$weightKg' : '0',

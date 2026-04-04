@@ -9,8 +9,9 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:model/model.dart';
 
 class ExcerciseCardImage extends StatelessWidget {
-  const ExcerciseCardImage({super.key, required this.exercise});
+  const ExcerciseCardImage({super.key, required this.exercise, required this.style2});
   final Exercise exercise;
+  final bool style2;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -24,7 +25,7 @@ class ExcerciseCardImage extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: SizedBox(
               width: 80,
-              height: double.infinity,
+              height: style2 ? 90 : 120,
               child: exercise.imageUrl != null && exercise.imageUrl!.isNotEmpty
                   ? Image.network(
                       exercise.imageUrl!,

@@ -1,5 +1,5 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/serie_set.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 

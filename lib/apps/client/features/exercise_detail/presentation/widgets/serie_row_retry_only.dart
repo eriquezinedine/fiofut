@@ -1,75 +1,74 @@
 part of 'serie_exercise_widget.dart';
 
-class _SerieRowRetryOnly extends ConsumerStatefulWidget {
+class _SerieRowRetryOnly extends ConsumerWidget {
   const _SerieRowRetryOnly({
     required this.scheduleId,
     required this.serie,
+    required this.index,
     required this.isCompleted,
-    this.isStarted = false,
     this.isCurrent = false,
     this.onNumberCellTap,
     this.onCheckCellTap,
   });
 
   final String scheduleId;
-  final SerieSet serie;
+  final ExerciseSetData serie;
+  final int index;
   final bool isCompleted;
-  final bool isStarted;
   final bool isCurrent;
   final VoidCallback? onNumberCellTap;
   final VoidCallback? onCheckCellTap;
 
-  @override
-  ConsumerState<_SerieRowRetryOnly> createState() =>
-      _SerieRowRetryOnlyState();
-}
+  Future<void> _openModal(BuildContext context, WidgetRef ref) async {
+    final result = await EditSerieValueModal.show(
+      context,
+      metricType: MetricType.reps,
+      exerciseName: scheduleId,
+      serieLabel: '${serie.setNumber}',
+      initialReps: serie.repetitions,
+    );
+    if (result == null) return;
+    ref.read(serieDetailProvider(scheduleId).notifier).updateSerieValues(serie.id, result);
+  }
 
-class _SerieRowRetryOnlyState extends ConsumerState<_SerieRowRetryOnly> {
   @override
-  Widget build(BuildContext context) {
-    final serie = widget.serie;
-    final isCompleted = widget.isCompleted;
-    final notifier = ref.read(serieDetailProvider(widget.scheduleId).notifier);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final style = SerieCellStyle.resolve(
+      isCompleted: isCompleted,
+      isCurrent: isCurrent,
+    );
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 0)
-          .add(EdgeInsets.only(top: !isCompleted ? 12 : 4, bottom: 8)),
+      padding: const EdgeInsets.only(top: 4, bottom: 4),
       child: Row(
         children: [
           _SerieNumberCell(
-            number: serie.number,
+            index: index,
             isCompleted: isCompleted,
-            isStarted: widget.isStarted,
-            isCurrent: widget.isCurrent,
+            isCurrent: isCurrent,
             setType: serie.setType,
-            onTap: widget.onNumberCellTap,
+            onTap: onNumberCellTap,
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           Expanded(
-            child: _CellContainer(
-              isCompleted: isCompleted,
-              isStarted: widget.isStarted,
-              isCurrent: widget.isCurrent,
-              child: SerieTextField(
-                key: ValueKey('${serie.id}_reps'),
-                initialValue: serie.reps?.toString(),
-                hint: '0',
+            child: GestureDetector(
+              onTap: () => _openModal(context, ref),
+              child: _CellContainer(
                 isCompleted: isCompleted,
-                isStarted: widget.isStarted,
-                isCurrent: widget.isCurrent,
-                onChanged: (v) {
-                  final reps = int.tryParse(v);
-                  if (reps != null) notifier.updateReps(serie.id, reps);
-                },
+                isCurrent: isCurrent,
+                child: Text(
+                  serie.repetitions?.toString() ?? '0',
+                  textAlign: TextAlign.center,
+                  style: style.valueTextStyle,
+                ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           _SerieCheckCell(
             isCompleted: isCompleted,
-            isStarted: widget.isStarted,
-            isCurrent: widget.isCurrent,
-            onTap: widget.onCheckCellTap,
+            isCurrent: isCurrent,
+            onTap: onCheckCellTap,
           ),
         ],
       ),

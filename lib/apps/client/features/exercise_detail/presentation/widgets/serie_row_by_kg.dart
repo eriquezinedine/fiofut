@@ -1,115 +1,98 @@
 part of 'serie_exercise_widget.dart';
 
-class _SerieRowByKg extends ConsumerStatefulWidget {
+class _SerieRowByKg extends ConsumerWidget {
   const _SerieRowByKg({
     required this.scheduleId,
     required this.serie,
+    required this.index,
     required this.isCompleted,
-    this.isStarted = false,
     this.isCurrent = false,
     this.onNumberCellTap,
     this.onCheckCellTap,
   });
 
   final String scheduleId;
-  final SerieSet serie;
+  final ExerciseSetData serie;
+  final int index;
   final bool isCompleted;
-  final bool isStarted;
   final bool isCurrent;
   final VoidCallback? onNumberCellTap;
   final VoidCallback? onCheckCellTap;
 
-  @override
-  ConsumerState<_SerieRowByKg> createState() => _SerieRowByKgState();
-}
-
-class _SerieRowByKgState extends ConsumerState<_SerieRowByKg> {
-  final _kgFocusNode = FocusNode();
-
-  @override
-  void dispose() {
-    _kgFocusNode.dispose();
-    super.dispose();
-  }
-
-  String? _formatKg(double? kg) {
-    if (kg == null) return null;
+  String _formatKg(double? kg) {
+    if (kg == null) return '0';
     return kg == kg.roundToDouble() ? kg.toInt().toString() : kg.toString();
   }
 
+  Future<void> _openModal(BuildContext context, WidgetRef ref) async {
+    final result = await EditSerieValueModal.show(
+      context,
+      metricType: MetricType.strength,
+      exerciseName: scheduleId,
+      serieLabel: '${serie.setNumber}',
+      initialReps: serie.repetitions,
+      initialWeight: serie.weight,
+    );
+    if (result == null) return;
+    ref.read(serieDetailProvider(scheduleId).notifier).updateSerieValues(serie.id, result);
+  }
+
   @override
-  Widget build(BuildContext context) {
-    final serie = widget.serie;
-    final isCompleted = widget.isCompleted;
-    final isStarted = widget.isStarted;
-    final isCurrent = widget.isCurrent;
-    final notifier = ref.read(serieDetailProvider(widget.scheduleId).notifier);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final style = SerieCellStyle.resolve(
+      isCompleted: isCompleted,
+      isCurrent: isCurrent,
+    );
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 0)
-          .add(EdgeInsets.only(top: !isCompleted ? 12 : 4, bottom: 8)),
+      padding: const EdgeInsets.only(top: 4, bottom: 4),
       child: Row(
         children: [
           _SerieNumberCell(
-            number: serie.number,
+            index: index,
             isCompleted: isCompleted,
-            isStarted: isStarted,
             isCurrent: isCurrent,
             setType: serie.setType,
-            onTap: widget.onNumberCellTap,
+            onTap: onNumberCellTap,
           ),
-            const SizedBox(width: 16),
-            Expanded(
+          const SizedBox(width: 8),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _openModal(context, ref),
               child: _CellContainer(
                 isCompleted: isCompleted,
-                isStarted: isStarted,
                 isCurrent: isCurrent,
-                child: SerieTextField(
-                  key: ValueKey('${serie.id}_reps'),
-                  initialValue: serie.reps?.toString(),
-                  hint: '0',
-                  isCompleted: isCompleted,
-                  isStarted: isStarted,
-                  isCurrent: isCurrent,
-                  nextFocusNode: _kgFocusNode,
-                  autoAdvanceMs: 300,
-                  onChanged: (v) {
-                    final reps = int.tryParse(v);
-                    if (reps != null) notifier.updateReps(serie.id, reps);
-                  },
+                child: Text(
+                  serie.repetitions?.toString() ?? '0',
+                  textAlign: TextAlign.center,
+                  style: style.valueTextStyle,
                 ),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _openModal(context, ref),
               child: _CellContainer(
                 isCompleted: isCompleted,
-                isStarted: isStarted,
                 isCurrent: isCurrent,
-                child: SerieTextField(
-                  key: ValueKey('${serie.id}_kg'),
-                  initialValue: _formatKg(serie.kg),
-                  hint: '0',
-                  isCompleted: isCompleted,
-                  isStarted: isStarted,
-                  isCurrent: isCurrent,
-                  focusNode: _kgFocusNode,
-                  onChanged: (v) {
-                    final kg = double.tryParse(v);
-                    if (kg != null) notifier.updateKg(serie.id, kg);
-                  },
+                child: Text(
+                  _formatKg(serie.weight),
+                  textAlign: TextAlign.center,
+                  style: style.valueTextStyle,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            _SerieCheckCell(
-              isCompleted: isCompleted,
-              isStarted: isStarted,
-              isCurrent: isCurrent,
-              onTap: widget.onCheckCellTap,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          _SerieCheckCell(
+            isCompleted: isCompleted,
+            isCurrent: isCurrent,
+            onTap: onCheckCellTap,
+          ),
+        ],
+      ),
     );
   }
 }

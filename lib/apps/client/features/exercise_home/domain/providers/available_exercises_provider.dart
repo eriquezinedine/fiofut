@@ -169,8 +169,8 @@ class AvailableExercisesNotifier extends Notifier<AvailableExercisesState> {
   /// Convert CachedExercise → client Exercise.
   Exercise _fromCached(CachedExercise c) {
     final metricType = switch (c.exerciseType) {
-      'cardio' => MetricType.distance,
-      'strength' => MetricType.weight,
+      'cardio' => MetricType.cardio,
+      'strength' => MetricType.strength,
       _ => MetricType.reps,
     };
     MuscleGroup muscleGroup;

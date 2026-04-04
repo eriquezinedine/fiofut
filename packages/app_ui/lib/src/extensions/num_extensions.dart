@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 
 extension NumExtensions on num {
@@ -49,12 +50,17 @@ extension NumExtensions on num {
   }
 
   // ============== Spacing Helpers ==============
+  Gap get gap => Gap(toDouble());
   SizedBox get horizontalSpace => SizedBox(width: toDouble());
   SizedBox get verticalSpace => SizedBox(height: toDouble());
 
-  EdgeInsets get allPadding => EdgeInsets.all(toDouble());
-  EdgeInsets get horizontalPadding => EdgeInsets.symmetric(horizontal: toDouble());
-  EdgeInsets get verticalPadding => EdgeInsets.symmetric(vertical: toDouble());
+  EdgeInsets get all => EdgeInsets.all(toDouble());
+  EdgeInsets get horizontal => EdgeInsets.symmetric(horizontal: toDouble());
+  EdgeInsets get vertical => EdgeInsets.symmetric(vertical: toDouble());
+  EdgeInsets get bottom => EdgeInsets.only(bottom: toDouble());
+  EdgeInsets get top => EdgeInsets.only(top: toDouble());
+  EdgeInsets get left => EdgeInsets.only(left: toDouble());
+  EdgeInsets get right => EdgeInsets.only(right: toDouble());
 
   // ============== Border Radius ==============
   BorderRadius get circularRadius => BorderRadius.circular(toDouble());

@@ -1,5 +1,4 @@
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/serie_exercise_widget.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 
 sealed class SerieDetailState {
   const SerieDetailState();
@@ -15,21 +14,19 @@ class SerieDetailLoading extends SerieDetailState {
 
 class SerieDetailLoaded extends SerieDetailState {
   const SerieDetailLoaded({
-    required this.workout,
+    required this.series,
   });
 
-  final WorkoutExercise workout;
+  final List<ExerciseSetData> series;
 
-  List<SerieSet> get series => workout.series;
-  RepiteType get repiteType => workout.repiteType;
-  bool get allCompleted => workout.allSeriesCompleted;
-  double get progress => workout.progress;
+  bool get allCompleted => series.isNotEmpty && series.every((s) => s.isCompleted);
+  double get progress => series.isEmpty ? 0.0 : series.where((s) => s.isCompleted).length / series.length;
 
   SerieDetailLoaded copyWith({
-    WorkoutExercise? workout,
+    List<ExerciseSetData>? series,
   }) {
     return SerieDetailLoaded(
-      workout: workout ?? this.workout,
+      series: series ?? this.series,
     );
   }
 }

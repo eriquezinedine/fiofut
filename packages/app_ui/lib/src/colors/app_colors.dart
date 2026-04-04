@@ -148,7 +148,8 @@ abstract final class AppColors {
   static const Color border = Color(0xFF333333);
 
   /// Color de dividers
-  static const Color divider = Color(0xFF333333);
+  // static const Color divider = Color(0xFF333333);
+  static const Color divider = Color(0xFF1a1a1a);
 
   // ============================================================
   // SHADOW & OVERLAY

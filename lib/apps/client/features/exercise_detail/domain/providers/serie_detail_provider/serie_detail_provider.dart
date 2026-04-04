@@ -1,11 +1,15 @@
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/models.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider/serie_detail_state.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/serie_exercise_widget.dart';
-import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
+import 'package:fio_fut/apps/client/features/training_exercise/presentation/widgets/modal/edit_serie_value_modal.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/data/repositories/exercise_home_repository.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/model.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home/exercise_home_provider.dart';
+import 'package:fio_fut/apps/client/features/training_exercise/domain/providers/training_session_provider/training_session_provider.dart';
 import 'package:fio_fut/apps/client/features/repose/domain/providers/all_muscles_repose_provider.dart';
 import 'package:fio_fut/core/constants/workout_constants.dart';
+import 'package:fio_fut/core/utils/app_logger.dart';
+import 'package:fio_fut/core/utils/debouncer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:model/model.dart';
 import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
@@ -18,16 +22,23 @@ final serieDetailProvider = NotifierProvider.autoDispose
 
 class SerieDetailNotifier
     extends AutoDisposeFamilyNotifier<SerieDetailState, String> {
+  ExerciseHomeRepository get _repo => ref.read(exerciseHomeRepositoryProvider);
+
+  String get _scheduleId => arg;
+
+  MetricType _repiteType = MetricType.strength;
+  DateTime _scheduledDate = DateTime.now();
+  MuscleGroup? _muscleGroup;
+
+  final _syncValuesDebouncer = Debouncer(milliseconds: 300);
+  final _syncCompletedDebouncer = Debouncer(milliseconds: 300);
+
   @override
   SerieDetailState build(String arg) => const SerieDetailInitial();
 
-  /// Initializes the workout with an exercise and its type.
-  ///
-  /// If [existingSets] is provided, uses real IDs and values.
-  /// Otherwise falls back to a single default serie.
   void init({
     required Exercise exercise,
-    required RepiteType repiteType,
+    required MetricType repiteType,
     DateTime? scheduledDate,
     String? scheduleId,
     List<ExerciseSetData>? existingSets,
@@ -35,196 +46,307 @@ class SerieDetailNotifier
     final now = DateTime.now();
     final date = scheduledDate ?? DateTime(now.year, now.month, now.day);
 
-    final List<SerieSet> series;
+    _repiteType = repiteType;
+    _scheduledDate = date;
+    _muscleGroup = exercise.muscleMain.muscleGroup;
+
+    final List<ExerciseSetData> series;
     if (existingSets != null && existingSets.isNotEmpty) {
-      series = existingSets
-          .map((s) => SerieSet(
-                id: s.id,
-                number: s.setNumber,
-                reps: s.repetitions,
-                kg: s.weight,
-                mins: s.minutes,
-                segs: s.seconds,
-                status: s.isCompleted
-                    ? SerieStatus.completed
-                    : SerieStatus.pending,
-                setType: _parseSetType(s.setType),
-              ))
-          .toList();
+      series = existingSets.toList();
     } else {
       final defaults = _defaultsFor(repiteType);
       series = [
-        SerieSet(
+        ExerciseSetData(
           id: _uuid.v4(),
-          number: 1,
-          reps: defaults.reps,
-          kg: defaults.kg,
-          mins: defaults.mins,
-          segs: defaults.segs,
+          setNumber: 1,
+          sessionDate: date,
+          repetitions: defaults.reps,
+          weight: defaults.kg,
+          minutes: defaults.mins,
+          seconds: defaults.segs,
         ),
       ];
     }
 
-    final allDone = series.isNotEmpty && series.every((s) => s.isCompleted);
-    final anyInProgress = series.any((s) => s.isCompleted);
+    AppLogger.provider('SerieDetail', 'init', {
+      'scheduleId': scheduleId,
+      'scheduledDate': date.toIso8601String(),
+      'seriesCount': series.length,
+    });
 
-    final workout = WorkoutExercise(
-      id: _uuid.v4(),
-      exercise: exercise,
-      repiteType: repiteType,
-      scheduledDate: date,
-      series: series,
-      status: allDone
-          ? WorkoutStatus.completed
-          : anyInProgress
-              ? WorkoutStatus.inProgress
-              : WorkoutStatus.pending,
-      scheduleId: scheduleId,
-    );
+    state = SerieDetailLoaded(series: series);
+  }
 
-    state = SerieDetailLoaded(workout: workout);
+  void initFromSeries({
+    required String scheduleId,
+    required MetricType repiteType,
+    required List<ExerciseSetData> series,
+  }) {
+    final current = _loaded;
+    if (current != null) return;
+
+    final now = DateTime.now();
+    _repiteType = repiteType;
+    _scheduledDate = DateTime(now.year, now.month, now.day);
+
+    state = SerieDetailLoaded(series: series);
   }
 
   // ── Series management ───────────────────────────────────────────
 
-  void addSerie() {
+  Future<void> addSerie() async {
     final current = _loaded;
     if (current == null) return;
 
     final last = current.series.last;
-    final defaults = _defaultsFor(current.repiteType);
+    final defaults = _defaultsFor(_repiteType);
     final newNumber = current.series.length + 1;
-    final newSerie = SerieSet(
-      id: _uuid.v4(),
-      number: newNumber,
-      reps: last.reps ?? defaults.reps,
-      kg: last.kg ?? defaults.kg,
-      mins: last.mins ?? defaults.mins,
-      segs: last.segs ?? defaults.segs,
+
+    final tempId = _uuid.v4();
+    final newSerie = ExerciseSetData(
+      id: tempId,
+      setNumber: newNumber,
+      sessionDate: _scheduledDate,
+      repetitions: last.repetitions ?? defaults.reps,
+      weight: last.weight ?? defaults.kg,
+      minutes: last.minutes ?? defaults.mins,
+      seconds: last.seconds ?? defaults.segs,
     );
 
     final updatedSeries = [...current.series, newSerie];
-    state = current.copyWith(
-      workout: current.workout.copyWith(series: updatedSeries),
-    );
+    state = current.copyWith(series: updatedSeries);
+    _syncToHomeProvider();
+
+    if (!_scheduleId.startsWith('pending_')) {
+      try {
+        final savedSet = await _repo.addSet(
+          scheduleId: _scheduleId,
+          setNumber: newNumber,
+          sessionDate: _scheduledDate,
+          repetitions: newSerie.repetitions,
+          weight: newSerie.weight,
+          minutes: newSerie.minutes,
+          seconds: newSerie.seconds,
+        );
+        _replaceSerieId(tempId, savedSet.id);
+      } catch (_) {}
+    }
   }
 
-  void removeSerie(String serieId) {
+  Future<void> removeSerie(String serieId) async {
     final current = _loaded;
     if (current == null) return;
     if (current.series.length <= 1) return;
 
     final filtered = current.series.where((s) => s.id != serieId).toList();
-    // Re-number
+
     final renumbered = [
       for (var i = 0; i < filtered.length; i++)
-        filtered[i].copyWith(number: i + 1),
+        filtered[i].copyWith(setNumber: i + 1),
     ];
 
-    state = current.copyWith(
-      workout: current.workout.copyWith(series: renumbered),
-    );
+    state = current.copyWith(series: renumbered);
+    _syncToHomeProvider();
+
+    if (!_scheduleId.startsWith('pending_') &&
+        !serieId.startsWith('pending_')) {
+      try {
+        await _repo.deleteSet(serieId);
+      } catch (_) {}
+    }
+  }
+
+  void _replaceSerieId(String oldId, String newId) {
+    final current = _loaded;
+    if (current == null) return;
+
+    final updatedSeries = current.series.map((s) {
+      return s.id == oldId ? s.copyWith(id: newId) : s;
+    }).toList();
+
+    state = current.copyWith(series: updatedSeries);
   }
 
   // ── Update serie values ─────────────────────────────────────────
 
-  void updateReps(String serieId, int reps) {
-    _updateSerie(serieId, (s) => s.copyWith(reps: reps));
-  }
-
-  void updateKg(String serieId, double kg) {
+  /// Actualiza valores de una serie y propaga weight a las siguientes.
+  /// UI: inmediata. Backend: debounce 300ms.
+  void updateSerieValues(String serieId, SerieValueResult result) {
     final current = _loaded;
     if (current == null) return;
 
     final index = current.series.indexWhere((s) => s.id == serieId);
     if (index == -1) return;
 
+    // ── UI inmediata ──
     final updatedSeries = [
       for (var i = 0; i < current.series.length; i++)
-        if (i >= index)
-          current.series[i].copyWith(kg: kg)
+        if (i == index)
+          current.series[i].copyWith(
+            repetitions: result.reps ?? current.series[i].repetitions,
+            weight: result.weight ?? current.series[i].weight,
+            minutes: result.minutes ?? current.series[i].minutes,
+            seconds: result.seconds ?? current.series[i].seconds,
+            distance: result.distance ?? current.series[i].distance,
+          )
+        else if (i > index && result.weight != null)
+          current.series[i].copyWith(weight: result.weight)
         else
           current.series[i],
     ];
 
-    state = current.copyWith(
-      workout: current.workout.copyWith(series: updatedSeries),
-    );
+    state = current.copyWith(series: updatedSeries);
+    _syncToHomeProvider();
+
+    // ── Backend con debounce ──
+    _syncValuesDebouncer.run(() => _syncValuesToBackend(
+          updatedSeries: updatedSeries,
+          editedIndex: index,
+          propagatedWeight: result.weight,
+        ));
   }
 
-  void updateMins(String serieId, int mins) {
-    _updateSerie(serieId, (s) => s.copyWith(mins: mins));
-  }
+  Future<void> _syncValuesToBackend({
+    required List<ExerciseSetData> updatedSeries,
+    required int editedIndex,
+    double? propagatedWeight,
+  }) async {
+    if (_scheduleId.startsWith('pending_')) return;
 
-  void updateSegs(String serieId, int segs) {
-    _updateSerie(serieId, (s) => s.copyWith(segs: segs));
+    final editedSerie = updatedSeries[editedIndex];
+    if (!editedSerie.id.startsWith('pending_')) {
+      try {
+        await _repo.syncSet(
+          setId: editedSerie.id,
+          repetitions: editedSerie.repetitions,
+          weight: editedSerie.weight,
+          minutes: editedSerie.minutes,
+          seconds: editedSerie.seconds,
+          isCompleted: editedSerie.isCompleted,
+          setType: editedSerie.setType.name,
+        );
+      } catch (e) {
+        AppLogger.error('syncSet FAILED', e);
+      }
+    }
+
+    if (propagatedWeight != null) {
+      final propagatedIds = [
+        for (var i = editedIndex + 1; i < updatedSeries.length; i++)
+          if (!updatedSeries[i].id.startsWith('pending_'))
+            updatedSeries[i].id,
+      ];
+      if (propagatedIds.isNotEmpty) {
+        try {
+          await _repo.batchSyncValues(
+            setIds: propagatedIds,
+            weight: propagatedWeight,
+          );
+        } catch (e) {
+          AppLogger.error('batchSyncValues FAILED', e);
+        }
+      }
+    }
   }
 
   // ── Set type ──────────────────────────────────────────────────
 
   void updateSetType(String serieId, SetType type) {
     _updateSerie(serieId, (s) => s.copyWith(setType: type));
+    _syncSerieToSupabase(serieId);
+  }
+
+  Future<void> _syncSerieToSupabase(String serieId) async {
+    final current = _loaded;
+    if (current == null) return;
+
+    if (_scheduleId.startsWith('pending_')) return;
+    if (serieId.startsWith('pending_')) return;
+
+    final serie = current.series.firstWhere(
+      (s) => s.id == serieId,
+      orElse: () => current.series.first,
+    );
+    if (serie.id != serieId) return;
+
+    try {
+      await _repo.syncSet(
+        setId: serieId,
+        repetitions: serie.repetitions,
+        weight: serie.weight,
+        minutes: serie.minutes,
+        seconds: serie.seconds,
+        isCompleted: serie.isCompleted,
+        setType: serie.setType.name,
+      );
+    } catch (e) {
+      AppLogger.error('syncSet FAILED', e);
+    }
   }
 
   // ── Complete / uncomplete serie ─────────────────────────────────
 
-  /// Returns `true` if the toggle succeeded, `false` if canComplete failed.
   bool toggleSerieCompleted(String serieId) {
     final current = _loaded;
     if (current == null) return false;
 
-    // Track whether we're completing or uncompleting
-    final targetSerie = current.series.firstWhere((s) => s.id == serieId);
+    final targetIndex = current.series.indexWhere((s) => s.id == serieId);
+    if (targetIndex == -1) return false;
+
+    final targetSerie = current.series[targetIndex];
     final isCompleting = !targetSerie.isCompleted;
 
-    // Early check: if trying to complete but can't, return false
-    if (isCompleting && !targetSerie.canComplete(current.repiteType)) {
+    if (isCompleting && !targetSerie.canComplete(_repiteType)) {
       return false;
     }
 
-    final updatedSeries = current.series.map((s) {
-      if (s.id != serieId) return s;
+    // ── UI inmediata ──
+    final updatedSeries = [
+      for (var i = 0; i < current.series.length; i++)
+        if (isCompleting && i <= targetIndex)
+          current.series[i].copyWith(status: SerieStatus.completed)
+        else if (!isCompleting && i >= targetIndex)
+          current.series[i].copyWith(status: SerieStatus.pending)
+        else
+          current.series[i],
+    ];
 
-      if (s.isCompleted) {
-        return s.copyWith(status: SerieStatus.pending);
+    state = current.copyWith(series: updatedSeries);
+
+    if (isCompleting && _muscleGroup != null) {
+      var totalFatigue = 0.0;
+      for (var i = 0; i <= targetIndex; i++) {
+        final s = current.series[i];
+        if (!s.isCompleted && s.repetitions != null && s.repetitions! > 0) {
+          totalFatigue += s.repetitions! * kFatiguePerRep;
+        }
       }
-
-      return s.copyWith(status: SerieStatus.completed);
-    }).toList();
-
-    final allDone = updatedSeries.every((s) => s.isCompleted);
-    final anyInProgress = updatedSeries.any(
-      (s) => s.isCompleted || s.reps != null || s.kg != null,
-    );
-
-    final workoutStatus = allDone
-        ? WorkoutStatus.completed
-        : anyInProgress
-            ? WorkoutStatus.inProgress
-            : WorkoutStatus.pending;
-
-    state = current.copyWith(
-      workout: current.workout.copyWith(
-        series: updatedSeries,
-        status: workoutStatus,
-      ),
-    );
-
-    // Apply muscle fatigue when completing a serie with reps
-    if (isCompleting && targetSerie.reps != null && targetSerie.reps! > 0) {
-      final muscleGroup = current.workout.exercise.muscleMain.muscleGroup;
-      final fatigue = targetSerie.reps! * kFatiguePerRep;
-      ref
-          .read(allMusclesReposeProvider.notifier)
-          .reduceMuscleProgress(muscleGroup, fatigue);
+      if (totalFatigue > 0) {
+        ref
+            .read(allMusclesReposeProvider.notifier)
+            .reduceMuscleProgress(_muscleGroup!, totalFatigue);
+      }
     }
+
+    _syncToHomeProvider();
+
+    // ── Backend con debounce ──
+    final changedIds = <String>[];
+    for (var i = 0; i < updatedSeries.length; i++) {
+      final s = updatedSeries[i];
+      if (s.id.startsWith('pending_')) continue;
+      if (s.isCompleted != current.series[i].isCompleted) {
+        changedIds.add(s.id);
+      }
+    }
+    _syncCompletedDebouncer.run(() => _syncCompletedToBackend(
+          changedIds: changedIds,
+          isCompleted: isCompleting,
+        ));
 
     return true;
   }
 
-  // ── Uncomplete from serie (and all below) ────────────────────────
-
-  /// Uncompletes the given serie and all series below it (with number >= target).
   void uncompleteFromSerie(String serieId) {
     final current = _loaded;
     if (current == null) return;
@@ -232,55 +354,76 @@ class SerieDetailNotifier
     final targetIndex = current.series.indexWhere((s) => s.id == serieId);
     if (targetIndex == -1) return;
 
+    // ── UI inmediata ──
+    final changedIds = <String>[];
     final updatedSeries = [
       for (var i = 0; i < current.series.length; i++)
-        if (i >= targetIndex)
-          current.series[i].copyWith(status: SerieStatus.pending)
+        if (i >= targetIndex && current.series[i].isCompleted)
+          (() {
+            if (!current.series[i].id.startsWith('pending_')) {
+              changedIds.add(current.series[i].id);
+            }
+            return current.series[i].copyWith(status: SerieStatus.pending);
+          })()
         else
           current.series[i],
     ];
 
-    final allDone = updatedSeries.every((s) => s.isCompleted);
-    final anyInProgress = updatedSeries.any(
-      (s) => s.isCompleted || s.reps != null || s.kg != null,
-    );
+    state = current.copyWith(series: updatedSeries);
+    _syncToHomeProvider();
 
-    final workoutStatus = allDone
-        ? WorkoutStatus.completed
-        : anyInProgress
-            ? WorkoutStatus.inProgress
-            : WorkoutStatus.pending;
-
-    state = current.copyWith(
-      workout: current.workout.copyWith(
-        series: updatedSeries,
-        status: workoutStatus,
-      ),
-    );
+    // ── Backend con debounce ──
+    _syncCompletedDebouncer.run(() => _syncCompletedToBackend(
+          changedIds: changedIds,
+          isCompleted: false,
+        ));
   }
-
-  // ── Complete all series ─────────────────────────────────────────
 
   void completeAll() {
     final current = _loaded;
     if (current == null) return;
 
+    // ── UI inmediata ──
+    final changedIds = <String>[];
     final updatedSeries = current.series.map((s) {
       if (s.isCompleted) return s;
+      if (!s.id.startsWith('pending_')) {
+        changedIds.add(s.id);
+      }
       return s.copyWith(status: SerieStatus.completed);
     }).toList();
 
-    state = current.copyWith(
-      workout: current.workout.copyWith(
-        series: updatedSeries,
-        status: WorkoutStatus.completed,
-      ),
-    );
+    state = current.copyWith(series: updatedSeries);
+    _syncToHomeProvider();
+
+    // ── Backend con debounce ──
+    _syncCompletedDebouncer.run(() => _syncCompletedToBackend(
+          changedIds: changedIds,
+          isCompleted: true,
+        ));
+  }
+
+  // ── Backend sync (llamados por debouncers) ────────────────────
+
+  Future<void> _syncCompletedToBackend({
+    required List<String> changedIds,
+    required bool isCompleted,
+  }) async {
+    if (_scheduleId.startsWith('pending_')) return;
+    if (changedIds.isEmpty) return;
+    try {
+      await _repo.batchToggleCompleted(
+        setIds: changedIds,
+        isCompleted: isCompleted,
+      );
+    } catch (e) {
+      AppLogger.error('batchToggleCompleted FAILED', e);
+    }
   }
 
   // ── Local helpers ─────────────────────────────────────────────
 
-  void _updateSerie(String serieId, SerieSet Function(SerieSet) update) {
+  void _updateSerie(String serieId, ExerciseSetData Function(ExerciseSetData) update) {
     final current = _loaded;
     if (current == null) return;
 
@@ -288,28 +431,67 @@ class SerieDetailNotifier
       return s.id == serieId ? update(s) : s;
     }).toList();
 
-    state = current.copyWith(
-      workout: current.workout.copyWith(series: updatedSeries),
-    );
+    state = current.copyWith(series: updatedSeries);
   }
 
   SerieDetailLoaded? get _loaded =>
       state is SerieDetailLoaded ? state as SerieDetailLoaded : null;
 
-  /// Default values per RepiteType — used for first serie and fallback.
   ({int? reps, double? kg, int? mins, int? segs}) _defaultsFor(
-    RepiteType type,
+    MetricType type,
   ) {
     return switch (type) {
-      RepiteType.byKg => (reps: 5, kg: 5.0, mins: null, segs: null),
-      RepiteType.byKm => (reps: null, kg: 5.0, mins: 5, segs: 5),
-      RepiteType.retryOnly => (reps: 5, kg: null, mins: null, segs: null),
+      MetricType.strength => (reps: 5, kg: 5.0, mins: null, segs: null),
+      MetricType.cardio => (reps: null, kg: 5.0, mins: 5, segs: 5),
+      MetricType.reps => (reps: 5, kg: null, mins: null, segs: null),
     };
   }
 
-  static SetType _parseSetType(String type) => switch (type) {
-        'warmup' => SetType.warmup,
-        'dropset' => SetType.dropset,
-        _ => SetType.normal,
-      };
+  // ── Flow helpers ─────────────────────────────────────────────
+
+  String? nextSerieToRegister() {
+    final current = _loaded;
+    if (current == null) return null;
+    return current.series.where((s) => !s.isCompleted).firstOrNull?.id;
+  }
+
+  SetType? nextSerieSetType() {
+    final current = _loaded;
+    if (current == null) return null;
+    return current.series.where((s) => !s.isCompleted).firstOrNull?.setType;
+  }
+
+  Future<bool> registerNext() async {
+    final nextId = nextSerieToRegister();
+    if (nextId == null) return false;
+    return toggleSerieCompleted(nextId);
+  }
+
+  bool hasMoreAfterCurrent() {
+    final current = _loaded;
+    if (current == null) return false;
+    return current.series.where((s) => !s.isCompleted).length > 1;
+  }
+
+  bool isAllCompleted() {
+    final current = _loaded;
+    return current != null && current.allCompleted;
+  }
+
+  // ── Sync to home ─────────────────────────────────────────────
+
+  void _syncToHomeProvider() {
+    final current = _loaded;
+    if (current == null) return;
+
+    ref.read(exerciseHomeProvider.notifier).updateExerciseSeries(
+          scheduleId: _scheduleId,
+          updatedSeries: current.series,
+        );
+
+    ref.read(trainingSessionProvider.notifier).updateExerciseSeries(
+          scheduleId: _scheduleId,
+          updatedSeries: current.series,
+        );
+  }
 }

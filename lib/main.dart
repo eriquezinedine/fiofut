@@ -1,7 +1,9 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logging/logging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:zentoast/zentoast.dart';
 
@@ -9,6 +11,15 @@ import 'core/core.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Configure Supabase logging
+  if (kDebugMode) {
+    Logger.root.level = Level.ALL;
+    Logger.root.onRecord.listen((record) {
+      // ignore: avoid_print
+      print('\x1B[36m[${record.loggerName}] ${record.message}\x1B[0m');
+    });
+  }
 
   await Supabase.initialize(
     url: const String.fromEnvironment(

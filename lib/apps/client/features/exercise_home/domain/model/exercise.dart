@@ -13,16 +13,14 @@ enum ExerciseStatus {
 }
 
 enum MetricType {
-  weight,
-  distance,
-  time,
-  reps;
+  cardio,
+  reps,
+  strength;
 
   String get unit => switch (this) {
-        MetricType.weight => 'kg',
-        MetricType.distance => 'km',
-        MetricType.time => 'min',
+        MetricType.cardio => 'km',
         MetricType.reps => 'reps',
+        MetricType.strength => 'kg',
       };
 }
 
@@ -155,7 +153,7 @@ Activa tu núcleo y levanta los brazos rectos por encima de tu cabeza, alineados
 Manteniendo las piernas y los brazos rectos, levanta simultáneamente las piernas y el torso del suelo y trata de alcanzar tus dedos de los pies con las manos.''',
       currentValue: 2,
       targetValue: 5,
-      metricType: MetricType.distance,
+      metricType: MetricType.cardio,
       status: ExerciseStatus.inProgress,
     ),
     Exercise(
@@ -176,7 +174,7 @@ Activa tu núcleo y levanta los brazos rectos por encima de tu cabeza, alineados
 Manteniendo las piernas y los brazos rectos, levanta simultáneamente las piernas y el torso del suelo y trata de alcanzar tus dedos de los pies con las manos.''',
       currentValue: 60,
       targetValue: 60,
-      metricType: MetricType.weight,
+      metricType: MetricType.strength,
       status: ExerciseStatus.completed,
       hasWarmup: true,
     ),
@@ -198,7 +196,7 @@ Activa tu núcleo y levanta los brazos rectos por encima de tu cabeza, alineados
 Manteniendo las piernas y los brazos rectos, levanta simultáneamente las piernas y el torso del suelo y trata de alcanzar tus dedos de los pies con las manos.''',
       currentValue: 0,
       targetValue: 80,
-      metricType: MetricType.weight,
+      metricType: MetricType.strength,
       status: ExerciseStatus.pending,
     ),
     Exercise(
@@ -219,7 +217,7 @@ Activa tu núcleo y levanta los brazos rectos por encima de tu cabeza, alineados
 Manteniendo las piernas y los brazos rectos, levanta simultáneamente las piernas y el torso del suelo y trata de alcanzar tus dedos de los pies con las manos.''',
       currentValue: 1,
       targetValue: 3,
-      metricType: MetricType.time,
+      metricType: MetricType.reps,
       status: ExerciseStatus.inProgress,
     ),
     Exercise(

@@ -1,8 +1,4 @@
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/serie_set.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/serie_exercise_widget.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/model.dart';
-
-enum WorkoutStatus { pending, inProgress, completed }
 
 class WorkoutExercise {
   const WorkoutExercise({
@@ -11,16 +7,14 @@ class WorkoutExercise {
     required this.repiteType,
     required this.scheduledDate,
     this.series = const [],
-    this.status = WorkoutStatus.pending,
     this.scheduleId,
   });
 
   final String id;
   final Exercise exercise;
-  final RepiteType repiteType;
+  final MetricType repiteType;
   final DateTime scheduledDate;
-  final List<SerieSet> series;
-  final WorkoutStatus status;
+  final List<ExerciseSetData> series;
 
   /// ID referencing the schedule in Supabase
   final String? scheduleId;
@@ -38,10 +32,9 @@ class WorkoutExercise {
   WorkoutExercise copyWith({
     String? id,
     Exercise? exercise,
-    RepiteType? repiteType,
+    MetricType? repiteType,
     DateTime? scheduledDate,
-    List<SerieSet>? series,
-    WorkoutStatus? status,
+    List<ExerciseSetData>? series,
     String? scheduleId,
   }) {
     return WorkoutExercise(
@@ -50,7 +43,6 @@ class WorkoutExercise {
       repiteType: repiteType ?? this.repiteType,
       scheduledDate: scheduledDate ?? this.scheduledDate,
       series: series ?? this.series,
-      status: status ?? this.status,
       scheduleId: scheduleId ?? this.scheduleId,
     );
   }
@@ -61,13 +53,12 @@ class WorkoutExercise {
       other is WorkoutExercise &&
           runtimeType == other.runtimeType &&
           id == other.id &&
-          scheduledDate == other.scheduledDate &&
-          status == other.status;
+          scheduledDate == other.scheduledDate;
 
   @override
-  int get hashCode => Object.hash(id, scheduledDate, status);
+  int get hashCode => Object.hash(id, scheduledDate);
 
   @override
   String toString() =>
-      'WorkoutExercise(id: $id, exercise: ${exercise.title}, date: $scheduledDate, series: ${series.length}, status: $status)';
+      'WorkoutExercise(id: $id, exercise: ${exercise.title}, date: $scheduledDate, series: ${series.length})';
 }

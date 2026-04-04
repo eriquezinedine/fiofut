@@ -1,10 +1,8 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/workout_flow_page.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/workout_complete_modal.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
-import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home/exercise_home_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/excercise_card/excercise_card_header.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/excercise_card/excercise_card_image.dart';
+import 'package:fio_fut/apps/client/features/training_exercise/presentation/screens/training_exercise_screen.dart';
 import 'package:fio_fut/core/widgets/status_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,11 +14,17 @@ class ExerciseCard extends ConsumerWidget {
     required this.item,
     required this.allExercises,
     required this.index,
+    this.style2 = false,
+    this.isSelected = false,
+    this.onTap,
   });
 
   final ExerciseScheduleItem item;
   final List<ExerciseScheduleItem> allExercises;
   final int index;
+  final bool style2;
+  final bool isSelected;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,42 +38,46 @@ class ExerciseCard extends ConsumerWidget {
       ),
     );
 
-    return GestureDetector(
-      onTap: () async {
-        final result = await context.pushNamed<bool>(
-          // WorkoutFlowPage.name,
-          WorkoutFlowPage.name,
-          extra: {
-            'exercises': allExercises,
-            'initialIndex': index,
+    return CustomGestureDetector(
+      onTap:
+          onTap ??
+          () async {
+            if (style2) {
+              return;
+            }
+            final result = await context.pushNamed<bool>(
+              // WorkoutFlowPage.name,
+              TrainingExerciseScreen.name,
+              extra: {'exercises': allExercises, 'initialIndex': index},
+            );
+            // if (!context.mounted) return;
+            // if (result == true) {
+            //   WorkoutCompleteModal.show(context);
+            // }
           },
-        );
-        if (!context.mounted) return;
-        ref.read(exerciseHomeProvider.notifier).reload();
-        if (result == true) {
-          WorkoutCompleteModal.show(context);
-        }
-      },
       child: Container(
-        padding: const EdgeInsets.all(12),
+        // padding: style2? AppSpacing.sm.vertical : const EdgeInsets.all(12),
+        padding: AppSpacing.sm.all,
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: style2 ? Colors.transparent : AppColors.card,
           border: Border.all(
             width: 1.5,
-            color: isCompleted ? AppColors.primary : AppColors.card,
+            color: isSelected
+                ? AppColors.primary
+                : (style2 ? Colors.transparent : AppColors.card),
           ),
           borderRadius: BorderRadius.circular(16),
         ),
         child: IntrinsicHeight(
           child: Row(
             children: [
-              ExcerciseCardImage(exercise: exercise),
+              ExcerciseCardImage(exercise: exercise, style2: style2),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ExcerciseCardHeader(exercise: exercise),
+                    ExcerciseCardHeader(exercise: exercise, style2: style2),
                     const SizedBox(height: 4),
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -77,10 +85,6 @@ class ExerciseCard extends ConsumerWidget {
                         _label('${item.totalSets} series'),
                         separator,
                         _label('${item.repsPerSet} reps'),
-                        if (_weightText != null) ...[
-                          separator,
-                          _label(_weightText!),
-                        ],
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -95,17 +99,12 @@ class ExerciseCard extends ConsumerWidget {
     );
   }
 
-  String? get _weightText {
-    if (item.sets.isEmpty) return null;
-    final w = item.sets.first.weight;
-    if (w == null) return null;
-    return '${w == w.roundToDouble() ? w.toInt() : w} kg';
-  }
-
   Text _label(String text) {
     return Text(
       text,
-      style: AppTextStyles.labelLarge.copyWith(color: AppColors.textDescription),
+      style: AppTextStyles.labelLarge.copyWith(
+        color: AppColors.textDescription,
+      ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );

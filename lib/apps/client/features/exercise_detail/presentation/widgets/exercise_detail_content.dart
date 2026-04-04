@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider/serie_detail_provider.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_flow_provider.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/exercise_detail_body.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/serie_exercise_widget.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/model.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home/exercise_home_provider.dart';
 import 'package:fio_fut/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,12 +47,6 @@ class ExerciseDetailContent extends ConsumerStatefulWidget {
 }
 
 class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
-  RepiteType get _repiteType => switch (widget.exercise.metricType) {
-        MetricType.weight => RepiteType.byKg,
-        MetricType.distance => RepiteType.byKm,
-        MetricType.time => RepiteType.byKm,
-        MetricType.reps => RepiteType.retryOnly,
-      };
 
   // ── Workout flow state ──────────────────────────────────────────
   bool _isStarted = false;
@@ -68,7 +63,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
     Future.microtask(() {
       ref.read(serieDetailProvider(widget.scheduleId).notifier).init(
             exercise: widget.exercise,
-            repiteType: _repiteType,
+            repiteType: widget.exercise.metricType,
             scheduleId: widget.scheduleId,
             existingSets: widget.existingSets,
           );
@@ -96,12 +91,12 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
     widget.onStartWorkout?.call();
   }
 
-  void _registerSerie() {
+  void _registerSerie() async {
     final flowNotifier =
-        ref.read(workoutFlowProvider(widget.scheduleId).notifier);
+        ref.read(serieDetailProvider(widget.scheduleId).notifier);
 
-    final success = flowNotifier.registerNext();
-    if (!success) {
+    final success = await flowNotifier.registerNext();
+    if (!(success?? false)) {
       AppToast.error(context, 'Completa las repeticiones y peso');
       return;
     }
@@ -127,7 +122,7 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
 
   void _checkCompletion() {
     final allDone = ref
-        .read(workoutFlowProvider(widget.scheduleId).notifier)
+        .read(serieDetailProvider(widget.scheduleId).notifier)
         .isAllCompleted();
     if (allDone && !_wasAllDone) {
       _wasAllDone = true;
@@ -188,25 +183,25 @@ class _ExerciseDetailContentState extends ConsumerState<ExerciseDetailContent> {
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(workoutFlowProvider(widget.scheduleId));
+    ref.watch(serieDetailProvider(widget.scheduleId));
     ref.watch(serieDetailProvider(widget.scheduleId));
 
     String? currentId;
     if (_isStarted) {
       currentId = ref
-          .read(workoutFlowProvider(widget.scheduleId).notifier)
+          .read(serieDetailProvider(widget.scheduleId).notifier)
           .nextSerieToRegister();
     }
 
     final allDone = _isStarted &&
         ref
-            .read(workoutFlowProvider(widget.scheduleId).notifier)
+            .read(serieDetailProvider(widget.scheduleId).notifier)
             .isAllCompleted();
 
     return ExerciseDetailBody(
       exercise: widget.exercise,
       scheduleId: widget.scheduleId,
-      repiteType: _repiteType,
+      repiteType: widget.exercise.metricType,
       isStarted: _isStarted,
       allDone: allDone,
       currentSerieId: currentId,

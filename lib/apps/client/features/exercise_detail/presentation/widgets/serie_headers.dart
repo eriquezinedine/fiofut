@@ -24,14 +24,14 @@ class _SerieHeaders extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 44,
+            width: 35,
             child: Text(
               'Serie',
               textAlign: TextAlign.center,
               style: headerStyle,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               middleHeader,
@@ -40,7 +40,7 @@ class _SerieHeaders extends StatelessWidget {
             ),
           ),
           if (showKg) ...[
-            const SizedBox(width: 16),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 'Kg Añadidos',
@@ -50,8 +50,8 @@ class _SerieHeaders extends StatelessWidget {
             ),
           ],
           // Columna vacía para el check (sin título)
-          const SizedBox(width: 12),
-          const SizedBox(width: 44),
+          const SizedBox(width: 8),
+          const SizedBox(width: 36),
         ],
       ),
     );

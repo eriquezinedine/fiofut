@@ -9,7 +9,24 @@
       "Bash(flutter run:*)",
       "Bash(flutter analyze:*)",
       "Bash(flutter doctor:*)",
-      "Bash(dart pub cache:*)"
+      "Bash(dart pub cache:*)",
+      "Bash(dart analyze:*)",
+      "Bash(flutter pub add:*)",
+      "mcp__claude_ai_Supabase_FIOFUT__apply_migration",
+      "mcp__claude_ai_Supabase_FIOFUT__get_advisors",
+      "mcp__claude_ai_Supabase_FIOFUT__list_tables",
+      "mcp__claude_ai_Supabase_FIOFUT__get_logs",
+      "mcp__claude_ai_Supabase_FIOFUT__execute_sql",
+      "Bash(xargs grep:*)",
+      "Bash(curl:*)",
+      "Bash(find '/c/Users/zinedine/Desktop/Flutter projects-2026/Mis proyectos/fiofut/lib' -type f -name *database* -o -name *db* -o -name *repository*)",
+      "Bash(find '/c/Users/zinedine/Desktop/Flutter projects-2026/Mis proyectos/fiofut/packages' -type f -name *.dart)",
+      "Bash(node -e \":*)",
+      "Bash(where.exe dart:*)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }

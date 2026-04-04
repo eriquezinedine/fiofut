@@ -1,7 +1,9 @@
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_session_provider/workout_session_provider.dart';
+import 'dart:developer';
+
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/confirm_sheet.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/workout_flow_body.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home/exercise_home_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -42,22 +44,23 @@ class _WorkoutFlowPageState extends ConsumerState<WorkoutFlowPage> {
   }
 
   void _onStartWorkout() {
-    final session = ref.read(workoutSessionProvider);
-    if (!session.isStarted) {
-      ref
-          .read(workoutSessionProvider.notifier)
-          .startSession(widget.exercises);
-    }
+    log('zineKey funciona puto');
+    // final session = ref.read(workoutSessionProvider);
+    // if (!session.isStarted) {
+    //   ref
+    //       .read(workoutSessionProvider.notifier)
+    //       .startSession(widget.exercises);
+    // }
   }
 
   void _onExerciseCompleted(int index) {
-    setState(() => _completedExercises.add(index));
-    ref.read(workoutSessionProvider.notifier).markExerciseCompleted();
+    // setState(() => _completedExercises.add(index));
+    // ref.read(workoutSessionProvider.notifier).markExerciseCompleted();
   }
 
   void _onExerciseUncompleted(int index) {
-    setState(() => _completedExercises.remove(index));
-    ref.read(workoutSessionProvider.notifier).markExerciseUncompleted();
+    // setState(() => _completedExercises.remove(index));
+    // ref.read(workoutSessionProvider.notifier).markExerciseUncompleted();
   }
 
   void _goToNextExercise() {
@@ -83,7 +86,7 @@ class _WorkoutFlowPageState extends ConsumerState<WorkoutFlowPage> {
   }
 
   Future<void> _onDone() async {
-    await ref.read(workoutSessionProvider.notifier).finishSession();
+    // await ref.read(workoutSessionProvider.notifier).finishSession();
     if (mounted) {
       Navigator.pop(context, true); // true = show stats modal
     }
@@ -109,30 +112,30 @@ class _WorkoutFlowPageState extends ConsumerState<WorkoutFlowPage> {
   }
 
   void _onBackPressed() {
-    final session = ref.read(workoutSessionProvider);
-    if (session.isStarted && !session.isFinished) {
-      _showExitConfirmation();
-    } else {
-      Navigator.pop(context, false);
-    }
+    // final session = ref.read(workoutSessionProvider);
+    // if (session.isStarted && !session.isFinished) {
+    //   _showExitConfirmation();
+    // } else {
+    //   Navigator.pop(context, false);
+    // }
   }
 
   @override
   Widget build(BuildContext context) {
-    final session = ref.watch(workoutSessionProvider);
+    // final session = ref.watch(workoutSessionProvider);
 
     return PopScope(
-      canPop: !session.isStarted || session.isFinished,
+      // canPop: !session.isStarted || session.isFinished,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         _showExitConfirmation();
       },
       child: WorkoutFlowBody(
-        exercises: widget.exercises,
+        exercises: ref.watch(exerciseHomeProvider).exercises,
         pageController: _pageController,
         currentPage: _currentPage,
         completedExercises: _completedExercises,
-        session: session,
+        // session: session,
         onPageChanged: (index) => setState(() => _currentPage = index),
         onStartWorkout: _onStartWorkout,
         onExerciseCompleted: _onExerciseCompleted,

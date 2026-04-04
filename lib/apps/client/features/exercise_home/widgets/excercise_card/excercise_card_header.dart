@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class ExcerciseCardHeader extends StatelessWidget {
-  const ExcerciseCardHeader({super.key, required this.exercise,});
+  const ExcerciseCardHeader({super.key, required this.exercise, required this.style2});
   final Exercise exercise;
+  final bool style2;
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -14,11 +15,12 @@ class ExcerciseCardHeader extends StatelessWidget {
         Expanded(
           child: Stack(
             children: [
-              _label(exercise.title + 'hola como estas todo bien'),
-              _ghostText(),
+              _label(exercise.title),
+              style2 ?  SizedBox.shrink(): _ghostText(),
             ],
           ),
         ),
+        if(!style2)
         Icon(LucideIcons.moreVertical)
         // _StatusBadge(status: exercise.status),
       ],

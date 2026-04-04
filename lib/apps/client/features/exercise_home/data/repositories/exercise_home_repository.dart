@@ -37,7 +37,7 @@ class ExerciseHomeRepository {
           ),
           exercise_set (
             id, set_number, repetitions, weight, minutes, seconds,
-            distance, is_completed, completed_at, set_type
+            distance, set_type, session_date, is_completed, completed_at
           )
         ''')
         .eq('id_user_profile', userId)
@@ -58,10 +58,79 @@ class ExerciseHomeRepository {
         if (!days.contains(dayOfWeek)) continue;
       }
 
-      items.add(ExerciseScheduleItem.fromJson(row));
+      // Filter sets for this specific date
+      final allSets = row['exercise_set'] as List<dynamic>? ?? [];
+      final setsForDate = allSets.where((s) {
+        final sd = (s as Map<String, dynamic>)['session_date'];
+        return sd == dateStr;
+      }).toList();
+
+      // On-demand creation: if schedule matches but has no sets for this date
+      if (setsForDate.isEmpty) {
+        final exerciseType = (row['exercise'] as Map<String, dynamic>?)?['type_exercise'] as String? ?? 'strength';
+        final newSets = await createSetsForDate(
+          scheduleId: row['id'] as String,
+          sessionDate: date,
+          exerciseType: exerciseType,
+        );
+        row['exercise_set'] = newSets.map((s) => {
+          'id': s.id,
+          'set_number': s.setNumber,
+          'repetitions': s.repetitions,
+          'weight': s.weight,
+          'minutes': s.minutes,
+          'seconds': s.seconds,
+          'distance': s.distance,
+          'set_type': s.setType.name,
+          'session_date': s.sessionDate.toIso8601String().split('T').first,
+          'is_completed': s.isCompleted,
+          'completed_at': s.completedAt?.toIso8601String(),
+        }).toList();
+      } else {
+        row['exercise_set'] = setsForDate;
+      }
+
+      items.add(_parseSchedule(row));
     }
 
     return items;
+  }
+
+  /// Parses a schedule row with sets already filtered by date.
+  ExerciseScheduleItem _parseSchedule(Map<String, dynamic> json) {
+    final exercise = json['exercise'] as Map<String, dynamic>?;
+    final setsData = json['exercise_set'] as List<dynamic>? ?? [];
+    final muscle = exercise?['muscle'] as Map<String, dynamic>?;
+
+    final sets = setsData
+        .map((s) => ExerciseSetData.fromJson(s as Map<String, dynamic>))
+        .toList()
+      ..sort((a, b) => a.setNumber.compareTo(b.setNumber));
+
+    return ExerciseScheduleItem(
+      scheduleId: json['id'] as String,
+      exerciseId: json['id_exercise'] as String,
+      exerciseName: exercise?['name'] as String? ?? 'Ejercicio',
+      exerciseDescription: exercise?['description'] as String?,
+      exerciseImageUrl: exercise?['url_img_exercise'] as String?,
+      exerciseVideoUrl: exercise?['url_video_exercise'] as String?,
+      typeExercise: exercise?['type_exercise'] != null
+          ? metricTypeFromString(exercise!['type_exercise'] as String)
+          : null,
+      sets: sets,
+      daysOfWeek: json['days_of_week'] as String?,
+      startDate: json['start_date'] != null
+          ? DateTime.parse(json['start_date'] as String)
+          : null,
+      endDate: json['end_date'] != null
+          ? DateTime.parse(json['end_date'] as String)
+          : null,
+      createdById: json['id_created_by'] as String?,
+      notes: json['notes'] as String?,
+      muscleId: muscle?['id'] as String?,
+      muscleName: muscle?['name'] as String?,
+      muscleGroup: muscle?['muscle_group'] as String?,
+    );
   }
 
   // ── Schedule CRUD ─────────────────────────────────────────────────
@@ -93,6 +162,7 @@ class ExerciseHomeRepository {
     DateTime? endDate,
   }) async {
     final isWeekly = daysOfWeek != null && daysOfWeek.isNotEmpty;
+    final dateStr = date.toIso8601String().split('T').first;
     final start = (isWeekly ? startDate ?? date : date)
         .toIso8601String()
         .split('T')
@@ -131,6 +201,7 @@ class ExerciseHomeRepository {
             'weight': type == 'strength' ? 0.0 : null,
             'minutes': type == 'cardio' ? 5 : null,
             'seconds': type == 'cardio' ? 0 : null,
+            'session_date': dateStr,
             'is_completed': false,
           },
         ),
@@ -143,6 +214,7 @@ class ExerciseHomeRepository {
   Future<ExerciseSetData> addSet({
     required String scheduleId,
     required int setNumber,
+    required DateTime sessionDate,
     int? repetitions,
     double? weight,
     int? minutes,
@@ -153,6 +225,7 @@ class ExerciseHomeRepository {
         .insert({
           'id_exercise_schedule': scheduleId,
           'set_number': setNumber,
+          'session_date': sessionDate.toIso8601String().split('T').first,
           'repetitions': repetitions,
           'weight': weight,
           'minutes': minutes,
@@ -175,11 +248,14 @@ class ExerciseHomeRepository {
     }).eq('id', setId);
   }
 
-  Future<void> markAllSetsCompleted(String scheduleId) async {
+  Future<void> markAllSetsCompleted(String scheduleId, DateTime sessionDate) async {
+    final dateStr = sessionDate.toIso8601String().split('T').first;
     await _client.from('exercise_set').update({
       'is_completed': true,
       'completed_at': DateTime.now().toIso8601String(),
-    }).eq('id_exercise_schedule', scheduleId);
+    })
+    .eq('id_exercise_schedule', scheduleId)
+    .eq('session_date', dateStr);
   }
 
   Future<void> syncSet({
@@ -202,8 +278,102 @@ class ExerciseHomeRepository {
     }).eq('id', setId);
   }
 
+  /// Batch: completa o descompleta múltiples series en 1 query.
+  Future<void> batchToggleCompleted({
+    required List<String> setIds,
+    required bool isCompleted,
+  }) async {
+    if (setIds.isEmpty) return;
+    await _client.from('exercise_set').update({
+      'is_completed': isCompleted,
+      'completed_at': isCompleted ? DateTime.now().toIso8601String() : null,
+    }).inFilter('id', setIds);
+  }
+
+  /// Batch: actualiza valores (reps, weight, mins, secs) de múltiples series en 1 query.
+  /// Solo actualiza los campos que no son null.
+  Future<void> batchSyncValues({
+    required List<String> setIds,
+    int? repetitions,
+    double? weight,
+    int? minutes,
+    int? seconds,
+    double? distance,
+  }) async {
+    if (setIds.isEmpty) return;
+    final data = <String, dynamic>{};
+    if (repetitions != null) data['repetitions'] = repetitions;
+    if (weight != null) data['weight'] = weight;
+    if (minutes != null) data['minutes'] = minutes;
+    if (seconds != null) data['seconds'] = seconds;
+    if (distance != null) data['distance'] = distance;
+    if (data.isEmpty) return;
+    await _client.from('exercise_set').update(data).inFilter('id', setIds);
+  }
+
   Future<void> deleteSet(String setId) async {
     await _client.from('exercise_set').delete().eq('id', setId);
+  }
+
+  // ── On-demand set creation ────────────────────────────────────────
+
+  Future<List<ExerciseSetData>> createSetsForDate({
+    required String scheduleId,
+    required DateTime sessionDate,
+    required String exerciseType,
+  }) async {
+    final dateStr = sessionDate.toIso8601String().split('T').first;
+
+    // Find most recent sets for this schedule (any date)
+    final recentSets = await _client
+        .from('exercise_set')
+        .select()
+        .eq('id_exercise_schedule', scheduleId)
+        .not('session_date', 'is', null)
+        .order('session_date', ascending: false)
+        .order('set_number', ascending: true)
+        .limit(20);
+
+    List<Map<String, dynamic>> setsToInsert;
+
+    if (recentSets.isNotEmpty) {
+      final mostRecentDate = recentSets.first['session_date'];
+      final templateSets = recentSets
+          .where((s) => s['session_date'] == mostRecentDate)
+          .toList();
+
+      setsToInsert = templateSets.map((s) => <String, dynamic>{
+        'id_exercise_schedule': scheduleId,
+        'set_number': s['set_number'],
+        'repetitions': s['repetitions'],
+        'weight': s['weight'],
+        'minutes': s['minutes'],
+        'seconds': s['seconds'],
+        'set_type': s['set_type'] ?? 'normal',
+        'session_date': dateStr,
+        'is_completed': false,
+      }).toList();
+    } else {
+      setsToInsert = List.generate(3, (i) => <String, dynamic>{
+        'id_exercise_schedule': scheduleId,
+        'set_number': i + 1,
+        'repetitions': exerciseType != 'cardio' ? 10 : null,
+        'weight': exerciseType == 'strength' ? 0.0 : null,
+        'minutes': exerciseType == 'cardio' ? 5 : null,
+        'seconds': exerciseType == 'cardio' ? 0 : null,
+        'session_date': dateStr,
+        'is_completed': false,
+      });
+    }
+
+    final inserted = await _client
+        .from('exercise_set')
+        .insert(setsToInsert)
+        .select();
+
+    return inserted
+        .map((s) => ExerciseSetData.fromJson(s as Map<String, dynamic>))
+        .toList();
   }
 
   // ── Exercise Catalog ──────────────────────────────────────────────
@@ -239,7 +409,6 @@ class ExerciseHomeRepository {
 
   // ── Pending Schedule Builders ─────────────────────────────────────
 
-  /// Creates PendingSchedule objects from exercises for local storage.
   List<PendingSchedule> buildPendingSchedules({
     required List<Exercise> exercises,
     required String userId,
@@ -279,9 +448,9 @@ class ExerciseHomeRepository {
     }).toList();
   }
 
-  /// Converts PendingSchedule to ExerciseScheduleItem for UI display.
   ExerciseScheduleItem pendingToScheduleItem(PendingSchedule p) {
-    final sets = _buildDefaultSets(p.tempId, p.exerciseType);
+    final sessionDate = DateTime.parse(p.dateStr);
+    final sets = _buildDefaultSets(p.tempId, p.exerciseType, sessionDate);
 
     return ExerciseScheduleItem(
       scheduleId: p.tempId,
@@ -290,19 +459,18 @@ class ExerciseHomeRepository {
       exerciseDescription: p.exerciseDescription,
       exerciseImageUrl: p.exerciseImageUrl,
       exerciseVideoUrl: p.exerciseVideoUrl,
-      exerciseType: p.exerciseType,
+      typeExercise: metricTypeFromString(p.exerciseType),
       sets: sets,
       daysOfWeek: p.daysOfWeek,
       startDate: p.startDateStr != null
           ? DateTime.parse(p.startDateStr!)
-          : DateTime.parse(p.dateStr),
+          : sessionDate,
       endDate: p.endDateStr != null
           ? DateTime.parse(p.endDateStr!)
-          : DateTime.parse(p.dateStr),
+          : sessionDate,
     );
   }
 
-  /// Converts PendingSchedule to Exercise for syncing.
   Exercise pendingToExercise(PendingSchedule p) {
     return Exercise(
       id: p.exerciseId,
@@ -325,7 +493,6 @@ class ExerciseHomeRepository {
     );
   }
 
-  /// Computes next set values based on existing sets.
   ({int? reps, double? weight, int? mins, int? secs}) computeNextSetValues(
     List<ExerciseSetData> existingSets,
     String exerciseType,
@@ -356,80 +523,19 @@ class ExerciseHomeRepository {
     };
   }
 
-  /// Builds updated item with new set added.
-  ExerciseScheduleItem addSetToItem(
-    ExerciseScheduleItem item,
-    ExerciseSetData newSet,
-  ) {
-    return ExerciseScheduleItem(
-      scheduleId: item.scheduleId,
-      exerciseId: item.exerciseId,
-      exerciseName: item.exerciseName,
-      exerciseDescription: item.exerciseDescription,
-      exerciseImageUrl: item.exerciseImageUrl,
-      exerciseVideoUrl: item.exerciseVideoUrl,
-      exerciseType: item.exerciseType,
-      sets: [...item.sets, newSet],
-      daysOfWeek: item.daysOfWeek,
-      startDate: item.startDate,
-      endDate: item.endDate,
-      createdById: item.createdById,
-      notes: item.notes,
-    );
-  }
-
-  /// Builds updated item with set completion toggled.
-  ExerciseScheduleItem toggleSetInItem(
-    ExerciseScheduleItem item,
-    String setId,
-    bool isCompleted,
-  ) {
-    final updatedSets = item.sets.map((s) {
-      if (s.id != setId) return s;
-      return ExerciseSetData(
-        id: s.id,
-        setNumber: s.setNumber,
-        repetitions: s.repetitions,
-        weight: s.weight,
-        minutes: s.minutes,
-        seconds: s.seconds,
-        distance: s.distance,
-        isCompleted: isCompleted,
-        completedAt: isCompleted ? DateTime.now() : null,
-        setType: s.setType,
-      );
-    }).toList();
-
-    return ExerciseScheduleItem(
-      scheduleId: item.scheduleId,
-      exerciseId: item.exerciseId,
-      exerciseName: item.exerciseName,
-      exerciseDescription: item.exerciseDescription,
-      exerciseImageUrl: item.exerciseImageUrl,
-      exerciseVideoUrl: item.exerciseVideoUrl,
-      exerciseType: item.exerciseType,
-      sets: updatedSets,
-      daysOfWeek: item.daysOfWeek,
-      startDate: item.startDate,
-      endDate: item.endDate,
-      createdById: item.createdById,
-      notes: item.notes,
-    );
-  }
-
   // ── Private Helpers ───────────────────────────────────────────────
 
-  List<ExerciseSetData> _buildDefaultSets(String tempId, String exerciseType) {
+  List<ExerciseSetData> _buildDefaultSets(String tempId, String exerciseType, DateTime sessionDate) {
     return List.generate(
       3,
       (i) => ExerciseSetData(
         id: '${tempId}_set_$i',
         setNumber: i + 1,
+        sessionDate: sessionDate,
         repetitions: exerciseType != 'cardio' ? 10 : null,
         weight: exerciseType == 'strength' ? 0.0 : null,
         minutes: exerciseType == 'cardio' ? 5 : null,
         seconds: exerciseType == 'cardio' ? 0 : null,
-        isCompleted: false,
       ),
     );
   }
@@ -447,8 +553,8 @@ class ExerciseHomeRepository {
 
     final typeStr = row['type_exercise'] as String? ?? 'strength';
     final metricType = switch (typeStr) {
-      'cardio' => MetricType.distance,
-      'strength' => MetricType.weight,
+      'cardio' => MetricType.cardio,
+      'strength' => MetricType.strength,
       _ => MetricType.reps,
     };
 
@@ -469,14 +575,14 @@ class ExerciseHomeRepository {
   }
 
   static String exerciseTypeString(MetricType type) => switch (type) {
-        MetricType.distance || MetricType.time => 'cardio',
-        MetricType.weight => 'strength',
+        MetricType.cardio => 'cardio',
+        MetricType.strength => 'strength',
         MetricType.reps => 'reps',
       };
 
   static MetricType metricTypeFromString(String type) => switch (type) {
-        'cardio' => MetricType.distance,
-        'strength' => MetricType.weight,
+        'cardio' => MetricType.cardio,
+        'strength' => MetricType.strength,
         _ => MetricType.reps,
       };
 }

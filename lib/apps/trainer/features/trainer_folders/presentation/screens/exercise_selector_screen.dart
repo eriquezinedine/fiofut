@@ -5,7 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import 'package:fio_fut/apps/admin/features/exercises/domain/models/exercise.dart';
 import 'package:fio_fut/apps/admin/features/exercises/domain/providers/exercises_provider.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/models/serie_set.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 
 import '../../domain/providers/trainer_serie_config_provider.dart';
 import '../widgets/trainer_exercise_config.dart';
@@ -19,7 +19,7 @@ class ExerciseSelection {
 
   final String exerciseId;
   final ExerciseType exerciseType;
-  final List<SerieSet> series;
+  final List<ExerciseSetData> series;
 }
 
 class ExerciseSelectorScreen extends ConsumerStatefulWidget {
@@ -179,8 +179,9 @@ class _ExerciseSelectorScreenState
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: selectedExercises.length,
             itemBuilder: (context, index) {
-              return TrainerExerciseConfig(
-                  exercise: selectedExercises[index]);
+              return SizedBox();
+              // return TrainerExerciseConfig(
+              //     exercise: selectedExercises[index]);
             },
           ),
         ),
@@ -201,16 +202,16 @@ class _ExerciseSelectorScreenState
 
   void _confirm() {
     final result = _selectedTypes.entries.map((e) {
-      final key = (
-        exerciseId: e.key,
-        repiteType: repiteTypeFor(e.value),
-      );
-      final series = ref.read(trainerSerieConfigProvider(key));
-      return ExerciseSelection(
-        exerciseId: e.key,
-        exerciseType: e.value,
-        series: series,
-      );
+      // final key = (
+      //   exerciseId: e.key,
+      //   repiteType: repiteTypeFor(e.value),
+      // );
+      // final series = ref.read(trainerSerieConfigProvider(key));
+      // return ExerciseSelection(
+      //   exerciseId: e.key,
+      //   exerciseType: e.value,
+      //   series: series,
+      // );
     }).toList();
     Navigator.pop(context, result);
   }

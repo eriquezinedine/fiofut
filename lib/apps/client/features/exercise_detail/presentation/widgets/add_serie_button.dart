@@ -1,5 +1,5 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_flow_provider.dart';
+import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/serie_detail_provider/serie_detail_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -19,7 +19,7 @@ class AddSerieButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 4, bottom: 8),
+      padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -68,7 +68,7 @@ class _CompleteSerieAction extends ConsumerWidget {
   final VoidCallback? onCompleteAll;
 
   Future<void> _handleCompleteAll(BuildContext context, WidgetRef ref) async {
-    ref.read(workoutFlowProvider(scheduleId).notifier).completeAll();
+    ref.read(serieDetailProvider(scheduleId).notifier).completeAll();
   }
 
   @override

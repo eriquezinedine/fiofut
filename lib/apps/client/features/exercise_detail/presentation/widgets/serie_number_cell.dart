@@ -2,88 +2,58 @@ part of 'serie_exercise_widget.dart';
 
 class _SerieNumberCell extends StatelessWidget {
   const _SerieNumberCell({
-    required this.number,
+    required this.index,
     required this.isCompleted,
-    this.isStarted = false,
     this.isCurrent = false,
     this.setType = SetType.normal,
     this.onTap,
   });
 
-  final int number;
+  final int index;
   final bool isCompleted;
-  final bool isStarted;
   final bool isCurrent;
   final SetType setType;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final Color bg;
-    final Color textColor;
+    final style = SerieCellStyle.resolve(
+      isCompleted: isCompleted,
+      isCurrent: isCurrent,
+    );
 
-    if (!isStarted) {
-      bg = !isCompleted ? AppColors.white : AppColors.backgroundSecondary;
-      textColor = !isCompleted ? AppColors.background : AppColors.white;
-    } else if (isCompleted) {
-      bg = AppColors.primary;
-      textColor = AppColors.black;
-    } else if (isCurrent) {
-      bg = AppColors.white;
-      textColor = AppColors.background;
-    } else {
-      bg = AppColors.card;
-      textColor = AppColors.white;
-    }
+    final label = switch (setType) {
+      SetType.normal => '${index + 1}',
+      SetType.warmup => 'C',
+      SetType.dropset => 'D',
+    };
+
+    // Cuando está completado y no es normal, el texto es negro sobre color del tipo
+    final textStyle = isCompleted && setType != SetType.normal
+        ? AppTextStyles.caption.copyWith(
+            color: AppColors.black,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.32,
+            height: 1.25,
+          )
+        : style.numberTextStyle(setType);
 
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(12),
-        ),
+        width: 35,
+        height: 35,
+        decoration: isCompleted
+            ? style.numberDecoration(setType)
+            : style.decoration,
         alignment: Alignment.center,
-        child: _buildTypeContent(textColor),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: textStyle,
+        ),
       ),
     );
-  }
-
-  Widget _buildTypeContent(Color defaultTextColor) {
-    return switch (setType) {
-      SetType.normal => Text(
-          '$number',
-          textAlign: TextAlign.center,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: defaultTextColor,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.32,
-            height: 1.25,
-          ),
-        ),
-      SetType.warmup => Text(
-          'C',
-          textAlign: TextAlign.center,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.orange,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.32,
-            height: 1.25,
-          ),
-        ),
-      SetType.dropset => Text(
-          'D',
-          textAlign: TextAlign.center,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.error,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.32,
-            height: 1.25,
-          ),
-        ),
-    };
   }
 }

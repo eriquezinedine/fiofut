@@ -29,7 +29,7 @@ class ExerciseDetailBody extends StatelessWidget {
 
   final Exercise exercise;
   final String scheduleId;
-  final RepiteType repiteType;
+  final MetricType repiteType;
   final bool isStarted;
   final bool allDone;
   final String? currentSerieId;
@@ -67,7 +67,7 @@ class ExerciseDetailBody extends StatelessWidget {
                         SerieExerciseWidget(
                           scheduleId: scheduleId,
                           repiteType: repiteType,
-                          isStarted: isStarted,
+                          // isStarted: isStarted,
                           currentSerieId: currentSerieId,
                           onRegisterSerie: onRegisterSerie,
                         ),
@@ -75,7 +75,7 @@ class ExerciseDetailBody extends StatelessWidget {
                           scheduleId: scheduleId,
                           onTapSerie: onAddSerie,
                         ),
-                        if (showDescanso) ...[
+                        if (!showDescanso) ...[
                           const SizedBox(height: AppSpacing.sm),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -95,7 +95,6 @@ class ExerciseDetailBody extends StatelessWidget {
                 ],
               ),
             ),
-            
           ],
         ),
         if (allDone)

@@ -19,6 +19,7 @@ import 'package:fio_fut/apps/client/features/register/register.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/screens/repose_slider_screen.dart';
 import 'package:fio_fut/apps/client/features/splash/presentation/screens/splash_screen.dart';
 import 'package:fio_fut/apps/client/features/trainer_detail/presentation/screens/trainer_detail_page.dart';
+import 'package:fio_fut/apps/client/features/training_exercise/presentation/screens/training_exercise_screen.dart';
 import 'package:fio_fut/apps/trainer/trainer.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -256,6 +257,19 @@ List<RouteBase> buildRoutes() => [
         path: RegisterScreen.path,
         name: RegisterScreen.name,
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: TrainingExerciseScreen.path,
+        name: TrainingExerciseScreen.name,
+        builder: (context, state) {
+           final data = state.extra as Map<String, dynamic>;
+          return TrainingExerciseScreen(
+            exercises:
+                data['exercises'] as List<ExerciseScheduleItem>,
+            initialIndex: data['initialIndex'] as int,
+          );
+
+        },
       ),
     ];
 

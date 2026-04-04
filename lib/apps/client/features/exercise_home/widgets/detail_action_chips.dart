@@ -23,7 +23,7 @@ class DetailActionChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20,vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 0,vertical: 8),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -73,7 +73,8 @@ class _Chip extends StatelessWidget {
           vertical: AppSpacing.xxs + 2,
         ),
         decoration: BoxDecoration(
-          color: AppColors.backgroundSecondary,
+          color: AppColors.background,
+          // color: AppColors.backgroundSecondary,
           borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         ),
         child: Row(

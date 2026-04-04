@@ -1,9 +1,7 @@
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_session_provider/workout_session_state.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/exercise_detail_content.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/footer_buttons_section.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/siguiente_widget.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/workout_done_button.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/widgets/workout_flow_progress_bar.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +14,7 @@ class WorkoutFlowBody extends StatelessWidget {
     required this.pageController,
     required this.currentPage,
     required this.completedExercises,
-    required this.session,
+    // required this.session,
     required this.onPageChanged,
     required this.onStartWorkout,
     required this.onExerciseCompleted,
@@ -30,7 +28,7 @@ class WorkoutFlowBody extends StatelessWidget {
   final PageController pageController;
   final int currentPage;
   final Set<int> completedExercises;
-  final WorkoutSessionState session;
+  // final WorkoutSessionState session;
   final ValueChanged<int> onPageChanged;
   final VoidCallback onStartWorkout;
   final ValueChanged<int> onExerciseCompleted;
@@ -81,8 +79,8 @@ class WorkoutFlowBody extends StatelessWidget {
                     child: WorkoutFlowProgressBar(
                       completedExercises: completedExercises.length,
                       totalExercises: exercises.length,
-                      isSessionStarted: session.isStarted,
-                      elapsedMinutes: session.formattedTime,
+                      isSessionStarted: false, //session.isStarted,
+                      elapsedMinutes: '' //session.formattedTime,
                     ),
                   ),
                 ],
@@ -101,7 +99,7 @@ class WorkoutFlowBody extends StatelessWidget {
                     exercise: item.toExercise(),
                     scheduleId: item.scheduleId,
                     existingSets: item.sets,
-                    isSessionStarted: session.isStarted,
+                    isSessionStarted: false, //session.isStarted,
                     onStartWorkout: onStartWorkout,
                     onExerciseCompleted: () => onExerciseCompleted(index),
                     onExerciseUncompleted: () => onExerciseUncompleted(index),
@@ -118,10 +116,10 @@ class WorkoutFlowBody extends StatelessWidget {
                 onTap: onGoToNextExercise,
               ),
 
-            if (allExercisesCompleted && session.isStarted)
-              WorkoutDoneButton(onTap: onDone),
+            // if (allExercisesCompleted && session.isStarted)
+            //   WorkoutDoneButton(onTap: onDone),
             FooterButtonsSection(
-              isStarted: session.isStarted,
+              isStarted: false, //session.isStarted,
               allDone: false,
               onStartWorkout: onStartWorkout,
               onRegisterSerie: (){},

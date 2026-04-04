@@ -22,19 +22,19 @@ class _EditExerciseConfigScreenState
     extends ConsumerState<EditExerciseConfigScreen> {
   bool _saving = false;
 
-  SerieConfigKey get _configKey => (
-        exerciseId: widget.item.exercise.id,
-        repiteType: repiteTypeFor(widget.item.exercise.exerciseType),
-      );
+  // SerieConfigKey get _configKey => (
+  //       exerciseId: widget.item.exercise.id,
+  //       repiteType: repiteTypeFor(widget.item.exercise.exerciseType),
+  //     );
 
   @override
   void initState() {
     super.initState();
     if (widget.item.configSets.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref
-            .read(trainerSerieConfigProvider(_configKey).notifier)
-            .initWithSeries(widget.item.configSets);
+        // ref
+        //     .read(trainerSerieConfigProvider(_configKey).notifier)
+        //     .initWithSeries(widget.item.configSets);
       });
     }
   }
@@ -42,7 +42,7 @@ class _EditExerciseConfigScreenState
   @override
   Widget build(BuildContext context) {
     // Watch to keep provider alive
-    ref.watch(trainerSerieConfigProvider(_configKey));
+    // ref.watch(trainerSerieConfigProvider(_configKey));
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -59,12 +59,12 @@ class _EditExerciseConfigScreenState
       ),
       body: Column(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TrainerExerciseConfig(exercise: widget.item.exercise),
-            ),
-          ),
+          // Expanded(
+          //   child: SingleChildScrollView(
+          //     padding: const EdgeInsets.symmetric(horizontal: 20),
+          //     child: TrainerExerciseConfig(exercise: widget.item.exercise),
+          //   ),
+          // ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             child: AppButton(
@@ -80,25 +80,25 @@ class _EditExerciseConfigScreenState
 
   Future<void> _save() async {
     setState(() => _saving = true);
-    try {
-      final series = ref.read(trainerSerieConfigProvider(_configKey));
-      final repo = ref.read(trainerFolderRepositoryProvider);
-      await repo.updateExerciseSeries(
-        itemId: widget.item.id,
-        series: series,
-      );
-      if (mounted) Navigator.pop(context, true);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
+  //   try {
+  //     final series = ref.read(trainerSerieConfigProvider(_configKey));
+  //     final repo = ref.read(trainerFolderRepositoryProvider);
+  //     await repo.updateExerciseSeries(
+  //       itemId: widget.item.id,
+  //       series: series,
+  //     );
+  //     if (mounted) Navigator.pop(context, true);
+  //   } catch (e) {
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text('Error: $e'),
+  //           backgroundColor: AppColors.error,
+  //         ),
+  //       );
+  //     }
+  //   } finally {
+  //     if (mounted) setState(() => _saving = false);
+  //   }
   }
 }

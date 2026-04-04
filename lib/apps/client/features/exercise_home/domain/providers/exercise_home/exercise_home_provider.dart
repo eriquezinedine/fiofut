@@ -6,8 +6,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:fio_fut/apps/client/features/home/domain/providers/week_provider.dart';
 
-import '../../../data/local/exercise_local_source_provider.dart';
-import '../../../data/local/pending_schedule.dart';
+// ISAR disabled
+// import '../../../data/local/exercise_local_source_provider.dart';
+// import '../../../data/local/pending_schedule.dart';
 import '../../../data/repositories/exercise_home_repository.dart';
 import '../../model/exercise.dart';
 import '../../model/exercise_schedule_item.dart';
@@ -31,14 +32,14 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
         }
       }
     });
-
+  
     // Initial load + sync pending
     final weekState = ref.read(weekProvider);
     if (weekState is WeekLoaded) {
       final key = _dateKey(weekState.selectedDate);
       Future.microtask(() async {
         await _fetchAndCache(weekState.selectedDate);
-        _syncAllPending();
+        // _syncAllPending(); // ISAR disabled
       });
       return ExerciseHomeState(selectedDateKey: key);
     }
@@ -75,36 +76,37 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
         date: date,
       );
 
-      // Merge with pending items for this date
-      final pendingItems = await _getPendingForDate(date);
+      // ISAR disabled - no pending items merge
+      // final pendingItems = await _getPendingForDate(date);
 
       final updatedCache =
           Map<String, List<ExerciseScheduleItem>>.from(state.cache);
-      updatedCache[key] = [...items, ...pendingItems];
+      updatedCache[key] = items;
       state = state.copyWith(cache: updatedCache);
     } catch (e) {
-      // On network error, show only pending items from Isar
-      final pendingItems = await _getPendingForDate(date);
-      if (pendingItems.isNotEmpty) {
-        final updatedCache =
-            Map<String, List<ExerciseScheduleItem>>.from(state.cache);
-        updatedCache[key] = pendingItems;
-        state = state.copyWith(cache: updatedCache);
-      }
+      // ISAR disabled - no fallback to pending items
+      // final pendingItems = await _getPendingForDate(date);
+      // if (pendingItems.isNotEmpty) {
+      //   final updatedCache =
+      //       Map<String, List<ExerciseScheduleItem>>.from(state.cache);
+      //   updatedCache[key] = pendingItems;
+      //   state = state.copyWith(cache: updatedCache);
+      // }
     }
   }
 
-  /// Safely get pending items for a date (never throws).
-  Future<List<ExerciseScheduleItem>> _getPendingForDate(DateTime date) async {
-    try {
-      final dateStr = date.toIso8601String().split('T').first;
-      final local = ref.read(exerciseLocalSourceProvider);
-      final pending = await local.getPendingForDate(dateStr);
-      return pending.map(_repo.pendingToScheduleItem).toList();
-    } catch (_) {
-      return [];
-    }
-  }
+  // ISAR disabled
+  // /// Safely get pending items for a date (never throws).
+  // Future<List<ExerciseScheduleItem>> _getPendingForDate(DateTime date) async {
+  //   try {
+  //     final dateStr = date.toIso8601String().split('T').first;
+  //     final local = ref.read(exerciseLocalSourceProvider);
+  //     final pending = await local.getPendingForDate(dateStr);
+  //     return pending.map(_repo.pendingToScheduleItem).toList();
+  //   } catch (_) {
+  //     return [];
+  //   }
+  // }
 
   Future<void> reload() async {
     final weekState = ref.read(weekProvider);
@@ -113,21 +115,22 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
     }
   }
 
-  /// Forces sync of all pending items to Supabase and reloads.
-  /// Call this BEFORE navigating to workout flow.
-  Future<void> forceSyncPending() async {
-    try {
-      final local = ref.read(exerciseLocalSourceProvider);
-      final allPending = await local.getAllPending();
-      if (allPending.isNotEmpty) {
-        await _syncPendingItems(allPending);
-      }
-    } catch (_) {
-      // Silently fail
-    }
-  }
+  // ISAR disabled
+  // /// Forces sync of all pending items to Supabase and reloads.
+  // /// Call this BEFORE navigating to workout flow.
+  // Future<void> forceSyncPending() async {
+  //   try {
+  //     final local = ref.read(exerciseLocalSourceProvider);
+  //     final allPending = await local.getAllPending();
+  //     if (allPending.isNotEmpty) {
+  //       await _syncPendingItems(allPending);
+  //     }
+  //   } catch (_) {
+  //     // Silently fail
+  //   }
+  // }
 
-  /// Optimistic add: immediately adds to state + saves to Isar + syncs in background.
+  /// Optimistic add: immediately adds to state + syncs to Supabase.
   Future<void> addOptimistic({
     required List<Exercise> exercises,
     required DateTime date,
@@ -154,24 +157,17 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
     // 1. Add to state immediately (optimistic)
     _updateCache(date, (list) => [...list, ...scheduleItems]);
 
-    // 2. Persist to Isar (offline safety)
-    try {
-      final local = ref.read(exerciseLocalSourceProvider);
-      await local.savePending(pendingItems);
-    } catch (_) {
-      // Isar not available — still sync directly
-    }
+    // ISAR disabled
+    // // 2. Persist to Isar (offline safety)
+    // try {
+    //   final local = ref.read(exerciseLocalSourceProvider);
+    //   await local.savePending(pendingItems);
+    // } catch (_) {
+    //   // Isar not available — still sync directly
+    // }
 
-    // 3. Sync in background (fire-and-forget)
-    _syncPendingItems(pendingItems);
-  }
-
-  /// Background sync: try to push pending items to Supabase.
-  Future<void> _syncPendingItems(List<PendingSchedule> items) async {
-    final local = ref.read(exerciseLocalSourceProvider);
-    final syncedTempIds = <String>[];
-
-    for (final item in items) {
+    // 3. Sync to Supabase directly
+    for (final item in pendingItems) {
       try {
         Set<int>? days;
         DateTime? start;
@@ -195,34 +191,72 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
           startDate: start,
           endDate: end,
         );
-
-        syncedTempIds.add(item.tempId);
       } catch (_) {
-        // Failed to sync — keep in Isar for later retry
-        await local.incrementRetry(item.tempId);
+        // Failed to sync
       }
     }
-
-    // Remove successfully synced from Isar
-    if (syncedTempIds.isNotEmpty) {
-      await local.deletePendingByTempIds(syncedTempIds);
-      // Reload to replace temp items with real backend items
-      await reload();
-    }
+    // Reload to get real IDs from Supabase
+    await reload();
   }
 
-  /// Sync all pending schedules from Isar (called on app start).
-  Future<void> _syncAllPending() async {
-    try {
-      final local = ref.read(exerciseLocalSourceProvider);
-      final allPending = await local.getAllPending();
-      if (allPending.isNotEmpty) {
-        _syncPendingItems(allPending);
-      }
-    } catch (_) {
-      // Silently fail — will retry next time
-    }
-  }
+  // ISAR disabled
+  // /// Background sync: try to push pending items to Supabase.
+  // Future<void> _syncPendingItems(List<PendingSchedule> items) async {
+  //   final local = ref.read(exerciseLocalSourceProvider);
+  //   final syncedTempIds = <String>[];
+
+  //   for (final item in items) {
+  //     try {
+  //       Set<int>? days;
+  //       DateTime? start;
+  //       DateTime? end;
+
+  //       if (item.scheduleType == 'weekly' && item.daysOfWeek != null) {
+  //         days = item.daysOfWeek!.split(',').map(int.parse).toSet();
+  //         start = item.startDateStr != null
+  //             ? DateTime.parse(item.startDateStr!)
+  //             : null;
+  //         end = item.endDateStr != null
+  //             ? DateTime.parse(item.endDateStr!)
+  //             : null;
+  //       }
+
+  //       await _repo.scheduleExercises(
+  //         userId: item.userId,
+  //         exercises: [_repo.pendingToExercise(item)],
+  //         date: DateTime.parse(item.dateStr),
+  //         daysOfWeek: days,
+  //         startDate: start,
+  //         endDate: end,
+  //       );
+
+  //       syncedTempIds.add(item.tempId);
+  //     } catch (_) {
+  //       // Failed to sync — keep in Isar for later retry
+  //       await local.incrementRetry(item.tempId);
+  //     }
+  //   }
+
+  //   // Remove successfully synced from Isar
+  //   if (syncedTempIds.isNotEmpty) {
+  //     await local.deletePendingByTempIds(syncedTempIds);
+  //     // Reload to replace temp items with real backend items
+  //     await reload();
+  //   }
+  // }
+
+  // /// Sync all pending schedules from Isar (called on app start).
+  // Future<void> _syncAllPending() async {
+  //   try {
+  //     final local = ref.read(exerciseLocalSourceProvider);
+  //     final allPending = await local.getAllPending();
+  //     if (allPending.isNotEmpty) {
+  //       _syncPendingItems(allPending);
+  //     }
+  //   } catch (_) {
+  //     // Silently fail — will retry next time
+  //   }
+  // }
 
   Future<void> deleteSchedule(String scheduleId) async {
     // Optimistic remove from current date's cache
@@ -234,13 +268,16 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
         currentList.where((e) => e.scheduleId != scheduleId).toList();
     state = state.copyWith(cache: updatedCache);
 
-    // If it's a pending item, just remove from Isar
-    if (scheduleId.startsWith('pending_')) {
-      final local = ref.read(exerciseLocalSourceProvider);
-      await local.deletePending(scheduleId);
-      return;
-    }
-    
+    // ISAR disabled
+    // // If it's a pending item, just remove from Isar
+    // if (scheduleId.startsWith('pending_')) {
+    //   final local = ref.read(exerciseLocalSourceProvider);
+    //   await local.deletePending(scheduleId);
+    //   return;
+    // }
+
+    if (scheduleId.startsWith('pending_')) return;
+
     try {
       await _repo.deleteExerciseSchedule(scheduleId);
     } catch (e) {
@@ -301,6 +338,36 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
     final updatedCache =
         Map<String, List<ExerciseScheduleItem>>.from(state.cache);
     updatedCache[key] = transform(updatedCache[key] ?? []);
+    state = state.copyWith(cache: updatedCache);
+  }
+
+  void updateState({
+    required DateTime date,
+    required List<ExerciseScheduleItem> items,
+  }){
+    final key = _dateKey(date);
+    final updatedCache =
+        Map<String, List<ExerciseScheduleItem>>.from(state.cache);
+    updatedCache[key] = items;
+    state = state.copyWith(cache: updatedCache);
+  }
+
+  /// Updates the series for a specific exercise in the current selected date.
+  void updateExerciseSeries({
+    required String scheduleId,
+    required List<ExerciseSetData> updatedSeries,
+  }) {
+    final key = state.selectedDateKey;
+    final currentList = state.exercises;
+
+    final updatedList = currentList.map((item) {
+      if (item.scheduleId != scheduleId) return item;
+      return item.copyWith(sets: updatedSeries);
+    }).toList();
+
+    final updatedCache =
+        Map<String, List<ExerciseScheduleItem>>.from(state.cache);
+    updatedCache[key] = updatedList;
     state = state.copyWith(cache: updatedCache);
   }
 

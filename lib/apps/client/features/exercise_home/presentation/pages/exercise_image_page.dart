@@ -138,6 +138,7 @@ class _ExerciseImagePageState extends State<ExerciseImagePage> {
                   children: [
                     Column(
                       spacing: 8,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(widget.exercise.title, style: AppTextStyles.h3.copyWith(color: AppColors.white),),
                         ClipRRect(
@@ -145,7 +146,19 @@ class _ExerciseImagePageState extends State<ExerciseImagePage> {
                           ,child: SizedBox(
                           width: 88,
                           height: 120,
-                          child: Image.network(widget.exercise.imageUrl?? ''),
+                          child: Image.network(widget.exercise.imageUrl?? '',
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: AppColors.textDescription,
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.fitness_center,
+                                    color: AppColors.card,
+                                    size: 32,
+                                  ),
+                                ),
+                              ),
+                          ),
                         ),)
                       ],
                     ),

@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/exercise_detail_page.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/serie_table.dart';
 import 'package:flutter/material.dart';
@@ -18,8 +19,8 @@ class ScheduleExerciseCard extends StatelessWidget {
   final void Function(String setId, bool completed) onToggleSet;
   final VoidCallback onAddSet;
 
-  bool get _isCardio => item.exerciseType == 'cardio';
-  bool get _showKg => item.exerciseType != 'reps';
+  bool get _isCardio => item.metricType == MetricType.cardio;
+  bool get _showKg => item.metricType != MetricType.reps;
 
   String get _middleHeader {
     if (_isCardio) return 'Tiempo';

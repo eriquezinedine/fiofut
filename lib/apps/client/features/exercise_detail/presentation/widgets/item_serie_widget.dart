@@ -8,7 +8,7 @@ class ItemSerieWidget extends ConsumerWidget {
     required this.scheduleId,
     required this.repiteType,
     required this.serie,
-    required this.isStarted,
+    required this.index,
     this.currentSerieId,
     this.onRegisterSerie,
     this.onDelete,
@@ -16,15 +16,14 @@ class ItemSerieWidget extends ConsumerWidget {
   });
 
   final String scheduleId;
-  final RepiteType repiteType;
-  final SerieSet serie;
-  final bool isStarted;
+  final MetricType repiteType;
+  final ExerciseSetData serie;
+  final int index;
   final String? currentSerieId;
   final VoidCallback? onRegisterSerie;
   final VoidCallback? onDelete;
   final bool canDelete;
 
-  
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isCompleted = serie.isCompleted;
@@ -44,22 +43,15 @@ class ItemSerieWidget extends ConsumerWidget {
     }
 
     void onCheckCellTap() {
-      if (isStarted && isCurrent) {
-        onRegisterSerie?.call();
-        return;
-      }
-      if (isStarted && isCompleted) {
-        final notifier = ref.read(serieDetailProvider(scheduleId).notifier);
-        notifier.uncompleteFromSerie(serie.id);
-      }
+      ref.read(serieDetailProvider(scheduleId).notifier).toggleSerieCompleted(serie.id);
     }
 
     final child = _getItem(
       repiteType: repiteType,
       scheduleId: scheduleId,
       serie: serie,
+      index: index,
       isCompleted: isCompleted,
-      isStarted: isStarted,
       isCurrent: isCurrent,
       onNumberCellTap: onNumberCellTap,
       onCheckCellTap: onCheckCellTap,
@@ -67,8 +59,10 @@ class ItemSerieWidget extends ConsumerWidget {
 
     if (!canDelete) return child;
 
+    // Slidable desactivado temporalmente
     return Slidable(
       key: ValueKey(serie.id),
+      enabled: false,
       closeOnScroll: true,
       endActionPane: ActionPane(
         motion: const BehindMotion(),
@@ -109,7 +103,7 @@ class ItemSerieWidget extends ConsumerWidget {
         ],
       ),
       child: Material(
-        color: AppColors.background,
+        color: AppColors.transparent,
         child: child,
       ),
     );
@@ -117,39 +111,39 @@ class ItemSerieWidget extends ConsumerWidget {
 }
 
 Widget _getItem({
-  required RepiteType repiteType,
+  required MetricType repiteType,
   required String scheduleId,
-  required SerieSet serie,
+  required ExerciseSetData serie,
+  required int index,
   required bool isCompleted,
-  required bool isStarted,
   required bool isCurrent,
   VoidCallback? onNumberCellTap,
   VoidCallback? onCheckCellTap,
 }) {
   return switch (repiteType) {
-    RepiteType.byKg => _SerieRowByKg(
+    MetricType.strength => _SerieRowByKg(
         scheduleId: scheduleId,
         serie: serie,
+        index: index,
         isCompleted: isCompleted,
-        isStarted: isStarted,
         isCurrent: isCurrent,
         onNumberCellTap: onNumberCellTap,
         onCheckCellTap: onCheckCellTap,
       ),
-    RepiteType.byKm => _SerieRowByKm(
+    MetricType.cardio => _SerieRowByKm(
         scheduleId: scheduleId,
         serie: serie,
+        index: index,
         isCompleted: isCompleted,
-        isStarted: isStarted,
         isCurrent: isCurrent,
         onNumberCellTap: onNumberCellTap,
         onCheckCellTap: onCheckCellTap,
       ),
-    RepiteType.retryOnly => _SerieRowRetryOnly(
+    MetricType.reps => _SerieRowRetryOnly(
         scheduleId: scheduleId,
         serie: serie,
+        index: index,
         isCompleted: isCompleted,
-        isStarted: isStarted,
         isCurrent: isCurrent,
         onNumberCellTap: onNumberCellTap,
         onCheckCellTap: onCheckCellTap,

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:app_ui/app_ui.dart';
-import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_session_provider/workout_session_provider.dart';
+// import 'package:fio_fut/apps/client/features/exercise_detail/domain/providers/workout_session_provider/workout_session_provider.dart';
 import 'package:fio_fut/core/services/photo_storage/supabase_photo_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -55,7 +55,7 @@ class _WorkoutCompleteModalState extends ConsumerState<WorkoutCompleteModal> {
         fileName: fileName,
         file: _photoFile!,
       );
-      await ref.read(workoutSessionProvider.notifier).setPhoto(url);
+      // await ref.read(workoutSessionProvider.notifier).setPhoto(url);
     }
 
     if (mounted) {
@@ -65,9 +65,9 @@ class _WorkoutCompleteModalState extends ConsumerState<WorkoutCompleteModal> {
 
   @override
   Widget build(BuildContext context) {
-    final session = ref.watch(workoutSessionProvider);
-    final minutes = session.elapsedSeconds ~/ 60;
-    final seconds = session.elapsedSeconds % 60;
+    // final session = ref.watch(workoutSessionProvider);
+    // final minutes = session.elapsedSeconds ~/ 60;
+    // final seconds = session.elapsedSeconds % 60;
 
     return Container(
       decoration: const BoxDecoration(
@@ -109,7 +109,7 @@ class _WorkoutCompleteModalState extends ConsumerState<WorkoutCompleteModal> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    ref.read(workoutSessionProvider.notifier).reset();
+                    // ref.read(workoutSessionProvider.notifier).reset();
                     Navigator.pop(context);
                   },
                   child: const Icon(
@@ -135,22 +135,22 @@ class _WorkoutCompleteModalState extends ConsumerState<WorkoutCompleteModal> {
               ),
               child: Row(
                 children: [
-                  _StatItem(
-                    icon: LucideIcons.clock,
-                    label: 'Duración',
-                    value: '${minutes}m ${seconds.toString().padLeft(2, '0')}s',
-                  ),
+                  // _StatItem(
+                  //   icon: LucideIcons.clock,
+                  //   label: 'Duración',
+                  //   value: '${minutes}m ${seconds.toString().padLeft(2, '0')}s',
+                  // ),
                   const SizedBox(width: AppSpacing.md),
                   _StatItem(
                     icon: LucideIcons.dumbbell,
                     label: 'Ejercicios',
-                    value: '${session.completedExercises}',
+                    value:  'que fue' //'${session.completedExercises}',
                   ),
                   const SizedBox(width: AppSpacing.md),
                   _StatItem(
                     icon: LucideIcons.layers,
                     label: 'Series',
-                    value: '${session.totalExercises}',
+                    value: ''//'${session.totalExercises}',
                   ),
                 ],
               ),
@@ -239,7 +239,7 @@ class _WorkoutCompleteModalState extends ConsumerState<WorkoutCompleteModal> {
                 AppButton(
                   text: 'Cerrar',
                   onPressed: () {
-                    ref.read(workoutSessionProvider.notifier).reset();
+                    // ref.read(workoutSessionProvider.notifier).reset();
                     Navigator.pop(context);
                   },
                   fullWidth: true,
