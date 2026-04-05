@@ -1,4 +1,6 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
+import 'package:fio_fut/apps/client/features/progress/presentation/widgets/selecter_date_custom.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,12 +9,13 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../domain/providers/exercise_stats_provider.dart';
 import '../widgets/stats_chart_placeholder.dart';
 import '../widgets/stats_summary_card.dart';
-import '../widgets/stats_time_filter.dart';
 
 class ExerciseStatsScreen extends ConsumerStatefulWidget {
   const ExerciseStatsScreen({
     required this.exerciseId,
     required this.exerciseName,
+    this.selectedDate,
+    this.metricType = MetricType.strength,
     super.key,
   });
 
@@ -21,6 +24,8 @@ class ExerciseStatsScreen extends ConsumerStatefulWidget {
 
   final String exerciseId;
   final String exerciseName;
+  final DateTime? selectedDate;
+  final MetricType metricType;
 
   @override
   ConsumerState<ExerciseStatsScreen> createState() =>
@@ -47,35 +52,44 @@ class _ExerciseStatsScreenState extends ConsumerState<ExerciseStatsScreen> {
       body: SafeArea(
         child: switch (state) {
           ExerciseStatsInitial() || ExerciseStatsLoading() => const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
           ExerciseStatsError(message: final msg) => _ErrorView(
-              message: msg,
-              onRetry: () => ref
-                  .read(exerciseStatsProvider.notifier)
-                  .load(widget.exerciseId, widget.exerciseName),
+            message: msg,
+            onRetry: () => ref
+                .read(exerciseStatsProvider.notifier)
+                .load(widget.exerciseId, widget.exerciseName),
+          ),
+          final ExerciseStatsLoaded loaded => _LoadedBody(
+              state: loaded,
+              selectedDate: widget.selectedDate,
+              metricType: widget.metricType,
             ),
-          final ExerciseStatsLoaded loaded => _LoadedBody(state: loaded),
         },
       ),
     );
   }
 }
 
-// ---------------------------------------------------------------------------
-// Loaded body
-// ---------------------------------------------------------------------------
-
 class _LoadedBody extends ConsumerWidget {
-  const _LoadedBody({required this.state});
+  const _LoadedBody({
+    required this.state,
+    this.selectedDate,
+    this.metricType = MetricType.strength,
+  });
   final ExerciseStatsLoaded state;
+  final DateTime? selectedDate;
+  final MetricType metricType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(exerciseStatsProvider.notifier);
+    final globalSummary = notifier.globalSummary();
+
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
-        // --- Header ---
+        // Header
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -95,24 +109,13 @@ class _LoadedBody extends ConsumerWidget {
                 ),
                 AppSpacing.horizontalXs,
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        state.exerciseName,
-                        style: AppTextStyles.h3.copyWith(
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        'Estadisticas del ejercicio',
-                        style: AppTextStyles.small.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    state.exerciseName,
+                    style: AppTextStyles.h3.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -124,68 +127,113 @@ class _LoadedBody extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              AppSpacing.verticalLg,
-
-              // --- Summary cards ---
-              Row(
-                children: [
-                  Expanded(
-                    child: StatsSummaryCard(
-                      icon: LucideIcons.dumbbell,
-                      label: 'Peso maximo',
-                      value: '${state.maxWeight.toStringAsFixed(1)} kg',
-                      accentColor: AppColors.primary,
-                    ),
-                  ),
-                  AppSpacing.horizontalSm,
-                  Expanded(
-                    child: StatsSummaryCard(
-                      icon: LucideIcons.repeat,
-                      label: 'Reps promedio',
-                      value: state.avgReps.toStringAsFixed(1),
-                      accentColor: AppColors.blue,
-                    ),
-                  ),
-                  AppSpacing.horizontalSm,
-                  Expanded(
-                    child: StatsSummaryCard(
-                      icon: LucideIcons.checkCircle,
-                      label: 'Sets totales',
-                      value: '${state.totalSets}',
-                      accentColor: AppColors.purple,
-                    ),
-                  ),
-                ],
-              ),
-
-              AppSpacing.verticalLg,
-
-              // --- Time filter ---
-              StatsTimeFilter(
-                selectedIndex: state.selectedFilter,
-                onChanged: (i) =>
-                    ref.read(exerciseStatsProvider.notifier).setFilter(i),
-              ),
-
-              AppSpacing.verticalLg,
-
-              // --- Weight chart ---
-              StatsChartPlaceholder(
-                title: 'Progresion de peso',
-                points: state.weightHistory,
-                lineColor: AppColors.primary,
-                unit: ' kg',
-              ),
-
               AppSpacing.verticalMd,
 
-              // --- Reps chart ---
-              StatsChartPlaceholder(
-                title: 'Progresion de repeticiones',
-                points: state.repsHistory,
-                lineColor: AppColors.blue,
-                unit: ' reps',
+              // ── Sección: Promedio ──
+              Text(
+                'Promedio general',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary,
+                ),
               ),
+              AppSpacing.verticalSm,
+
+              IntrinsicHeight(
+                child: Row(
+                  children: [
+                    // strength: peso máximo | reps: - | cardio: distancia
+                    if (metricType == MetricType.strength)
+                      Expanded(
+                        child: StatsSummaryCard(
+                          icon: LucideIcons.dumbbell,
+                          label: 'Peso máximo',
+                          value:
+                              '${globalSummary.maxWeight.toStringAsFixed(1)} kg',
+                          accentColor: AppColors.primary,
+                        ),
+                      ),
+                    if (metricType == MetricType.cardio)
+                      Expanded(
+                        child: StatsSummaryCard(
+                          icon: LucideIcons.mapPin,
+                          label: 'Distancia máx',
+                          value:
+                              '${globalSummary.maxWeight.toStringAsFixed(1)} km',
+                          accentColor: AppColors.primary,
+                        ),
+                      ),
+                    if (metricType != MetricType.cardio) ...[
+                      if (metricType == MetricType.strength)
+                        AppSpacing.horizontalSm,
+                      Expanded(
+                        child: StatsSummaryCard(
+                          icon: LucideIcons.repeat,
+                          label: 'Reps promedio',
+                          value: globalSummary.avgReps.toStringAsFixed(1),
+                          accentColor: AppColors.blue,
+                        ),
+                      ),
+                    ],
+                    AppSpacing.horizontalSm,
+                    Expanded(
+                      child: StatsSummaryCard(
+                        icon: LucideIcons.checkCircle,
+                        label: 'Sets totales',
+                        value: '${globalSummary.totalSets}',
+                        accentColor: AppColors.purple,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              AppSpacing.verticalLg,
+
+              // ── Sección: Estadísticas ──
+              Text(
+                'Estadísticas',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              AppSpacing.verticalSm,
+
+              SelecterDateCustom(
+                initialDate: selectedDate,
+                onDateRangeChanged: (range) {
+                  notifier.setDateRange(range.start, range.end);
+                },
+              ),
+
+              AppSpacing.verticalLg,
+
+              // Charts según MetricType
+              // strength: peso + reps
+              // reps: solo reps
+              // cardio: solo distancia
+              if (metricType == MetricType.strength ||
+                  metricType == MetricType.cardio) ...[
+                StatsChartPlaceholder(
+                  title: metricType == MetricType.cardio
+                      ? 'Progresión de distancia'
+                      : 'Progresión de peso',
+                  points: state.weightHistory,
+                  lineColor: AppColors.primary,
+                  unit: metricType == MetricType.cardio ? ' km' : ' kg',
+                ),
+                AppSpacing.verticalMd,
+              ],
+
+              if (metricType == MetricType.strength ||
+                  metricType == MetricType.reps)
+                StatsChartPlaceholder(
+                  title: 'Progresión de repeticiones',
+                  points: state.repsHistory,
+                  lineColor: AppColors.blue,
+                  unit: ' reps',
+                ),
 
               AppSpacing.verticalXxl,
             ]),
@@ -195,10 +243,6 @@ class _LoadedBody extends ConsumerWidget {
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// Error
-// ---------------------------------------------------------------------------
 
 class _ErrorView extends StatelessWidget {
   const _ErrorView({required this.message, required this.onRetry});
@@ -213,14 +257,18 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(LucideIcons.alertTriangle,
-                color: AppColors.error, size: 48),
+            const Icon(
+              LucideIcons.alertTriangle,
+              color: AppColors.error,
+              size: 48,
+            ),
             AppSpacing.verticalMd,
             Text(
               message,
               textAlign: TextAlign.center,
-              style:
-                  AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
             AppSpacing.verticalLg,
             ElevatedButton(

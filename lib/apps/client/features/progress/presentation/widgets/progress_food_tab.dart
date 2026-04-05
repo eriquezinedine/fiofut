@@ -92,6 +92,7 @@ class _ProgressFoodTabState extends ConsumerState<ProgressFoodTab>
             notifier.setDateRange(range.start, range.end);
           },
         ),
+        AppSpacing.verticalMd,
         // Summary cards
         IntrinsicHeight(
           child: Row(
@@ -115,8 +116,6 @@ class _ProgressFoodTabState extends ConsumerState<ProgressFoodTab>
             ],
           ),
         ),
-
-        AppSpacing.verticalLg,
 
         AppSpacing.verticalMd,
 

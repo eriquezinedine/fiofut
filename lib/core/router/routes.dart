@@ -123,10 +123,30 @@ List<RouteBase> buildRoutes() => [
         name: ExerciseStatsScreen.name,
         builder: (context, state) {
           final id = state.pathParameters['id']!;
-          final name = state.extra as String? ?? 'Ejercicio';
+          final extra = state.extra;
+          final String name;
+          final DateTime? selectedDate;
+          final MetricType metricType;
+          if (extra is Map<String, dynamic>) {
+            name = extra['name'] as String? ?? 'Ejercicio';
+            selectedDate = extra['selectedDate'] as DateTime?;
+            final typeStr = extra['metricType'] as String?;
+            metricType = typeStr != null
+                ? MetricType.values.firstWhere(
+                    (e) => e.name == typeStr,
+                    orElse: () => MetricType.strength,
+                  )
+                : MetricType.strength;
+          } else {
+            name = extra as String? ?? 'Ejercicio';
+            selectedDate = null;
+            metricType = MetricType.strength;
+          }
           return ExerciseStatsScreen(
             exerciseId: id,
             exerciseName: name,
+            selectedDate: selectedDate,
+            metricType: metricType,
           );
         },
       ),

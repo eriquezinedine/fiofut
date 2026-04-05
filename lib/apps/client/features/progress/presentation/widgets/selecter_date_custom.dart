@@ -5,9 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class SelecterDateCustom extends StatefulWidget {
-  const SelecterDateCustom({super.key, this.onDateRangeChanged});
+  const SelecterDateCustom({
+    super.key,
+    this.onDateRangeChanged,
+    this.initialDate,
+  });
 
   final ValueChanged<({DateTime start, DateTime end})>? onDateRangeChanged;
+
+  /// Si se pasa, el widget inicia en modo diario con esta fecha seleccionada.
+  final DateTime? initialDate;
 
   @override
   State<SelecterDateCustom> createState() => _SelecterDateCustomState();
@@ -42,8 +49,16 @@ class _SelecterDateCustomState extends State<SelecterDateCustom> {
   @override
   void initState() {
     super.initState();
-    _buildTabs(scrollToEnd: true);
+    _filterType = DateFilterType.daily;
+    _buildTabs(scrollToEnd: widget.initialDate == null);
     _scrollController.addListener(_onScroll);
+
+    // Si hay una fecha inicial, seleccionar ese día
+    if (widget.initialDate != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _selectDateIfExists(widget.initialDate!);
+      });
+    }
   }
 
   @override
@@ -119,6 +134,37 @@ class _SelecterDateCustomState extends State<SelecterDateCustom> {
   void _selectIndex(int index) {
     setState(() => _selectedIndex = index);
     _notifySelected();
+  }
+
+  /// Busca la fecha en los tabs y la selecciona. Scroll a esa posición.
+  void _selectDateIfExists(DateTime date) {
+    final target = DateTime(date.year, date.month, date.day);
+    for (var i = 0; i < _tabs.length; i++) {
+      final tabDate = DateTime(
+        _tabs[i].start.year,
+        _tabs[i].start.month,
+        _tabs[i].start.day,
+      );
+      if (tabDate == target) {
+        setState(() => _selectedIndex = i);
+        _notifySelected();
+        // Scroll a la posición del item
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            final estimatedOffset = i * 80.0;
+            _scrollController.animateTo(
+              estimatedOffset.clamp(
+                0,
+                _scrollController.position.maxScrollExtent,
+              ),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+        return;
+      }
+    }
   }
 
   // ── Builders ──────────────────────────────────────────────────

@@ -1,10 +1,14 @@
 import 'package:app_ui/app_ui.dart';
+import 'package:fio_fut/apps/client/features/exercise_stats/presentation/screens/exercise_stats_screen.dart';
+import 'package:fio_fut/apps/client/features/home/domain/providers/week_provider.dart';
 import 'package:fio_fut/core/widgets/modal/exercise_instruction_modal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
 
-class DetailActionChips extends StatelessWidget {
+class DetailActionChips extends ConsumerWidget {
   const DetailActionChips({
     required this.exercise,
     required this.duration,
@@ -21,29 +25,37 @@ class DetailActionChips extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final weekState = ref.watch(weekProvider);
+    final selectedDate =
+        weekState is WeekLoaded ? weekState.selectedDate : DateTime.now();
+
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 0,vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           spacing: AppSpacing.xs,
           children: [
-            _Chip(
-              icon: LucideIcons.timer,
-              label: _durationLabel,
-            ),
+            _Chip(icon: LucideIcons.timer, label: _durationLabel),
             _Chip(
               icon: LucideIcons.playCircle,
               label: 'Instrucciones',
-              onTap: () => ExerciseInstructionModal.show(
-                context,
-                exercise: exercise,
-              ),
+              onTap: () =>
+                  ExerciseInstructionModal.show(context, exercise: exercise),
             ),
             _Chip(
               icon: LucideIcons.barChart2,
               label: 'Analíticas',
+              onTap: () => context.pushNamed(
+                ExerciseStatsScreen.name,
+                pathParameters: {'id': exercise.id},
+                extra: <String, dynamic>{
+                  'name': exercise.title,
+                  'selectedDate': selectedDate,
+                  'metricType': exercise.metricType.name,
+                },
+              ),
             ),
           ],
         ),
@@ -53,11 +65,7 @@ class DetailActionChips extends StatelessWidget {
 }
 
 class _Chip extends StatelessWidget {
-  const _Chip({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
+  const _Chip({required this.icon, required this.label, this.onTap});
 
   final IconData icon;
   final String label;
