@@ -185,36 +185,33 @@ class ProgressNotifier extends StateNotifier<ProgressState> {
     }
   }
 
-  /// Returns the chart data filtered by the rango seleccionado.
+  List<ExerciseStatsData> _filterByRange(List<ExerciseStatsData> source) {
+    if (source.isEmpty || _rangeStart == null || _rangeEnd == null) {
+      return source;
+    }
+    return source
+        .where((d) =>
+            !d.date.isBefore(_rangeStart!) &&
+            d.date.isBefore(_rangeEnd!.add(const Duration(days: 1))))
+        .toList();
+  }
+
+  /// Chart data filtrado por el rango seleccionado.
   List<ExerciseStatsData> filteredData(ProgressLoaded loaded) {
     final source =
         loaded.selectedMetric == 0 ? loaded.weightData : loaded.distanceData;
-    if (source.isEmpty) return source;
+    return _filterByRange(source);
+  }
 
-    final now = DateTime.now();
-
-    final DateTime start;
-    final DateTime end;
-
-    if (_rangeStart != null && _rangeEnd != null) {
-      start = _rangeStart!;
-      end = _rangeEnd!;
-    } else if (loaded.selectedFilter == 0) {
-      // Semana: lunes a domingo de esta semana
-      final monday = now.subtract(Duration(days: now.weekday - 1));
-      start = DateTime(monday.year, monday.month, monday.day);
-      end = start.add(const Duration(days: 6));
-    } else {
-      // Mes: dia 1 al ultimo dia del mes actual
-      start = DateTime(now.year, now.month, 1);
-      end = DateTime(now.year, now.month + 1, 0);
-    }
-
-    return source
-        .where((d) =>
-            !d.date.isBefore(start) &&
-            d.date.isBefore(end.add(const Duration(days: 1))))
-        .toList();
+  /// Totales filtrados por el rango seleccionado.
+  ({double totalWeight, double totalDistance}) filteredTotals(
+      ProgressLoaded loaded) {
+    final weightFiltered = _filterByRange(loaded.weightData);
+    final distanceFiltered = _filterByRange(loaded.distanceData);
+    return (
+      totalWeight: weightFiltered.fold(0.0, (sum, d) => sum + d.value),
+      totalDistance: distanceFiltered.fold(0.0, (sum, d) => sum + d.value),
+    );
   }
 }
 

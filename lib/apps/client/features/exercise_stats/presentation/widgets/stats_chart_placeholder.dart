@@ -135,9 +135,19 @@ class _StatsChartPlaceholderState extends State<StatsChartPlaceholder>
     final chartH = 200 - topPad - bottomPad;
 
     final values = widget.points.map((p) => p.value).toList();
-    final minY = values.reduce(math.min);
-    final maxY = values.reduce(math.max);
-    final rangeY = maxY - minY == 0 ? 1.0 : maxY - minY;
+    final rawMin = values.reduce(math.min);
+    final rawMax = values.reduce(math.max);
+    // Si todos los valores son iguales, eje Y va de 0 al valor+20%
+    final double minY;
+    final double maxY;
+    if (rawMin == rawMax) {
+      minY = 0;
+      maxY = rawMax > 0 ? rawMax * 1.2 : 1.0;
+    } else {
+      minY = rawMin;
+      maxY = rawMax;
+    }
+    final rangeY = maxY - minY;
 
     final offsets = <Offset>[];
     for (var i = 0; i < widget.points.length; i++) {
@@ -198,9 +208,18 @@ class _InteractiveChartPainter extends CustomPainter {
     final chartH = size.height - _topPad - _bottomPad;
 
     final values = points.map((p) => p.value).toList();
-    final minY = values.reduce(math.min);
-    final maxY = values.reduce(math.max);
-    final rangeY = maxY - minY == 0 ? 1.0 : maxY - minY;
+    final rawMin = values.reduce(math.min);
+    final rawMax = values.reduce(math.max);
+    final double minY;
+    final double maxY;
+    if (rawMin == rawMax) {
+      minY = 0;
+      maxY = rawMax > 0 ? rawMax * 1.2 : 1.0;
+    } else {
+      minY = rawMin;
+      maxY = rawMax;
+    }
+    final rangeY = maxY - minY;
 
     // Compute canvas offsets
     final offsets = <Offset>[];
