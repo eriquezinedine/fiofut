@@ -82,7 +82,16 @@ class _SelecterDateCustomState extends State<SelecterDateCustom> {
     if (scrollToEnd) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollController.hasClients) {
-          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+          if (_filterType == DateFilterType.monthly) {
+            // Scroll al mes actual (estimar offset)
+            final targetOffset = _selectedIndex * 55.0;
+            _scrollController.jumpTo(
+              targetOffset.clamp(0, _scrollController.position.maxScrollExtent),
+            );
+          } else {
+            _scrollController
+                .jumpTo(_scrollController.position.maxScrollExtent);
+          }
         }
         _notifySelected();
       });
