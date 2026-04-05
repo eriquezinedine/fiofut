@@ -1,8 +1,8 @@
-import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/app_content/domain/domain.dart';
 import 'package:fio_fut/apps/client/features/app_content/presentation/widgets/app_bottom_nav_bar.dart';
 import 'package:fio_fut/apps/client/features/home/home.dart';
 import 'package:fio_fut/apps/client/features/profile/presentation/screens/profile_screen.dart';
+import 'package:fio_fut/apps/client/features/progress/presentation/screens/progress_screen.dart';
 import 'package:fio_fut/apps/client/features/training_home/presentation/screens/training_home_screen.dart';
 import 'package:fio_fut/core/services/sync_orchestrator.dart';
 import 'package:flutter/material.dart';
@@ -66,7 +66,7 @@ class _AppContentPageState extends ConsumerState<AppContentPage>
               children: const [
                 HomeScreen(),
                 TrainingHomeScreen(),
-                _PlaceholderScreen(title: 'Progreso'),
+                ProgressScreen(),
                 ProfileScreen(),
               ],
             ),
@@ -78,33 +78,6 @@ class _AppContentPageState extends ConsumerState<AppContentPage>
             },
           ),
         ],
-      ),
-    );
-  }
-}
-
-
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-
-  const _PlaceholderScreen({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        title: Text(
-          title,
-          style: AppTextStyles.h3.copyWith(color: AppColors.textPrimary),
-        ),
-      ),
-      body: Center(
-        child: Text(
-          title,
-          style: AppTextStyles.h2.copyWith(color: AppColors.textPrimary),
-        ),
       ),
     );
   }

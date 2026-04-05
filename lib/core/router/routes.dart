@@ -10,6 +10,7 @@ import 'package:fio_fut/apps/client/features/complete_profile/complete_profile.d
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/exercise_detail_page.dart';
+import 'package:fio_fut/apps/client/features/exercise_stats/presentation/screens/exercise_stats_screen.dart';
 import 'package:fio_fut/apps/client/features/exercise_detail/presentation/pages/workout_flow_page.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/presentation/pages/exercise_image_page.dart';
 import 'package:fio_fut/apps/client/features/home/presentation/screens/hydration_screen.dart';
@@ -112,6 +113,20 @@ List<RouteBase> buildRoutes() => [
             exercises:
                 data['exercises'] as List<ExerciseScheduleItem>,
             initialIndex: data['initialIndex'] as int,
+          );
+        },
+      ),
+
+      // Exercise Stats
+      GoRoute(
+        path: ExerciseStatsScreen.path,
+        name: ExerciseStatsScreen.name,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final name = state.extra as String? ?? 'Ejercicio';
+          return ExerciseStatsScreen(
+            exerciseId: id,
+            exerciseName: name,
           );
         },
       ),
