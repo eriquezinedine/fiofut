@@ -105,6 +105,8 @@ class _ProgressExerciseTabState extends ConsumerState<ProgressExerciseTab>
             notifier.setDateRange(range.start, range.end);
           },
         ),
+        AppSpacing.verticalMd,
+
         // Summary cards
         Row(
           children: [
