@@ -5,6 +5,7 @@ import 'package:fio_fut/apps/admin/features/exercises/presentation/screens/exerc
 import 'package:fio_fut/apps/admin/features/ingredients/presentation/screens/ingredient_form_screen.dart';
 import 'package:fio_fut/apps/admin/features/meals/presentation/screens/food_form_screen.dart';
 import 'package:fio_fut/apps/client/features/app_content/presentation/pages/app_content_page.dart';
+import 'package:fio_fut/apps/client/features/configuration_exercise/presentation/pages/configuration_exercise_screen.dart';
 import 'package:fio_fut/apps/client/features/complete_profile/complete_profile.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
@@ -19,7 +20,6 @@ import 'package:fio_fut/apps/client/features/register/register.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/screens/repose_screen.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/screens/repose_slider_screen.dart';
 import 'package:fio_fut/apps/client/features/splash/presentation/screens/splash_screen.dart';
-import 'package:fio_fut/apps/client/features/configuration_exercise/presentation/pages/configuration_exercise_screen.dart';
 import 'package:fio_fut/apps/client/features/trainer_detail/presentation/screens/trainer_detail_page.dart';
 import 'package:fio_fut/apps/client/features/training_exercise/presentation/screens/training_exercise_screen.dart';
 import 'package:fio_fut/apps/trainer/trainer.dart';

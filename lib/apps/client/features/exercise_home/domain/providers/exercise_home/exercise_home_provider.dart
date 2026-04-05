@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exercise_home/exercise_home_state.dart';
 import 'package:fio_fut/core/services/sync_orchestrator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,11 +14,19 @@ import '../../model/exercise_schedule_item.dart';
 
 final exerciseHomeProvider =
     NotifierProvider<ExerciseHomeNotifier, ExerciseHomeState>(
-  ExerciseHomeNotifier.new,
-);
+      ExerciseHomeNotifier.new,
+    );
 
 class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
   ExerciseHomeRepository get _repo => ref.read(exerciseHomeRepositoryProvider);
+
+  /// Resultado del ultimo merge (para feedback en UI).
+  ({List<String> merged, List<String> created})? _lastMergeResult;
+  ({List<String> merged, List<String> created})? consumeMergeResult() {
+    final result = _lastMergeResult;
+    _lastMergeResult = null;
+    return result;
+  }
 
   @override
   ExerciseHomeState build() {
@@ -30,7 +39,7 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
         }
       }
     });
-  
+
     // Initial load + sync pending
     final weekState = ref.read(weekProvider);
     if (weekState is WeekLoaded) {
@@ -73,12 +82,18 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
         userId: userId,
         date: date,
       );
-
+      print(
+        'itemsZine ${items.mapIndex((e, index) {
+          print('itemsZine index $index - ${e.exerciseName} - scheduleId ${e.scheduleId} - exerciseId ${e.exerciseId}');
+          return e;
+        })}',
+      );
       // ISAR disabled - no pending items merge
       // final pendingItems = await _getPendingForDate(date);
 
-      final updatedCache =
-          Map<String, List<ExerciseScheduleItem>>.from(state.cache);
+      final updatedCache = Map<String, List<ExerciseScheduleItem>>.from(
+        state.cache,
+      );
       updatedCache[key] = items;
       state = state.copyWith(cache: updatedCache);
     } catch (e) {
@@ -128,8 +143,44 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
   //   }
   // }
 
-  /// Optimistic add: immediately adds to state + syncs to Supabase.
-  Future<void> addOptimistic({
+  /// Agrega ejercicios para la fecha seleccionada.
+  Future<void> addExercisesToday(List<Exercise> exercises) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    final weekState = ref.read(weekProvider);
+    final selectedDate = weekState is WeekLoaded
+        ? weekState.selectedDate
+        : DateTime.now();
+
+    for (final exercise in exercises) {
+      await _repo.scheduleForToday(
+        userId: userId,
+        exercise: exercise,
+        date: selectedDate,
+      );
+    }
+
+    await _fetchAndCache(selectedDate);
+  }
+
+  /// Verifica si un ejercicio ya existe para la fecha seleccionada.
+  /// Retorna los nombres de los ejercicios duplicados.
+  List<String> findDuplicates(List<Exercise> exercises) {
+    final currentList = state.exercises;
+    final duplicates = <String>[];
+    for (final exercise in exercises) {
+      final exists = currentList.any((e) => e.exerciseId == exercise.id);
+      if (exists) {
+        duplicates.add(exercise.title);
+      }
+    }
+    return duplicates;
+  }
+
+  /// Agrega ejercicios: sync a Supabase y luego reload.
+  /// No usa optimistic update para evitar el bug de items fantasma.
+  Future<({List<String> merged, List<String> created})> addExercises({
     required List<Exercise> exercises,
     required DateTime date,
     Set<int>? daysOfWeek,
@@ -137,9 +188,8 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
     DateTime? endDate,
   }) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) return;
+    if (userId == null) return (merged: <String>[], created: <String>[]);
 
-    // Build pending items using repository
     final pendingItems = _repo.buildPendingSchedules(
       exercises: exercises,
       userId: userId,
@@ -149,22 +199,11 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
       endDate: endDate,
     );
 
-    // Convert to schedule items for UI
-    final scheduleItems = pendingItems.map(_repo.pendingToScheduleItem).toList();
+    var allMerged = <String>[];
+    var allCreated = <String>[];
 
-    // 1. Add to state immediately (optimistic)
-    _updateCache(date, (list) => [...list, ...scheduleItems]);
-
-    // ISAR disabled
-    // // 2. Persist to Isar (offline safety)
-    // try {
-    //   final local = ref.read(exerciseLocalSourceProvider);
-    //   await local.savePending(pendingItems);
-    // } catch (_) {
-    //   // Isar not available — still sync directly
-    // }
-
-    // 3. Sync to Supabase directly
+    // ignore: avoid_print
+    print('addExercises DEBUG: ${pendingItems.length} items, scheduleTypes=${pendingItems.map((e) => e.scheduleType).join(",")}');
     for (final item in pendingItems) {
       try {
         Set<int>? days;
@@ -181,7 +220,7 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
               : null;
         }
 
-        await _repo.scheduleExercises(
+        final result = await _repo.scheduleExercises(
           userId: item.userId,
           exercises: [_repo.pendingToExercise(item)],
           date: DateTime.parse(item.dateStr),
@@ -189,12 +228,19 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
           startDate: start,
           endDate: end,
         );
-      } catch (_) {
-        // Failed to sync
+
+        allMerged = [...allMerged, ...result.merged];
+        allCreated = [...allCreated, ...result.created];
+      } catch (e) {
+        // ignore: avoid_print
+        print('addExercises ERROR: $e');
       }
     }
-    // Reload to get real IDs from Supabase
+
+    // Reload para traer datos reales con IDs de Supabase
     await reload();
+
+    return (merged: allMerged, created: allCreated);
   }
 
   // ISAR disabled
@@ -260,10 +306,12 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
     // Optimistic remove from current date's cache
     final key = state.selectedDateKey;
     final currentList = state.exercises;
-    final updatedCache =
-        Map<String, List<ExerciseScheduleItem>>.from(state.cache);
-    updatedCache[key] =
-        currentList.where((e) => e.scheduleId != scheduleId).toList();
+    final updatedCache = Map<String, List<ExerciseScheduleItem>>.from(
+      state.cache,
+    );
+    updatedCache[key] = currentList
+        .where((e) => e.scheduleId != scheduleId)
+        .toList();
     state = state.copyWith(cache: updatedCache);
 
     // ISAR disabled
@@ -333,8 +381,9 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
     List<ExerciseScheduleItem> Function(List<ExerciseScheduleItem>) transform,
   ) {
     final key = _dateKey(date);
-    final updatedCache =
-        Map<String, List<ExerciseScheduleItem>>.from(state.cache);
+    final updatedCache = Map<String, List<ExerciseScheduleItem>>.from(
+      state.cache,
+    );
     updatedCache[key] = transform(updatedCache[key] ?? []);
     state = state.copyWith(cache: updatedCache);
   }
@@ -342,10 +391,11 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
   void updateState({
     required DateTime date,
     required List<ExerciseScheduleItem> items,
-  }){
+  }) {
     final key = _dateKey(date);
-    final updatedCache =
-        Map<String, List<ExerciseScheduleItem>>.from(state.cache);
+    final updatedCache = Map<String, List<ExerciseScheduleItem>>.from(
+      state.cache,
+    );
     updatedCache[key] = items;
     state = state.copyWith(cache: updatedCache);
   }
@@ -363,8 +413,9 @@ class ExerciseHomeNotifier extends Notifier<ExerciseHomeState> {
       return item.copyWith(sets: updatedSeries);
     }).toList();
 
-    final updatedCache =
-        Map<String, List<ExerciseScheduleItem>>.from(state.cache);
+    final updatedCache = Map<String, List<ExerciseScheduleItem>>.from(
+      state.cache,
+    );
     updatedCache[key] = updatedList;
     state = state.copyWith(cache: updatedCache);
   }

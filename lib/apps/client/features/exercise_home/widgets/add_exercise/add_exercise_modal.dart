@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise.dart';
@@ -7,6 +8,8 @@ import 'package:fio_fut/apps/client/features/exercise_home/domain/providers/exer
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/add_exercise/add_exercise_item.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/add_exercise/muscle_filter_modal.dart';
 import 'package:fio_fut/core/extension/muscle_group_extension.dart';
+import 'package:fio_fut/core/widgets/app_loading_overlay.dart';
+import 'package:fio_fut/core/widgets/app_toast.dart';
 import 'package:fio_fut/core/widgets/modal/schedule_date_modal.dart';
 import 'package:fio_fut/core/widgets/modal/select_type_modal.dart';
 import 'package:flutter/material.dart';
@@ -78,10 +81,7 @@ class _AddExerciseModalState extends ConsumerState<AddExerciseModal> {
 
   Future<void> _showMuscleFilterMenu(BuildContext context) async {
     final current = ref.read(availableExercisesProvider).muscleFilter;
-    final result = await MuscleFilterModal.show(
-      context,
-      selected: current,
-    );
+    final result = await MuscleFilterModal.show(context, selected: current);
     if (result != null) {
       ref.read(availableExercisesProvider.notifier).setMuscleFilter(result);
     }
@@ -95,29 +95,103 @@ class _AddExerciseModalState extends ConsumerState<AddExerciseModal> {
     );
     if (scheduleType == null || !mounted) return;
 
-    // Step 2: If weekly, ask for days and date range
-    Set<int>? daysOfWeek;
-    DateTime? startDate;
-    DateTime? endDate;
+    final notifier = ref.read(exerciseHomeProvider.notifier);
 
-    if (scheduleType == ScheduleType.weekly) {
-      final dateResult = await ScheduleDateModal.show(context);
-      if (dateResult == null || !mounted) return;
-      daysOfWeek = dateResult.selectedDays;
-      startDate = dateResult.startDate;
-      endDate = dateResult.endDate;
+    if (scheduleType == ScheduleType.today) {
+      await _addForToday(selected, notifier);
+    } else {
+      await _addWeekly(selected, notifier);
+    }
+  }
+
+  Future<void> _addForToday(
+    List<Exercise> selected,
+    ExerciseHomeNotifier notifier,
+  ) async {
+    // Verificar duplicados
+    final duplicates = notifier.findDuplicates(selected);
+    if (duplicates.isNotEmpty && mounted) {
+      AppToast.error(
+        context,
+        duplicates.length == 1
+            ? '${duplicates.first} ya lo tienes programado hoy'
+            : '${duplicates.join(", ")} ya están programados hoy',
+      );
+      selected.removeWhere((e) => duplicates.contains(e.title));
+      if (selected.isEmpty) return;
     }
 
-    // Step 3: Optimistic add — fire and forget, no loading UI
-    ref.read(exerciseHomeProvider.notifier).addOptimistic(
-      exercises: selected,
-      date: DateTime.now(),
-      daysOfWeek: daysOfWeek,
-      startDate: startDate,
-      endDate: endDate,
+    if (!mounted) return;
+
+    final homeContext = Navigator.of(context).context;
+    Navigator.pop(context);
+
+    final dismiss = LoadingOverlay.show(
+      homeContext,
+      message: 'Agregando ejercicios...',
     );
 
-    if (mounted) Navigator.pop(context);
+    try {
+      await notifier.addExercisesToday(selected);
+      dismiss();
+      if (homeContext.mounted) {
+        AppToast.success(
+          homeContext,
+          '${selected.map((e) => e.title).join(", ")} agregado',
+        );
+      }
+    } catch (e) {
+      log('zineERROR adding exercises for today: $e');
+      dismiss();
+      if (homeContext.mounted) {
+        AppToast.error(homeContext, 'Error al agregar ejercicios');
+      }
+    }
+  }
+
+  Future<void> _addWeekly(
+    List<Exercise> selected,
+    ExerciseHomeNotifier notifier,
+  ) async {
+    final dateResult = await ScheduleDateModal.show(context);
+    if (dateResult == null || !mounted) return;
+
+    final homeContext = Navigator.of(context).context;
+    Navigator.pop(context);
+
+    final dismiss = LoadingOverlay.show(
+      homeContext,
+      message: 'Programando rutina...',
+    );
+
+    try {
+      final result = await notifier.addExercises(
+        exercises: selected,
+        date: dateResult.startDate,
+        daysOfWeek: dateResult.selectedDays,
+        startDate: dateResult.startDate,
+        endDate: dateResult.endDate,
+      );
+
+      dismiss();
+
+      if (!homeContext.mounted) return;
+
+      if (result.created.isNotEmpty || result.merged.isNotEmpty) {
+        final msg = [
+          if (result.created.isNotEmpty)
+            '${result.created.join(", ")} agregado',
+          if (result.merged.isNotEmpty)
+            '${result.merged.join(", ")} actualizado',
+        ].join(' · ');
+        AppToast.success(homeContext, msg);
+      }
+    } catch (_) {
+      dismiss();
+      if (homeContext.mounted) {
+        AppToast.error(homeContext, 'Error al programar rutina');
+      }
+    }
   }
 
   @override
@@ -128,9 +202,12 @@ class _AddExerciseModalState extends ConsumerState<AddExerciseModal> {
     // Apply multi-muscle filter locally if needed
     final exercises = providerState.muscleFilter.length > 1
         ? providerState.exercises
-            .where((e) =>
-                providerState.muscleFilter.contains(e.muscleMain.muscleGroup))
-            .toList()
+              .where(
+                (e) => providerState.muscleFilter.contains(
+                  e.muscleMain.muscleGroup,
+                ),
+              )
+              .toList()
         : providerState.exercises;
 
     final count = _selectedIds.length;
@@ -151,13 +228,15 @@ class _AddExerciseModalState extends ConsumerState<AddExerciseModal> {
             _buildHeader(context),
             _buildSearchField(),
             Flexible(
-              child: _buildContent(exercises, providerState.isLoading,
-                  providerState.hasMore),
+              child: _buildContent(
+                exercises,
+                providerState.isLoading,
+                providerState.hasMore,
+              ),
             ),
             _buildFooter(context, count, exercises),
             SizedBox(
-              height:
-                  MediaQuery.of(context).viewPadding.bottom + AppSpacing.xs,
+              height: MediaQuery.of(context).viewPadding.bottom + AppSpacing.xs,
             ),
           ],
         ),
@@ -191,12 +270,7 @@ class _AddExerciseModalState extends ConsumerState<AddExerciseModal> {
       ),
       child: Row(
         children: [
-          Expanded(
-            child: Text(
-              'Añadir ejercicios',
-              style: AppTextStyles.h2,
-            ),
-          ),
+          Expanded(child: Text('Añadir ejercicios', style: AppTextStyles.h2)),
           CustomGestureDetector(
             onTap: () => Navigator.pop(context),
             child: const Icon(
@@ -232,8 +306,7 @@ class _AddExerciseModalState extends ConsumerState<AddExerciseModal> {
     );
   }
 
-  Widget _buildContent(
-      List<Exercise> exercises, bool isLoading, bool hasMore) {
+  Widget _buildContent(List<Exercise> exercises, bool isLoading, bool hasMore) {
     return ListView(
       controller: _scrollController,
       padding: EdgeInsets.zero,
@@ -297,8 +370,8 @@ class _AddExerciseModalState extends ConsumerState<AddExerciseModal> {
     final label = muscleFilter.isEmpty
         ? 'Todos'
         : muscleFilter.length == 1
-            ? muscleFilter.first.getLabel
-            : '${muscleFilter.length} músculos';
+        ? muscleFilter.first.getLabel
+        : '${muscleFilter.length} músculos';
     return Row(
       children: [
         Text(
@@ -380,7 +453,10 @@ class _AddExerciseModalState extends ConsumerState<AddExerciseModal> {
   }
 
   Widget _buildFooter(
-      BuildContext context, int count, List<Exercise> exercises) {
+    BuildContext context,
+    int count,
+    List<Exercise> exercises,
+  ) {
     final hasSelection = count > 0;
     final label = hasSelection
         ? 'Añadir $count ejercicios'
@@ -415,9 +491,7 @@ class _AddExerciseModalState extends ConsumerState<AddExerciseModal> {
             ),
             child: Text(
               label,
-              style: AppTextStyles.button.copyWith(
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.button.copyWith(color: AppColors.black),
             ),
           ),
         ),

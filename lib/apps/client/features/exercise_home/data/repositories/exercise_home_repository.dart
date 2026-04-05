@@ -44,12 +44,24 @@ class ExerciseHomeRepository {
         .lte('start_date', dateStr)
         .order('created_at', ascending: false);
 
+    // ignore: avoid_print
+    print('fetchExercises DEBUG: ${rows.length} schedules for $dateStr');
     final items = <ExerciseScheduleItem>[];
     for (final row in rows) {
+      // ignore: avoid_print
+      print('fetchExercises DEBUG: schedule=${row['id']} type=${row['schedule_type']} days=${row['days_of_week']} start=${row['start_date']} end=${row['end_date']}');
+      final scheduleType = row['schedule_type'] as String?;
       final endDateStr = row['end_date'] as String?;
+
+      // schedule_type = 'today': solo mostrar en la fecha exacta (start_date)
+      if (scheduleType == 'today') {
+        final startStr = row['start_date'] as String?;
+        if (startStr != dateStr) continue;
+      }
+
       if (endDateStr != null) {
         final endDate = DateTime.parse(endDateStr);
-        if (date.isAfter(endDate.add(const Duration(days: 1)))) continue;
+        if (date.isAfter(endDate)) continue;
       }
 
       final daysOfWeek = row['days_of_week'] as String?;
@@ -153,7 +165,15 @@ class ExerciseHomeRepository {
     }).eq('id', scheduleId);
   }
 
-  Future<void> scheduleExercises({
+  /// Programa ejercicios con merge automatico.
+  ///
+  /// Si ya existe un schedule para el mismo ejercicio con fechas que se solapan,
+  /// hace merge de los dias nuevos al schedule existente y expande el rango
+  /// de fechas al mayor. Solo crea un schedule nuevo para los ejercicios
+  /// que no tienen uno existente.
+  ///
+  /// Retorna un record con los ejercicios mergeados y los creados nuevos.
+  Future<({List<String> merged, List<String> created})> scheduleExercises({
     required String userId,
     required List<Exercise> exercises,
     required DateTime date,
@@ -171,42 +191,159 @@ class ExerciseHomeRepository {
         .toIso8601String()
         .split('T')
         .first;
-    final daysStr = isWeekly ? (daysOfWeek.toList()..sort()).join(',') : null;
+    final requestedDays = isWeekly ? daysOfWeek : <int>{};
+    // ignore: avoid_print
+    print('scheduleExercises DEBUG: isWeekly=$isWeekly date=$dateStr start=$start end=$end exercises=${exercises.map((e) => e.title).join(",")}');
+
+    final merged = <String>[];
+    final created = <String>[];
 
     for (final exercise in exercises) {
-      final schedule = await _client
-          .from('exercise_schedule')
-          .insert({
-            'id_user_profile': userId,
-            'id_exercise': exercise.id,
-            'id_created_by': userId,
-            'schedule_type': isWeekly ? 'weekly' : 'custom',
-            'start_date': start,
-            'end_date': end,
-            'days_of_week': daysStr,
-          })
-          .select('id')
-          .single();
+      // Buscar schedule existente para el mismo ejercicio que se solape
+      final existing = isWeekly
+          ? await _findOverlappingSchedule(
+              userId: userId,
+              exerciseId: exercise.id,
+              startDate: start,
+              endDate: end,
+            )
+          : null;
 
-      final scheduleId = schedule['id'] as String;
-      final type = exerciseTypeString(exercise.metricType);
+      if (existing != null) {
+        // Merge: combinar dias y expandir rango
+        final existingDays = (existing['days_of_week'] as String?)
+                ?.split(',')
+                .map(int.parse)
+                .toSet() ??
+            <int>{};
 
-      await _client.from('exercise_set').insert(
-        List.generate(
-          3,
-          (i) => <String, dynamic>{
-            'id_exercise_schedule': scheduleId,
-            'set_number': i + 1,
-            'repetitions': type != 'cardio' ? 10 : null,
-            'weight': type == 'strength' ? 0.0 : null,
-            'minutes': type == 'cardio' ? 5 : null,
-            'seconds': type == 'cardio' ? 0 : null,
-            'session_date': dateStr,
-            'is_completed': false,
-          },
-        ),
-      );
+        final mergedDays = {...existingDays, ...requestedDays};
+        final newDaysOnly = requestedDays.difference(existingDays);
+
+        if (newDaysOnly.isEmpty) {
+          // Ya tiene todos los dias, solo expandir rango si necesario
+          merged.add(exercise.title);
+        } else {
+          merged.add(exercise.title);
+        }
+
+        // Expandir rango: tomar el menor start y mayor end
+        final existingStart = existing['start_date'] as String;
+        final existingEnd = existing['end_date'] as String;
+        final mergedStart =
+            start.compareTo(existingStart) < 0 ? start : existingStart;
+        final mergedEnd =
+            end.compareTo(existingEnd) > 0 ? end : existingEnd;
+
+        await _client.from('exercise_schedule').update({
+          'days_of_week': (mergedDays.toList()..sort()).join(','),
+          'start_date': mergedStart,
+          'end_date': mergedEnd,
+        }).eq('id', existing['id']);
+      } else {
+        // Crear nuevo schedule
+        final daysStr =
+            isWeekly ? (requestedDays.toList()..sort()).join(',') : null;
+
+        final schedule = await _client
+            .from('exercise_schedule')
+            .insert({
+              'id_user_profile': userId,
+              'id_exercise': exercise.id,
+              'id_created_by': userId,
+              'schedule_type': isWeekly ? 'weekly' : 'today',
+              'start_date': start,
+              'end_date': end,
+              'days_of_week': daysStr,
+            })
+            .select('id')
+            .single();
+
+        final scheduleId = schedule['id'] as String;
+        final type = exerciseTypeString(exercise.metricType);
+
+        await _client.from('exercise_set').insert(
+          List.generate(
+            3,
+            (i) => <String, dynamic>{
+              'id_exercise_schedule': scheduleId,
+              'set_number': i + 1,
+              'repetitions': type != 'cardio' ? 10 : null,
+              'weight': type == 'strength' ? 0.0 : null,
+              'minutes': type == 'cardio' ? 5 : null,
+              'seconds': type == 'cardio' ? 0 : null,
+              'session_date': dateStr,
+              'is_completed': false,
+            },
+          ),
+        );
+
+        created.add(exercise.title);
+      }
     }
+
+    return (merged: merged, created: created);
+  }
+
+  /// Crea un schedule + 3 sets para un ejercicio solo por hoy.
+  Future<void> scheduleForToday({
+    required String userId,
+    required Exercise exercise,
+    required DateTime date,
+  }) async {
+    final dateStr = date.toIso8601String().split('T').first;
+    final type = exerciseTypeString(exercise.metricType);
+    final schedule = await _client
+        .from('exercise_schedule')
+        .insert({
+          'id_user_profile': userId,
+          'id_exercise': exercise.id,
+          'id_created_by': userId,
+          'schedule_type': 'today',
+          'start_date': dateStr,
+          'end_date': dateStr,
+        })
+        .select('id')
+        .single();
+
+    final scheduleId = schedule['id'] as String;
+
+    await _client.from('exercise_set').insert(
+      List.generate(
+        3,
+        (i) => <String, dynamic>{
+          'id_exercise_schedule': scheduleId,
+          'set_number': i + 1,
+          'repetitions': type != 'cardio' ? 10 : null,
+          'weight': type == 'strength' ? 0.0 : null,
+          'minutes': type == 'cardio' ? 5 : null,
+          'seconds': type == 'cardio' ? 0 : null,
+          'session_date': dateStr,
+          'is_completed': false,
+        },
+      ),
+    );
+  }
+
+  /// Busca un schedule existente para el mismo ejercicio que se solape en fechas.
+  Future<Map<String, dynamic>?> _findOverlappingSchedule({
+    required String userId,
+    required String exerciseId,
+    required String startDate,
+    required String endDate,
+  }) async {
+    final rows = await _client
+        .from('exercise_schedule')
+        .select('id, days_of_week, start_date, end_date')
+        .eq('id_user_profile', userId)
+        .eq('id_exercise', exerciseId)
+        .eq('schedule_type', 'weekly')
+        .lte('start_date', endDate)
+        .gte('end_date', startDate)
+        .limit(1);
+
+    if ((rows as List).isEmpty) return null;
+    return rows.first as Map<String, dynamic>;
   }
 
   // ── Set CRUD ──────────────────────────────────────────────────────

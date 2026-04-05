@@ -15,18 +15,24 @@ class ScheduleDateResult {
 }
 
 class ScheduleDateModal extends StatefulWidget {
-  const ScheduleDateModal._();
+  const ScheduleDateModal._({this.initialResult});
+
+  final ScheduleDateResult? initialResult;
 
   /// Muestra el modal para programar fechas de rutina semanal.
   ///
+  /// [initialResult] si se pasa, pre-llena los valores para edición.
   /// Retorna [ScheduleDateResult] con los días seleccionados y el periodo,
   /// o `null` si se cierra sin confirmar.
-  static Future<ScheduleDateResult?> show(BuildContext context) {
+  static Future<ScheduleDateResult?> show(
+    BuildContext context, {
+    ScheduleDateResult? initialResult,
+  }) {
     return showModalBottomSheet<ScheduleDateResult>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const ScheduleDateModal._(),
+      builder: (_) => ScheduleDateModal._(initialResult: initialResult),
     );
   }
 
@@ -53,8 +59,15 @@ class _ScheduleDateModalState extends State<ScheduleDateModal> {
   @override
   void initState() {
     super.initState();
-    _startDate = DateTime.now();
-    _endDate = DateTime.now().add(const Duration(days: 60));
+    final initial = widget.initialResult;
+    if (initial != null) {
+      _selectedDays.addAll(initial.selectedDays);
+      _startDate = initial.startDate;
+      _endDate = initial.endDate;
+    } else {
+      _startDate = DateTime.now();
+      _endDate = DateTime.now().add(const Duration(days: 60));
+    }
   }
 
   int get _totalWeeks {
@@ -217,9 +230,14 @@ class _ScheduleDateModalState extends State<ScheduleDateModal> {
     );
   }
 
+  bool get _isEditing => widget.initialResult != null;
+
   Future<void> _pickDate({required bool isStart}) async {
     final initial = isStart ? _startDate : _endDate;
-    final firstDate = isStart ? DateTime.now() : _startDate;
+    // En modo edición permitir fechas pasadas, en creación solo desde hoy
+    final firstDate = isStart
+        ? (_isEditing ? DateTime(2020) : DateTime.now())
+        : _startDate;
     final lastDate = DateTime.now().add(const Duration(days: 365));
 
     final picked = await showDatePicker(
@@ -313,7 +331,7 @@ class _ScheduleDateModalState extends State<ScheduleDateModal> {
         AppSpacing.lg,
       ),
       child: AppButton(
-        text: 'Crear rutina',
+        text: widget.initialResult != null ? 'Actualizar rutina' : 'Crear rutina',
         icon: Icons.check,
         onPressed: _selectedDays.isEmpty
             ? null
