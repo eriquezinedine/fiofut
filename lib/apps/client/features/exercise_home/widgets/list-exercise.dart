@@ -1,15 +1,13 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
+import 'package:fio_fut/apps/client/features/exercise_home/widgets/add_exercise/add_exercise.dart';
 import 'package:fio_fut/apps/client/features/exercise_home/widgets/excercise_card/excercise_card.dart';
+import 'package:fio_fut/core/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class ListExercise extends StatelessWidget {
-  const ListExercise({
-    super.key,
-    required this.exercises,
-    this.onDelete,
-  });
+  const ListExercise({super.key, required this.exercises, this.onDelete});
 
   final List<ExerciseScheduleItem> exercises;
   final void Function(String scheduleId)? onDelete;
@@ -17,17 +15,26 @@ class ListExercise extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (exercises.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 32),
-          child: Text(
-            'No hay ejercicios programados',
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: AppColors.textMuted,
-            ),
+          child: Column(
+            spacing: 16,
+            children: [
+              OutLineButton(
+                label: 'Agregar Ejercicio',
+                onTap: () => AddExerciseModal.show(context),
+              ),
+              Text(
+                'No hay ejercicios programados',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -36,10 +43,17 @@ class ListExercise extends StatelessWidget {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: exercises.length,
+      itemCount: exercises.length + 1,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final item = exercises[index];
+        if (index == 0) {
+          return OutLineButton(
+            label: 'Agregar Ejercicio',
+            onTap: () => AddExerciseModal.show(context),
+          );
+        }
+
+        final item = exercises[index - 1];
         final card = ExerciseCard(
           item: item,
           allExercises: exercises,
@@ -58,29 +72,33 @@ class ListExercise extends StatelessWidget {
                 backgroundColor: AppColors.card,
                 title: Text(
                   'Eliminar ejercicio',
-                  style: AppTextStyles.bodyLarge
-                      .copyWith(color: AppColors.white),
+                  style: AppTextStyles.bodyLarge.copyWith(
+                    color: AppColors.white,
+                  ),
                 ),
                 content: Text(
                   'Se eliminará "${item.exerciseName}" de tu plan.',
-                  style: AppTextStyles.bodyMedium
-                      .copyWith(color: AppColors.textSecondary),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, false),
                     child: Text(
                       'Cancelar',
-                      style: AppTextStyles.caption
-                          .copyWith(color: AppColors.textMuted),
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.textMuted,
+                      ),
                     ),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, true),
                     child: Text(
                       'Eliminar',
-                      style: AppTextStyles.caption
-                          .copyWith(color: AppColors.error),
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.error,
+                      ),
                     ),
                   ),
                 ],

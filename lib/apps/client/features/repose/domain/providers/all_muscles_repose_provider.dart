@@ -1,14 +1,15 @@
+import 'package:fio_fut/apps/client/features/repose/data/repositories/offline_aware_repose_repository.dart';
+import 'package:fio_fut/apps/client/features/repose/data/repositories/repose_repository.dart';
+import 'package:fio_fut/core/constants/workout_constants.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:model/model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../presentation/widgets/repose_list_sliders/repose_list_sliders.dart';
 
 part 'all_muscles_repose_state.dart';
 
-/// Global provider that holds ALL muscles and their recovery percentages.
-///
-/// This is the single source of truth. Per-muscle slider providers
-/// sync back here after a 300ms debounce.
+/// Global provider: single source of truth para todos los musculos y su %.
 final allMusclesReposeProvider =
     NotifierProvider<AllMusclesReposeNotifier, AllMusclesReposeState>(
   AllMusclesReposeNotifier.new,
@@ -17,13 +18,57 @@ final allMusclesReposeProvider =
 class AllMusclesReposeNotifier extends Notifier<AllMusclesReposeState> {
   @override
   AllMusclesReposeState build() {
-    // TODO: Replace with repository call → load from Supabase
-    // final muscles = await ref.read(reposeRepositoryProvider).getAllMuscleRepose();
-    return AllMusclesReposeState.fromList(kFakeMuscles);
+    // Cargar fake por defecto, luego reemplazar con datos reales
+    final initial = AllMusclesReposeState.fromList(kFakeMuscles);
+
+    // Cargar desde backend async
+    Future.microtask(() => loadFromRemote());
+
+    return initial;
   }
 
-  /// Updates a single muscle's percentage.
-  /// Called by per-muscle providers after debounce.
+  /// Carga datos reales de Supabase y reemplaza el estado.
+  Future<void> loadFromRemote() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      // Flush pendientes primero
+      final offlineRepo = ref.read(offlineReposeRepoProvider);
+      await offlineRepo.flushPending(userId);
+
+      // Cargar datos frescos
+      final repo = ref.read(reposeRepositoryProvider);
+      final data = await repo.fetchAll(userId);
+
+      if (data.isEmpty) return;
+
+      final updated = Map<MuscleGroup, MuscleRepose>.from(state.muscles);
+      for (final item in data) {
+        final existing = updated[item.group];
+        if (existing != null) {
+          // Calcular recuperacion natural por tiempo transcurrido
+          final percentage = item.updatedAt != null
+              ? calculateRecoveredPercentage(
+                  storedPercentage: item.percentage,
+                  updatedAt: item.updatedAt!,
+                  muscleGroup: item.group.toJson(),
+                )
+              : item.percentage;
+
+          updated[item.group] = MuscleRepose(
+            muscle: existing.muscle,
+            percentage: percentage,
+          );
+        }
+      }
+      state = AllMusclesReposeState(muscles: updated);
+    } catch (_) {
+      // Sin internet, mantener estado actual
+    }
+  }
+
+  /// Actualiza un musculo. Solo estado local (el sync lo hace el slider provider).
   void updateMuscleProgress(MuscleGroup group, int percentage) {
     final current = state.muscles[group];
     if (current == null) return;
@@ -35,21 +80,26 @@ class AllMusclesReposeNotifier extends Notifier<AllMusclesReposeState> {
     );
 
     state = AllMusclesReposeState(muscles: updated);
-
-    // TODO: Sync to Supabase via repository
-    // ref.read(reposeRepositoryProvider).updateMuscleProgress(group, percentage);
   }
 
-  /// Reduces a muscle's recovery percentage by the given amount.
-  /// Used after completing reps (e.g., amount = reps * kFatiguePerRep).
+  /// Reduce porcentaje por fatiga (llamado desde serieDetailProvider).
   void reduceMuscleProgress(MuscleGroup group, double amount) {
     final current = state.muscles[group];
     if (current == null) return;
     final newPercentage = (current.percentage - amount).clamp(0, 100).round();
     updateMuscleProgress(group, newPercentage);
+
+    // Sync a backend con offline support
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+    ref.read(offlineReposeRepoProvider).upsertMuscleProgress(
+          userId: userId,
+          group: group,
+          percentage: newPercentage,
+        );
   }
 
-  /// Resets all muscles to 100%.
+  /// Reiniciar todos a 100%.
   void resetAll() {
     final updated = state.muscles.map(
       (group, mr) => MapEntry(
@@ -59,16 +109,8 @@ class AllMusclesReposeNotifier extends Notifier<AllMusclesReposeState> {
     );
     state = AllMusclesReposeState(muscles: updated);
 
-    // TODO: Sync reset to Supabase
-    // ref.read(reposeRepositoryProvider).resetAllMuscles();
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+    ref.read(offlineReposeRepoProvider).resetAll(userId);
   }
-
-  // TODO: Future<void> loadFromRemote() async {
-  //   final muscles = await ref.read(reposeRepositoryProvider).getAllMuscleRepose();
-  //   state = AllMusclesReposeState.fromList(muscles);
-  // }
-
-  // TODO: Future<void> syncToRemote() async {
-  //   await ref.read(reposeRepositoryProvider).saveAllMuscleRepose(state.asList);
-  // }
 }

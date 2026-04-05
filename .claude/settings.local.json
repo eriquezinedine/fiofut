@@ -23,7 +23,12 @@
       "Bash(find '/c/Users/zinedine/Desktop/Flutter projects-2026/Mis proyectos/fiofut/packages' -type f -name *.dart)",
       "Bash(node -e \":*)",
       "Bash(where.exe dart:*)",
-      "Bash(dart run:*)"
+      "Bash(dart run:*)",
+      "Bash(find 'c:/Users/zinedine/Desktop/Flutter projects-2026/Mis proyectos/fiofut/lib/apps/client/features/repose' -type f -name *.dart)",
+      "Bash(mkdir -p '/c/Users/zinedine/Desktop/Flutter projects-2026/Mis proyectos/fiofut/lib/apps/client/features/configuration_exercise/domain/models')",
+      "Bash(mkdir -p '/c/Users/zinedine/Desktop/Flutter projects-2026/Mis proyectos/fiofut/lib/apps/client/features/configuration_exercise/domain/providers/configuration_exercise_provider')",
+      "Bash(mkdir -p '/c/Users/zinedine/Desktop/Flutter projects-2026/Mis proyectos/fiofut/lib/apps/client/features/configuration_exercise/presentation/pages')",
+      "Bash(mkdir -p '/c/Users/zinedine/Desktop/Flutter projects-2026/Mis proyectos/fiofut/lib/apps/client/features/configuration_exercise/presentation/widgets')"
     ]
   },
   "enableAllProjectMcpServers": true,

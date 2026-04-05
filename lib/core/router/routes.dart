@@ -16,8 +16,10 @@ import 'package:fio_fut/apps/client/features/login/login.dart';
 import 'package:fio_fut/apps/client/features/login_google/login_google.dart';
 import 'package:fio_fut/apps/client/features/onboarding/presentation/screens/onboarding_wizard.dart';
 import 'package:fio_fut/apps/client/features/register/register.dart';
+import 'package:fio_fut/apps/client/features/repose/presentation/screens/repose_screen.dart';
 import 'package:fio_fut/apps/client/features/repose/presentation/screens/repose_slider_screen.dart';
 import 'package:fio_fut/apps/client/features/splash/presentation/screens/splash_screen.dart';
+import 'package:fio_fut/apps/client/features/configuration_exercise/presentation/pages/configuration_exercise_screen.dart';
 import 'package:fio_fut/apps/client/features/trainer_detail/presentation/screens/trainer_detail_page.dart';
 import 'package:fio_fut/apps/client/features/training_exercise/presentation/screens/training_exercise_screen.dart';
 import 'package:fio_fut/apps/trainer/trainer.dart';
@@ -112,6 +114,20 @@ List<RouteBase> buildRoutes() => [
             initialIndex: data['initialIndex'] as int,
           );
         },
+      ),
+
+      // Configuration Exercise
+      GoRoute(
+        path: ConfigurationExerciseScreen.path,
+        name: ConfigurationExerciseScreen.name,
+        builder: (context, state) => const ConfigurationExerciseScreen(),
+      ),
+
+      // Repose
+      GoRoute(
+        path: ReposeScreen.path,
+        name: ReposeScreen.name,
+        builder: (context, state) => const ReposeScreen(),
       ),
 
       // Repose Slider

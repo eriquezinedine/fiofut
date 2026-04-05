@@ -3,7 +3,7 @@ import 'package:fio_fut/apps/client/features/app_content/domain/domain.dart';
 import 'package:fio_fut/apps/client/features/app_content/presentation/widgets/app_bottom_nav_bar.dart';
 import 'package:fio_fut/apps/client/features/home/home.dart';
 import 'package:fio_fut/apps/client/features/profile/presentation/screens/profile_screen.dart';
-import 'package:fio_fut/apps/client/features/repose/presentation/screens/screens.dart';
+import 'package:fio_fut/apps/client/features/training_home/presentation/screens/training_home_screen.dart';
 import 'package:fio_fut/core/services/sync_orchestrator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -65,7 +65,7 @@ class _AppContentPageState extends ConsumerState<AppContentPage>
               physics: const NeverScrollableScrollPhysics(),
               children: const [
                 HomeScreen(),
-                ReposeScreen(),
+                TrainingHomeScreen(),
                 _PlaceholderScreen(title: 'Progreso'),
                 ProfileScreen(),
               ],

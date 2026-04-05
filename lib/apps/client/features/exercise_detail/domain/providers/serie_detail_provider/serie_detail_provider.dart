@@ -29,6 +29,7 @@ class SerieDetailNotifier
   MetricType _repiteType = MetricType.strength;
   DateTime _scheduledDate = DateTime.now();
   MuscleGroup? _muscleGroup;
+  List<MuscleGroup> _secondaryMuscles = const [];
 
   final _syncValuesDebouncer = Debouncer(milliseconds: 300);
   final _syncCompletedDebouncer = Debouncer(milliseconds: 300);
@@ -81,6 +82,8 @@ class SerieDetailNotifier
     required String scheduleId,
     required MetricType repiteType,
     required List<ExerciseSetData> series,
+    MuscleGroup? muscleGroup,
+    List<MuscleGroup> secondaryMuscles = const [],
   }) {
     final current = _loaded;
     if (current != null) return;
@@ -88,6 +91,8 @@ class SerieDetailNotifier
     final now = DateTime.now();
     _repiteType = repiteType;
     _scheduledDate = DateTime(now.year, now.month, now.day);
+    _muscleGroup = muscleGroup;
+    _secondaryMuscles = secondaryMuscles;
 
     state = SerieDetailLoaded(series: series);
   }
@@ -313,18 +318,32 @@ class SerieDetailNotifier
 
     state = current.copyWith(series: updatedSeries);
 
-    if (isCompleting && _muscleGroup != null) {
-      var totalFatigue = 0.0;
+    if (isCompleting) {
+      var totalReps = 0;
       for (var i = 0; i <= targetIndex; i++) {
         final s = current.series[i];
         if (!s.isCompleted && s.repetitions != null && s.repetitions! > 0) {
-          totalFatigue += s.repetitions! * kFatiguePerRep;
+          totalReps += s.repetitions!;
         }
       }
-      if (totalFatigue > 0) {
-        ref
-            .read(allMusclesReposeProvider.notifier)
-            .reduceMuscleProgress(_muscleGroup!, totalFatigue);
+      if (totalReps > 0) {
+        final reposeNotifier = ref.read(allMusclesReposeProvider.notifier);
+
+        // Musculo principal
+        if (_muscleGroup != null) {
+          reposeNotifier.reduceMuscleProgress(
+            _muscleGroup!,
+            totalReps * kFatiguePerRep,
+          );
+        }
+
+        // Musculos secundarios
+        for (final secondary in _secondaryMuscles) {
+          reposeNotifier.reduceMuscleProgress(
+            secondary,
+            totalReps * kFatiguePerRepSecondary,
+          );
+        }
       }
     }
 

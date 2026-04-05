@@ -7,6 +7,7 @@ import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise
 import 'package:fio_fut/apps/client/features/exercise_home/domain/model/exercise_schedule_item.dart';
 import 'package:fio_fut/apps/client/features/training_exercise/presentation/widgets/modal/edit_serie_value_modal.dart';
 import 'package:fio_fut/core/widgets/modal/set_type_modal.dart';
+import 'package:model/model.dart' show MuscleGroup;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -8,6 +8,7 @@ import 'package:fio_fut/apps/client/features/training_exercise/presentation/widg
 import 'package:fio_fut/apps/client/features/training_exercise/domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:model/model.dart' show MuscleGroup;
 
 class AllExerciseBySerie extends ConsumerWidget {
   const AllExerciseBySerie({
@@ -137,6 +138,9 @@ class AllExerciseBySerie extends ConsumerWidget {
                                                       name: e.exerciseName,
                                                       repiteType: e.metricType,
                                                       series: e.sets,
+                                                      muscleGroup: e.muscleGroup != null
+                                                          ? MuscleGroup.fromJson(e.muscleGroup!)
+                                                          : null,
                                                     ),
                                                     AddSerieButton(
                                                       scheduleId: e.scheduleId,

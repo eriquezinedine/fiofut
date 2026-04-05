@@ -9,6 +9,8 @@ class SireBody extends ConsumerStatefulWidget {
     this.onRegisterSerie,
     this.name,
     this.series = const [],
+    this.muscleGroup,
+    this.secondaryMuscles = const [],
   });
 
   final String scheduleId;
@@ -17,6 +19,8 @@ class SireBody extends ConsumerStatefulWidget {
   final VoidCallback? onRegisterSerie;
   final String? name;
   final List<ExerciseSetData> series;
+  final MuscleGroup? muscleGroup;
+  final List<MuscleGroup> secondaryMuscles;
 
   @override
   ConsumerState<SireBody> createState() => _SireBodyState();
@@ -31,6 +35,8 @@ class _SireBodyState extends ConsumerState<SireBody> {
             scheduleId: widget.scheduleId,
             repiteType: widget.repiteType,
             series: widget.series,
+            muscleGroup: widget.muscleGroup,
+            secondaryMuscles: widget.secondaryMuscles,
           );
     });
   }

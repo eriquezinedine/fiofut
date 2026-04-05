@@ -6,6 +6,7 @@ import '../../apps/client/features/exercise_home/data/local/cached_exercise.dart
 import '../../apps/client/features/exercise_home/data/local/cached_exercise_search.dart';
 import '../../apps/client/features/exercise_home/data/local/pending_schedule.dart';
 import '../../apps/client/features/exercise_home/data/local/pending_sync_operation.dart';
+import '../../apps/client/features/repose/data/local/pending_repose_sync.dart';
 import '../../apps/client/features/food_home/data/local/cached_food.dart';
 import '../../apps/client/features/onboarding/data/local/cached_ingredient.dart';
 import '../../apps/client/features/onboarding/data/local/cached_search_result.dart';
@@ -21,6 +22,7 @@ Future<Isar> initIsar() async {
       CachedExerciseSearchSchema,
       PendingScheduleSchema,
       PendingSyncOperationSchema,
+      PendingReposeSyncSchema,
     ],
     directory: dir.path,
   );

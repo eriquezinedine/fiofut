@@ -49,19 +49,16 @@ class ExerciseScheduleItem {
   MetricType get metricType => typeExercise ?? MetricType.strength;
 
   static MetricType? _parseMetricType(String? type) => switch (type) {
-        'cardio' => MetricType.cardio,
-        'strength' => MetricType.strength,
-        'reps' => MetricType.reps,
-        _ => null,
-      };
+    'cardio' => MetricType.cardio,
+    'strength' => MetricType.strength,
+    'reps' => MetricType.reps,
+    _ => null,
+  };
 
   /// Parses a muscle_group string to [MuscleGroup] enum.
   static MuscleGroup _parseMuscleGroup(String? group) {
     if (group == null) return MuscleGroup.chest;
-    return MuscleGroup.values.firstWhere(
-      (e) => e.name == group,
-      orElse: () => MuscleGroup.chest,
-    );
+    return MuscleGroup.fromJson(group);
   }
 
   /// Converts this schedule item to a client [Exercise] for navigation.
@@ -86,8 +83,8 @@ class ExerciseScheduleItem {
       status: isCompleted
           ? ExerciseStatus.completed
           : completedSets > 0
-              ? ExerciseStatus.inProgress
-              : ExerciseStatus.pending,
+          ? ExerciseStatus.inProgress
+          : ExerciseStatus.pending,
     );
   }
 
@@ -142,10 +139,11 @@ class ExerciseScheduleItem {
       exerciseImageUrl: exercise?['url_img_exercise'] as String?,
       exerciseVideoUrl: exercise?['url_video_exercise'] as String?,
       typeExercise: _parseMetricType(exercise?['type_exercise'] as String?),
-      sets: setsData
-          .map((s) => ExerciseSetData.fromJson(s as Map<String, dynamic>))
-          .toList()
-        ..sort((a, b) => a.setNumber.compareTo(b.setNumber)),
+      sets:
+          setsData
+              .map((s) => ExerciseSetData.fromJson(s as Map<String, dynamic>))
+              .toList()
+            ..sort((a, b) => a.setNumber.compareTo(b.setNumber)),
       daysOfWeek: json['days_of_week'] as String?,
       startDate: json['start_date'] != null
           ? DateTime.parse(json['start_date'] as String)
@@ -170,10 +168,10 @@ enum SetType {
   dropset;
 
   static SetType fromString(String? value) => switch (value) {
-        'warmup' => SetType.warmup,
-        'dropset' => SetType.dropset,
-        _ => SetType.normal,
-      };
+    'warmup' => SetType.warmup,
+    'dropset' => SetType.dropset,
+    _ => SetType.normal,
+  };
 }
 
 @immutable
@@ -208,7 +206,8 @@ class ExerciseSetData {
 
   bool canComplete(MetricType type) {
     return switch (type) {
-      MetricType.strength => (repetitions != null && repetitions! > 0) && weight != null,
+      MetricType.strength =>
+        (repetitions != null && repetitions! > 0) && weight != null,
       MetricType.cardio =>
         (minutes != null || seconds != null) &&
             ((minutes ?? 0) > 0 || (seconds ?? 0) > 0) &&
@@ -282,7 +281,16 @@ class ExerciseSetData {
           setType == other.setType;
 
   @override
-  int get hashCode => Object.hash(id, setNumber, repetitions, weight, minutes, seconds, status, setType);
+  int get hashCode => Object.hash(
+    id,
+    setNumber,
+    repetitions,
+    weight,
+    minutes,
+    seconds,
+    status,
+    setType,
+  );
 
   @override
   String toString() =>

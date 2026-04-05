@@ -46,10 +46,10 @@ class AppBottomNavBar extends StatelessWidget {
               isSelected: currentIndex == 0,
               onTap: () => onTap(0),
             ),
-            // Rutina
+            // Entrenamiento
             _NavItem(
-              icon: LucideIcons.dumbbell,
-              label: 'Reposo',
+              icon: LucideIcons.swords,
+              label: 'Entreno',
               isSelected: currentIndex == 1,
               onTap: () => onTap(1),
             ),
